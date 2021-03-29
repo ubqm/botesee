@@ -5,16 +5,13 @@ TOKEN = ''
 with open('token.txt', 'r') as file:
     TOKEN = file.read()
 
-authors = ['Ayudesee#9410', 'Huginn#4160', 'Hawk#1975', '-NAPAD#1705', 'DG アニメ#4612', 'gOOgle#4515', 'PiQa#4459',
-           'Exclus1ve_#5197']
-# <RawReactionActionEvent message_id=825443973366546442 user_id=112698229040177152 channel_id=506178772819771404 guild_id=506178772819771402 emoji=<PartialEmoji animated=False name='👎' id=None> event_type='REACTION_ADD' member=<Member id=112698229040177152 name='Ayudesee' discriminator='9410' bot=False nick=None guild=<Guild id=506178772819771402 name='Chill' shard_id=None chunked=False member_count=5>>>
-
 
 class MyClient(discord.Client):
+    roles_that_cant_vote = ['@everyone']
+
     async def on_ready(self):
-        for _ in self.guilds:
-            print(f'Logged on as {self.user}, server: {_.name}, guild_id:{_.id}')
-        print('')
+        for guild in self.guilds:
+            print(f'Logged on as {self.user}, server: {guild.name}, guild_id:{guild.id}')
 
     async def on_message(self, message):
         print(f'New message from {message.author}: {message.content}')
@@ -22,22 +19,36 @@ class MyClient(discord.Client):
             await message.add_reaction('👍')
             await message.add_reaction('👎')
 
-
     async def on_raw_reaction_add(self, payload):
         upvotes = 0
         downvotes = 0
+        users_upvote = []
+        users_downvote = []
         if payload.emoji.name == '👍' or payload.emoji.name == '👎':
             print(payload)
             channel = Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            print(f'Message by: {message.author}, Emoji {payload.emoji} added by:{payload.member}, Message: {message.content}')
+            print(f'Emoji {payload.emoji} added by:{payload.member}, Message by: {message.author}, Message: {message.content}')
+
             for _ in message.reactions:
                 if _.emoji == '👍':
-                    upvotes = _.count
-                    print(f'Upvotes:{upvotes}')
-                if _.emoji == '👎':
-                    downvotes = _.count
-                    print(f'Downvotes:{downvotes}')
+                    users_upvote = await _.users().flatten()
+                elif _.emoji == '👎':
+                    users_downvote = await _.users().flatten()
+
+            for user in users_upvote:
+                for role in user.roles:
+                    if role.name != '@everyone':
+                        upvotes += 1
+                        break
+
+            for user in users_downvote:
+                for role in user.roles:
+                    if role.name != '@everyone':
+                        downvotes += 1
+                        break
+
+            print(f'Upvotes/Downvotes = {upvotes}/{downvotes}')
             if upvotes < downvotes - 2:
                 await message.delete()
                 print(f'*** Message "{message.content}" deleted with {upvotes} Upvotes, {downvotes} Downvotes, message_id:{message.id}')
@@ -46,24 +57,41 @@ class MyClient(discord.Client):
     async def on_raw_reaction_remove(self, payload):
         upvotes = 0
         downvotes = 0
+        users_upvote = []
+        users_downvote = []
         if payload.emoji.name == '👍' or payload.emoji.name == '👎':
             print(payload)
             channel = Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            print(f'Message by: {message.author}, Emoji {payload.emoji} removed by:{payload.member}, Message: {message.content}')
+            print(
+                f'Emoji {payload.emoji} added by:{payload.member}, Message by: {message.author}, Message: {message.content}')
+
             for _ in message.reactions:
                 if _.emoji == '👍':
-                    upvotes = _.count
-                if _.emoji == '👎':
-                    downvotes = _.count
+                    users_upvote = await _.users().flatten()
+                elif _.emoji == '👎':
+                    users_downvote = await _.users().flatten()
 
-            print(f'Upvotes:{upvotes}')
-            print(f'Downvotes:{downvotes}')
+            for user in users_upvote:
+                for role in user.roles:
+                    if role.name != '@everyone':
+                        upvotes += 1
+                        break
+
+            for user in users_downvote:
+                for role in user.roles:
+                    if role.name != '@everyone':
+                        downvotes += 1
+                        break
+
+            print(f'Upvotes/Downvotes = {upvotes}/{downvotes}')
             if upvotes < downvotes - 2:
                 await message.delete()
-                print(f'*** Message "{message.content}" deleted with {upvotes} Upvotes, {downvotes} Downvotes, message_id:{message.id}')
+                print(
+                    f'*** Message "{message.content}" deleted with {upvotes} Upvotes, {downvotes} Downvotes, message_id:{message.id}')
             print(' ')
 
 
-client = MyClient()
+intents = discord.Intents.all()
+client = MyClient(intents=intents)
 client.run(TOKEN)
