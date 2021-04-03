@@ -15,7 +15,7 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f'New message from {message.author}: {message.content}')
-        if message.attachments:
+        if message.attachments or message.embeds:
             await message.add_reaction('👍')
             await message.add_reaction('👎')
 
