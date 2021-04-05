@@ -1,4 +1,5 @@
 import discord
+import os
 from discord import Client
 from flask import Flask, request, Response
 from threading import Thread
@@ -108,7 +109,8 @@ if __name__ == '__main__':
     intents = discord.Intents.all()
     client = MyClient(intents=intents)
 
-    partial_run = partial(app.run, host='0.0.0.0', debug=True, use_reloader=False)
+    port = int(os.environ.get('PORT', 5000))
+    partial_run = partial(app.run, host='0.0.0.0', port=port)
 
     t = Thread(target=partial_run)
     t.start()
