@@ -108,7 +108,7 @@ if __name__ == '__main__':
     intents = discord.Intents.all()
     client = MyClient(intents=intents)
 
-    partial_run = partial(app.run, host="0.0.0.0", port=80, debug=True, use_reloader=False)
+    partial_run = partial(app.run, debug=True, use_reloader=False)
 
     t = Thread(target=partial_run)
     t.start()
