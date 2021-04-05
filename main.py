@@ -12,15 +12,15 @@ with open('token.txt', 'r') as file:
 app = Flask(__name__)
 
 
-@app.route('match_object_created', methods=['POST'])
-def respond():
+@app.route('/match_object_created', methods=['POST'])
+def respond_object_created():
     print(request.json)
     print('respond match_object_created function called')
     return Response(status=200)
 
 
-@app.route('match_status_finished', methods=['POST'])
-def respond():
+@app.route('/match_status_finished', methods=['POST'])
+def respond_status_finished():
     print(request.json)
     print('respond match_status_finished function called')
     return Response(status=200)
