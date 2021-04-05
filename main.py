@@ -1,9 +1,21 @@
 import discord
 from discord import Client
+from flask import Flask, request, Response
+from threading import Thread
+from functools import partial
 
 TOKEN = ''
 with open('token.txt', 'r') as file:
     TOKEN = file.read()
+
+app = Flask(__name__)
+
+
+@app.route('/', methods=['POST'])
+def respond():
+    print(request.json)
+    print('respond function called')
+    return Response(status=200)
 
 
 class MyClient(discord.Client):
@@ -64,7 +76,7 @@ class MyClient(discord.Client):
             channel = Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             print(
-                f'Emoji {payload.emoji} added by:{payload.member}, Message by: {message.author}, Message: {message.content}')
+                f'Emoji {payload.emoji} removed by:{payload.member}, Message by: {message.author}, Message: {message.content}')
 
             for _ in message.reactions:
                 if _.emoji == '👍':
@@ -92,6 +104,13 @@ class MyClient(discord.Client):
             print(' ')
 
 
-intents = discord.Intents.all()
-client = MyClient(intents=intents)
-client.run(TOKEN)
+if __name__ == '__main__':
+    intents = discord.Intents.all()
+    client = MyClient(intents=intents)
+
+    partial_run = partial(app.run, host="0.0.0.0", port=80, debug=True, use_reloader=False)
+
+    t = Thread(target=partial_run)
+    t.start()
+
+    client.run(TOKEN)
