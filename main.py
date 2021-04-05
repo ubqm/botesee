@@ -26,6 +26,13 @@ def respond_status_finished():
     return Response(status=200)
 
 
+@app.route('/', methods=['POST'])
+def respond_default():
+    print(request.json)
+    print('respond match_object_created function called')
+    return Response(status=200)
+
+
 class MyClient(discord.Client):
     roles_that_cant_vote = ['@everyone']
 
