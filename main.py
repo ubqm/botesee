@@ -12,6 +12,13 @@ with open('token.txt', 'r') as file:
 app = Flask(__name__)
 
 
+@app.route('/', methods=['GET'])
+def respond_default_get():
+    # print(request.json)
+    # print('GET respond_default_get function called')
+    return Response(status=200)
+
+
 @app.route('/match_object_created', methods=['POST'])
 def respond_object_created():
     print(request.json)
