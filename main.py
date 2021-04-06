@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def respond_default_get():
-    loop.create_task(bot_client.post_faceit_message_ready(channel_id=828940900033626113, request_json=request.json))
+    #для тестов на своей машине loop.create_task(bot_client.post_faceit_message_ready(channel_id=828940900033626113, request_json=request.json))
     return Response(status=200)
 
 
@@ -154,8 +154,7 @@ class MyClient(discord.Client):
     async def post_faceit_message_finished(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
 
-        embed_msg = discord.Embed(title="Match Finished", type="rich", description=f'{0}'.format(request_json['payload']['entity']['id']),
-                                  color=9936031)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
+        embed_msg = discord.Embed(title="Match Finished", type="rich", description=f'{0}'.format(request_json['payload']['entity']['id']), color=9936031)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
         str_nick1 = ''
         str_nick2 = ''
 
