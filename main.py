@@ -137,7 +137,7 @@ class MyClient(discord.Client):
     async def post_faceit_message_ready(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
 
-        embed_msg = discord.Embed(title="Match Ready", type="rich", description=f'{0}'.format(request_json['payload']['entity']['id']), color=9936031)  #DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
+        embed_msg = discord.Embed(title="Match Ready", type="rich", description='{}'.format(request_json['payload']['entity']['id']), color=9936031)  #DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
         str_nick1 = ''
         str_nick2 = ''
 
@@ -154,7 +154,7 @@ class MyClient(discord.Client):
     async def post_faceit_message_finished(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
 
-        embed_msg = discord.Embed(title="Match Finished", type="rich", description=f'{0}'.format(request_json['payload']['entity']['id']), color=9936031)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
+        embed_msg = discord.Embed(title="Match Finished", type="rich", description='{}'.format(request_json['payload']['entity']['id']), color=9936031)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
         str_nick1 = ''
         str_nick2 = ''
 
@@ -164,7 +164,6 @@ class MyClient(discord.Client):
 
         embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
-        embed_msg.add_field(name='', value=' ', inline=False)
 
         await channel.send(embed=embed_msg)
         return 0
