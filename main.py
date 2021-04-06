@@ -251,7 +251,8 @@ class MyClient(discord.Client):
         channel = self.get_channel(id=channel_id)
         my_color = 9936031
         embed_msg = discord.Embed(title="Match Ready", type="rich",
-                                  description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(request_json['payload']['id'], request_json['payload']['id']),
+                                  description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
+                                      request_json['payload']['id'], request_json['payload']['id']),
                                   color=my_color)
         str_nick1 = ''
         str_nick2 = ''
@@ -266,14 +267,14 @@ class MyClient(discord.Client):
         return 0
 
     async def post_faceit_message_finished(self, channel_id, request_json):
-        players = ['ad42c90b-45a9-49b6-8ab0-9c8662330543',
-                   '278790a2-1f08-4350-bd96-427f7dcc8722',
-                   '18e2a663-9e20-4db9-8b29-3c3cbdff30ac',
-                   '8cbb0b36-4c6b-4ebd-a92b-829234016626',
-                   'e1cddcbb-afdc-4e8e-abf2-eea5638f0363',
-                   '9da3572e-1960-4ba0-bd3c-d38ef34c1f1c',
-                   'b8e5cd07-1b43-4203-9173-465fddcd391f',
-                   '4e7d1f6c-9045-4800-8eda-23c892dcd814']
+        sub_players = ['ad42c90b-45a9-49b6-8ab0-9c8662330543',
+                       '278790a2-1f08-4350-bd96-427f7dcc8722',
+                       '18e2a663-9e20-4db9-8b29-3c3cbdff30ac',
+                       '8cbb0b36-4c6b-4ebd-a92b-829234016626',
+                       'e1cddcbb-afdc-4e8e-abf2-eea5638f0363',
+                       '9da3572e-1960-4ba0-bd3c-d38ef34c1f1c',
+                       'b8e5cd07-1b43-4203-9173-465fddcd391f',
+                       '4e7d1f6c-9045-4800-8eda-23c892dcd814']
         str_nick1 = ''
         str_nick2 = ''
         stats1 = ''
@@ -284,11 +285,11 @@ class MyClient(discord.Client):
         channel = self.get_channel(id=channel_id)
         statistics = match_stats(request_json['payload']['id'])
 
-        for team in range(0, 2):
-            for player in range(0, 5):
-                for _ in players:
-                    if statistics['rounds'][0]['teams'][team]['players'][player]['player_id'] == _:
-                        if statistics['rounds'][0]['teams'][team]['team_stats']['Team Win'] == 1:
+        for team in statistics['rounds'][0]['teams']:
+            for player in team['players']:
+                for idx in sub_players:
+                    if player['player_id'] == idx:
+                        if team['team_stats']['Team Win'] == 1:
                             my_color = 2067276
                             break
                         else:
@@ -305,19 +306,19 @@ class MyClient(discord.Client):
             str_nick2 += '{:>15}\n'.format(request_json['payload']['teams'][1]['roster'][player]['nickname'])
 
             stats1 += '({}/{} | {})\n'.format(
-                statistics['rounds'][0]['teams'][0]['players'][player]['player_stats']['Kills'],
-                statistics['rounds'][0]['teams'][0]['players'][player]['player_stats']['Deaths'],
-                statistics['rounds'][0]['teams'][0]['players'][player]['player_stats']['K/D Ratio'])
+                statistics['rounds'][0]['teams'][0]['sub_players'][player]['player_stats']['Kills'],
+                statistics['rounds'][0]['teams'][0]['sub_players'][player]['player_stats']['Deaths'],
+                statistics['rounds'][0]['teams'][0]['sub_players'][player]['player_stats']['K/D Ratio'])
             stats2 += '({}/{} | {})\n'.format(
-                statistics['rounds'][0]['teams'][1]['players'][player]['player_stats']['Kills'],
-                statistics['rounds'][0]['teams'][1]['players'][player]['player_stats']['Deaths'],
-                statistics['rounds'][0]['teams'][1]['players'][player]['player_stats']['K/D Ratio'])
+                statistics['rounds'][0]['teams'][1]['sub_players'][player]['player_stats']['Kills'],
+                statistics['rounds'][0]['teams'][1]['sub_players'][player]['player_stats']['Deaths'],
+                statistics['rounds'][0]['teams'][1]['sub_players'][player]['player_stats']['K/D Ratio'])
             mvphs1 += '({} | {})\n'.format(
-                statistics['rounds'][0]['teams'][0]['players'][player]['player_stats']['MVPs'],
-                statistics['rounds'][0]['teams'][0]['players'][player]['player_stats']['Headshots %'])
+                statistics['rounds'][0]['teams'][0]['sub_players'][player]['player_stats']['MVPs'],
+                statistics['rounds'][0]['teams'][0]['sub_players'][player]['player_stats']['Headshots %'])
             mvphs2 += '({} | {})\n'.format(
-                statistics['rounds'][0]['teams'][1]['players'][player]['player_stats']['MVPs'],
-                statistics['rounds'][0]['teams'][1]['players'][player]['player_stats']['Headshots %'])
+                statistics['rounds'][0]['teams'][1]['sub_players'][player]['player_stats']['MVPs'],
+                statistics['rounds'][0]['teams'][1]['sub_players'][player]['player_stats']['Headshots %'])
 
         embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][0]['team_stats']['Final Score'],
                             value=str_nick1, inline=True)
