@@ -149,6 +149,7 @@ class MyClient(discord.Client):
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
         #embed_msg.add_field(name='playername1', value='10', inline=False)
         await channel.send(embed=embed_msg)
+        return 0
 
     async def post_faceit_message_finished(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
@@ -167,9 +168,10 @@ class MyClient(discord.Client):
         embed_msg.add_field(name='', value=' ', inline=False)
 
         await channel.send(embed=embed_msg)
+        return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
-        pass
+        return 0
 
 
 if __name__ == '__main__':
