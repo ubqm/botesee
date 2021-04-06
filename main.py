@@ -19,24 +19,24 @@ def respond_default_get():
     return Response(status=200)
 
 
-@app.route('/match_object_created', methods=['POST'])
+@app.route('https://botesee.herokuapp.com/match_status_ready', methods=['POST'])
 def respond_object_created():
     print(request.json)
-    print('respond match_object_created function called')
+    print('respond match_status_ready function called')
     return Response(status=200)
 
 
-@app.route('/match_status_finished', methods=['POST'])
+@app.route('https://botesee.herokuapp.com/match_status_finished', methods=['POST'])
 def respond_status_finished():
     print(request.json)
     print('respond match_status_finished function called')
     return Response(status=200)
 
 
-@app.route('/', methods=['POST'])
-def respond_default():
+@app.route('https://botesee.herokuapp.com/match_status_aborted', methods=['POST'])
+def respond_status_finished():
     print(request.json)
-    print('respond match_object_created function called')
+    print('respond match_status_aborted function called')
     return Response(status=200)
 
 
