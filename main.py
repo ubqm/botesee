@@ -20,7 +20,7 @@ def respond_default_get():
 
 
 @app.route('/match_status_ready', methods=['POST'])
-def respond_object_created():
+def respond_status_ready():
     print(request.json)
     print('respond match_status_ready function called')
     return Response(status=200)
@@ -34,7 +34,7 @@ def respond_status_finished():
 
 
 @app.route('/match_status_aborted', methods=['POST'])
-def respond_status_finished():
+def respond_status_aborted():
     print(request.json)
     print('respond match_status_aborted function called')
     return Response(status=200)
