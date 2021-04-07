@@ -311,7 +311,7 @@ class MyClient(discord.Client):
                 player['player_stats']['MVPs'],
                 player['player_stats']['Headshots %'])
 
-        for player in statistics['rounds'][0]['teams'][0]['players']:
+        for player in statistics['rounds'][0]['teams'][1]['players']:
             str_nick2 += '{}\n'.format(player['nickname'])
             stats2 += '({}/{} | {})\n'.format(
                 player['player_stats']['Kills'],
