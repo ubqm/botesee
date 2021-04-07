@@ -301,7 +301,7 @@ class MyClient(discord.Client):
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=my_color)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
 
-        for player in request_json['payload']['teams'][0]['roster']:
+        for player in statistics['rounds'][0]['teams'][0]['players']:
             str_nick1 += '{}\n'.format(player['nickname'])
             stats1 += '({}/{} | {})\n'.format(
                 player['player_stats']['Kills'],
@@ -311,7 +311,7 @@ class MyClient(discord.Client):
                 player['player_stats']['MVPs'],
                 player['player_stats']['Headshots %'])
 
-        for player in request_json['payload']['teams'][1]['roster']:
+        for player in statistics['rounds'][0]['teams'][0]['players']:
             str_nick2 += '{}\n'.format(player['nickname'])
             stats2 += '({}/{} | {})\n'.format(
                 player['player_stats']['Kills'],
