@@ -169,7 +169,7 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         print(f'New message from {message.author}: {message.content}')
         if message.author.id != 825393722186924112:
-            if message.attachments or message.embeds or message.content.includes('https://') or message.content.includes('http://'):
+            if message.attachments or message.embeds or (message.content.find('https://') != -1) or (message.content.find('http://') != -1):
                 await message.add_reaction('👍')
                 await message.add_reaction('👎')
 
