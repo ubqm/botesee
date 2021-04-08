@@ -333,15 +333,6 @@ class MyClient(discord.Client):
         await channel.send(embed=embed_msg)
         return 0
 
-    async def delete_message_by_faceit_match_id(self, match_id):
-        channel = Client.get_channel(self, 828940900033626113)
-        messages = await channel.history(limit=10).flatten()
-        for message in messages:
-            if message.embeds:
-                if match_id in message.embeds[0].description:
-                    await message.delete()
-                    break
-
     async def post_faceit_message_aborted(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
         my_color = 1
@@ -361,6 +352,15 @@ class MyClient(discord.Client):
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         await channel.send(embed=embed_msg)
         return 0
+
+    async def delete_message_by_faceit_match_id(self, match_id):
+        channel = Client.get_channel(self, 828940900033626113)
+        messages = await channel.history(limit=10).flatten()
+        for message in messages:
+            if message.embeds:
+                if match_id in message.embeds[0].description:
+                    await message.delete()
+                    break
 
     async def post_faceit_test_finished(self, channel_id, request_json):
         pass
