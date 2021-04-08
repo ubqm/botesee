@@ -344,10 +344,21 @@ class MyClient(discord.Client):
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
+        my_color = 1
         embed_msg = discord.Embed(title="Match Aborted", type="rich",
                                   description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
                                       request_json['payload']['id'], request_json['payload']['id']),
-                                  color=1)
+                                  color=my_color)
+        str_nick1 = ''
+        str_nick2 = ''
+
+        for player in range(0, 5):
+            str_nick1 += str(request_json['payload']['teams'][0]['roster'][player]['nickname']) + '\n'
+            str_nick2 += str(request_json['payload']['teams'][1]['roster'][player]['nickname']) + '\n'
+
+        embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
+        embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
+        await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         await channel.send(embed=embed_msg)
         return 0
 
