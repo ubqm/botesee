@@ -338,7 +338,7 @@ class MyClient(discord.Client):
         messages = await channel.history(limit=10).flatten()
         for message in messages:
             if message.embeds:
-                if match_id in message.embeds[0]:
+                if match_id in message.embeds[0].description:
                     await message.delete()
                     break
 
