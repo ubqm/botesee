@@ -8,7 +8,7 @@ from flask import Flask, request, Response
 from threading import Thread
 from functools import partial
 
-# test channel channel_id=828914045113335819 guild_id=328985007412740107
+
 TOKEN = ''
 with open('token.txt', 'r') as file:
     TOKEN = file.read()
@@ -169,7 +169,7 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         print(f'New message from {message.author}: {message.content}')
         if message.author.id != 825393722186924112:
-            if message.attachments or message.embeds:
+            if message.attachments or message.embeds or message.content.includes('https://') or message.content.includes('http://'):
                 await message.add_reaction('👍')
                 await message.add_reaction('👎')
 
