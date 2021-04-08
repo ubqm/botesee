@@ -289,7 +289,7 @@ class MyClient(discord.Client):
             for player in team['players']:
                 for idx in sub_players:
                     if player['player_id'] == idx:
-                        if team['team_stats']['Team Win'] == 1:
+                        if team['team_stats']['Team Win'] == '1':
                             my_color = 2067276
                             break
                         else:
