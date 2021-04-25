@@ -371,6 +371,7 @@ if __name__ == '__main__':
     bot_client = MyClient(intents=intents)
 
     port = int(os.environ.get('PORT', 5000))
+    print(f'variable port:{port}')
     partial_run = partial(app.run, host='0.0.0.0', port=port)
 
     t = Thread(target=partial_run)
