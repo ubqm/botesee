@@ -2,3 +2,4 @@ discord~=1.0.1
 flask~=1.1.2
 ipython~=7.16.0
 requests~=2.25.1
+Pillow~=8.4.0

@@ -40,10 +40,17 @@ def collect_image(request_json, stat_json):
                 avatar_req = requests.get(request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'], stream=True)
                 avatar_img = Image.open(avatar_req.raw)
                 avatar_img = avatar_img.resize((130, 130))
+                faceitlvl = request_json['payload']['teams'][idx_team]['roster'][idx_player]['game_skill_level']
                 if idx_team == 0:
                     avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
+                    avatar_img.paste(Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
+                                     (0, 0),
+                                     Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                 else:
                     avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
+                    avatar_img.paste(Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
+                                     (0, 0),
+                                     Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                 draw_avatar = ImageDraw.Draw(avatar_img)
 
                 w, h = draw.textsize(request_json['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
