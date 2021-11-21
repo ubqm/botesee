@@ -226,4 +226,4 @@ for idx_round, round in enumerate(stats['rounds']):
     w, h = draw.textsize(round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
     draw.text(((146 - w) / 2, 425), round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
 
-    img1.show()
+    img1.save('test.png')

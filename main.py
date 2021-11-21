@@ -1,6 +1,7 @@
 import discord
 import os
 
+from io import BytesIO
 from imageCollector import collect_image
 from faceit_get_funcs import match_stats
 from IPython.terminal.pt_inputhooks.asyncio import loop
@@ -333,7 +334,11 @@ class MyClient(discord.Client):
         image_list = collect_image(request_json, statistics)
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         for image in image_list:
-            await channel.send(file=discord.File(image))
+            with BytesIO() as image_binary:
+                image.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                await channel.send('https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']),
+                                   file=discord.File(fp=image_binary, filename='image.png'))
         return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
