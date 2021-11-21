@@ -286,8 +286,10 @@ class MyClient(discord.Client):
         channel = self.get_channel(id=channel_id)
         statistics = match_stats(request_json['payload']['id'])
 
-        # for team in statistics['rounds'][0]['teams']:
-        #     for player in team['players']:
+        str_nick = ''
+        for team in statistics['rounds'][0]['teams']:
+            for player in team['players']:
+                str_nick += '{}, '.format(player['nickname'])
         #         for idx in sub_players:
         #             if player['player_id'] == idx:
         #                 if team['team_stats']['Team Win'] == '1':
@@ -337,7 +339,8 @@ class MyClient(discord.Client):
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                await channel.send('https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']),
+                await channel.send('https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']) + ','
+                                   + str_nick + statistics['rounds'][0]['round_stats']['Map'],
                                    file=discord.File(fp=image_binary, filename='image.png'))
         return 0
 
