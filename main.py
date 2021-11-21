@@ -1,6 +1,7 @@
 import discord
 import os
 
+from imageCollector import collect_image
 from faceit_get_funcs import match_stats
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
