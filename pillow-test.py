@@ -129,57 +129,35 @@ request_json_test = {'transaction_id': '7bf8485f-8a20-42f6-8064-9811d7f63e35', '
                                  'updated_at': '2021-04-05T22:28:53Z', 'started_at': '2021-04-05T21:24:35Z',
                                  'finished_at': '2021-04-05T22:28:53Z'}}
 
-# print(request_json_test['payload']['teams'][0]['roster'][0]['avatar'])
-
-# dark_middle = Image.open('templates/dark-middle2.png')
-# img1 = Image.open(f'maps/{stats["rounds"][0]["round_stats"]["Map"]}.jpg')
-# if stats['payload']['teams'][0]['team_stats']['Team Win'] == 1:
-#     img2 = Image.open('templates/Win-top.png')
-#     img3 = Image.open('templates/Lose-bot.png')
-# else:
-#     img2 = Image.open('templates/Lose-top.png')
-#     img3 = Image.open('templates/Win-bot.png')
-
-
-# img1.paste(img2, (0, 0), img2)
-# img1.paste(img3, (0, 0), img3)
-
-# response = requests.get(request_json_test['payload']['teams'][0]['roster'][0]['avatar'], stream=True)
-
-# for idx_team, team in enumerate(request_json_test['payload']['teams']):
-#     for idx_player, player in enumerate(team['roster']):
-#         avatar_req = requests.get(player['avatar'], stream=True)
-#         avatar_img = Image.open(avatar_req.raw)
-#         avatar_img = avatar_img.resize((130, 130))
-#         draw_avatar = ImageDraw.Draw(avatar_img)
-#         draw_avatar.text((0, 105 - idx_team * 105), player['nickname'], font_avs=font_avs)
-#         img1.paste(avatar_img, (146 + idx_player * 162, 20 + 370 * idx_team))
-
 font_folder = 'outfit'
-font_file = 'Outfit-Bold.ttf'
+font_file = 'Outfit-SemiBold.ttf'
+font_file_mainscore = 'Outfit-ExtraBold.ttf'
 
 
 font_avs = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 18)
-font_mainscore = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 50)
+font_mainscore = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file_mainscore}', 50)
 font_player_score = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 32)
 font_player_stats = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
 font_halftimes = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
 
-dark_avatar_bot = Image.open('templates/for_avatar_bot.png')
+dark_avatar_bot = Image.open('templates/background_features/for_avatar_bot.png')
 faceit = Image.open('templates/faceit_icons/faceit1.png').convert("RGBA")
-dark_avatar_top= Image.open('templates/for_avatar_top.png')
+steam_question = Image.open('templates/question-mark-icon.jpg')
+steam_question = steam_question.resize((130, 130))
+dark_avatar_top= Image.open('templates/background_features/for_avatar_top.png')
 for idx_round, round in enumerate(stats['rounds']):
-    img1 = Image.open(f'maps/{round["round_stats"]["Map"]}.jpg')
+    img1 = Image.open(f'templates/maps/{round["round_stats"]["Map"]}.jpg')
+    img1 = img1.resize((960, 540))
     draw = ImageDraw.Draw(img1)
     if round['teams'][0]['team_stats']['Team Win'] == '1':
-        img2 = Image.open('templates/Win-topleft.png')
-        img3 = Image.open('templates/Lose-botleft.png')
+        img2 = Image.open('templates/background_features/Win-topleft.png')
+        img3 = Image.open('templates/background_features/Lose-botleft.png')
     else:
-        img2 = Image.open('templates/Lose-topleft.png')
-        img3 = Image.open('templates/Win-botleft.png')
+        img2 = Image.open('templates/background_features/Lose-topleft.png')
+        img3 = Image.open('templates/background_features/Win-botleft.png')
     img1.paste(img2, (0, 0), img2)
     img1.paste(img3, (0, 0), img3)
-    dark_middle = Image.open('templates/dark-middle2.png')
+    dark_middle = Image.open('templates/background_features/dark-middle2.png')
     img1.paste(dark_middle, (0, 0), dark_middle)
     for idx_team, team in enumerate(round['teams']):
         if 'Overtime score' in team['team_stats'].keys():
@@ -208,8 +186,9 @@ for idx_round, round in enumerate(stats['rounds']):
                 draw_avatar.text((0, 107 - idx_team * 107), request_json_test['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
             else:
                 draw_avatar.text(((130 - w) / 2, 107 - idx_team * 107), request_json_test['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
-            img1.paste(avatar_img, (146 + idx_player * 162, 20 + 370 * idx_team))
 
+            img1.paste(steam_question, (146 + idx_player * 162, 20 + 370 * idx_team))
+            img1.paste(avatar_img, (146 + idx_player * 162, 20 + 370 * idx_team))
 
             kad = f'{player["player_stats"]["Kills"]}/{player["player_stats"]["Assists"]}/{player["player_stats"]["Deaths"]}'
             w, h = draw.textsize(kad, font=font_player_score)
@@ -226,4 +205,4 @@ for idx_round, round in enumerate(stats['rounds']):
     w, h = draw.textsize(round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
     draw.text(((146 - w) / 2, 425), round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
 
-    img1.save('test.png')
+    img1.show()

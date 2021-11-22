@@ -7,27 +7,31 @@ def collect_image(request_json, stat_json):
     image_list = []
     font_folder = 'outfit'
     font_file = 'Outfit-Bold.ttf'
+    font_file_mainscore = 'Outfit-ExtraBold.ttf'
 
     font_avs = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 18)
-    font_mainscore = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 50)
+    font_mainscore = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file_mainscore}', 50)
     font_player_score = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 32)
     font_player_stats = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
     font_halftimes = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
 
-    dark_avatar_bot = Image.open('templates/for_avatar_bot.png')
-    dark_avatar_top= Image.open('templates/for_avatar_top.png')
+    steam_question = Image.open('templates/question-mark-icon.jpg')
+    steam_question = steam_question.resize((130, 130))
+    dark_avatar_bot = Image.open('templates/background_features/for_avatar_bot.png')
+    dark_avatar_top = Image.open('templates/background_features/for_avatar_top.png')
     for idx_round, round in enumerate(stat_json['rounds']):
-        img1 = Image.open(f'maps/{round["round_stats"]["Map"]}.jpg')
+        img1 = Image.open(f'templates/maps/{round["round_stats"]["Map"]}.jpg')
+        img1 = img1.resize((960, 540))
         draw = ImageDraw.Draw(img1)
         if round['teams'][0]['team_stats']['Team Win'] == '1':
-            img2 = Image.open('templates/Win-topleft.png')
-            img3 = Image.open('templates/Lose-botleft.png')
+            img2 = Image.open('templates/background_features/Win-topleft.png')
+            img3 = Image.open('templates/background_features/Lose-botleft.png')
         else:
-            img2 = Image.open('templates/Lose-topleft.png')
-            img3 = Image.open('templates/Win-botleft.png')
+            img2 = Image.open('templates/background_features/Lose-topleft.png')
+            img3 = Image.open('templates/background_features/Win-botleft.png')
         img1.paste(img2, (0, 0), img2)
         img1.paste(img3, (0, 0), img3)
-        dark_middle = Image.open('templates/dark-middle2.png')
+        dark_middle = Image.open('templates/background_features/dark-middle2.png')
         img1.paste(dark_middle, (0, 0), dark_middle)
         for idx_team, team in enumerate(round['teams']):
             if 'Overtime score' in team['team_stats'].keys():
@@ -58,6 +62,8 @@ def collect_image(request_json, stat_json):
                     draw_avatar.text((0, 107 - idx_team * 107), request_json['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
                 else:
                     draw_avatar.text(((130 - w) / 2, 107 - idx_team * 107), request_json['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
+
+                img1.paste(steam_question, (146 + idx_player * 162, 20 + 370 * idx_team))
                 img1.paste(avatar_img, (146 + idx_player * 162, 20 + 370 * idx_team))
 
                 kad = f'{player["player_stats"]["Kills"]}/{player["player_stats"]["Assists"]}/{player["player_stats"]["Deaths"]}'
