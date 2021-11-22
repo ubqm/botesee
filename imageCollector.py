@@ -5,7 +5,7 @@ from PIL import ImageDraw
 
 def collect_image(request_json, stat_json):
     image_list = []
-    font_folder = 'outfit'
+    font_folder = 'Outfit'
     font_file = 'Outfit-Bold.ttf'
     font_file_mainscore = 'Outfit-ExtraBold.ttf'
 
@@ -41,9 +41,12 @@ def collect_image(request_json, stat_json):
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}"
                 draw.text((33, 235 + 50 * idx_team), halftimes, font=font_halftimes)
             for idx_player, player in enumerate(team['players']):
-                avatar_req = requests.get(request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'], stream=True)
-                avatar_img = Image.open(avatar_req.raw)
-                avatar_img = avatar_img.resize((130, 130))
+                if request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'] != '':
+                    avatar_req = requests.get(request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'], stream=True)
+                    avatar_img = Image.open(avatar_req.raw)
+                    avatar_img = avatar_img.resize((130, 130))
+                else:
+                    avatar_img = steam_question
                 faceitlvl = request_json['payload']['teams'][idx_team]['roster'][idx_player]['game_skill_level']
                 if idx_team == 0:
                     avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
@@ -53,7 +56,7 @@ def collect_image(request_json, stat_json):
                 else:
                     avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
                     avatar_img.paste(Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
-                                     (0, 0),
+                                     (0, 106),
                                      Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                 draw_avatar = ImageDraw.Draw(avatar_img)
 
