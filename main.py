@@ -289,6 +289,7 @@ class MyClient(discord.Client):
         for team in statistics['rounds'][0]['teams']:
             for player in team['players']:
                 str_nick += '{}, '.format(player['nickname'])
+        str_nick = str_nick[:-2]
         #         for idx in sub_players:
         #             if player['player_id'] == idx:
         #                 if team['team_stats']['Team Win'] == '1':
@@ -338,9 +339,10 @@ class MyClient(discord.Client):
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                await channel.send('https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']) + ','
-                                   + str_nick + statistics['rounds'][0]['round_stats']['Map'],
-                                   file=discord.File(fp=image_binary, filename='image.png'))
+                await channel.send('[{0}](https://www.faceit.com/en/csgo/room/{0})'.format(
+                    statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']) + ' | '
+                    + str_nick + statistics['rounds'][0]['round_stats']['Map'],
+                    file=discord.File(fp=image_binary, filename='image.png'))
         return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):

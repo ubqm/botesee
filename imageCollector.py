@@ -33,8 +33,17 @@ def collect_image(request_json, stat_json):
         img1.paste(img3, (0, 0), img3)
         dark_middle = Image.open('templates/background_features/dark-middle2.png')
         img1.paste(dark_middle, (0, 0), dark_middle)
+
+        if 'Overtime score' in round['teams'][0]['team_stats'].keys():
+            if round['teams'][0]['team_stats']['Overtime score'] == 0 and round['teams'][1]['team_stats']['Overtime score'] == 0:
+                isOvertimeinGame = False
+            else:
+                isOvertimeinGame = True
+        else:
+            isOvertimeinGame = False
+
         for idx_team, team in enumerate(round['teams']):
-            if 'Overtime score' in team['team_stats'].keys():
+            if isOvertimeinGame:
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}—{team['team_stats']['Overtime score']}"
                 draw.text((25, 235 + 50 * idx_team), halftimes, font=font_halftimes)
             else:
