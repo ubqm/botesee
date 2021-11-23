@@ -267,14 +267,14 @@ class MyClient(discord.Client):
         return 0
 
     async def post_faceit_message_finished(self, channel_id, request_json):
-        # sub_players = ['ad42c90b-45a9-49b6-8ab0-9c8662330543',
-        #                '278790a2-1f08-4350-bd96-427f7dcc8722',
-        #                '18e2a663-9e20-4db9-8b29-3c3cbdff30ac',
-        #                '8cbb0b36-4c6b-4ebd-a92b-829234016626',
-        #                'e1cddcbb-afdc-4e8e-abf2-eea5638f0363',
-        #                '9da3572e-1960-4ba0-bd3c-d38ef34c1f1c',
-        #                'b8e5cd07-1b43-4203-9173-465fddcd391f',
-        #                '4e7d1f6c-9045-4800-8eda-23c892dcd814']
+        sub_players = ['ad42c90b-45a9-49b6-8ab0-9c8662330543',
+                       '278790a2-1f08-4350-bd96-427f7dcc8722',
+                       '18e2a663-9e20-4db9-8b29-3c3cbdff30ac',
+                       '8cbb0b36-4c6b-4ebd-a92b-829234016626',
+                       'e1cddcbb-afdc-4e8e-abf2-eea5638f0363',
+                       '9da3572e-1960-4ba0-bd3c-d38ef34c1f1c',
+                       'b8e5cd07-1b43-4203-9173-465fddcd391f',
+                       '4e7d1f6c-9045-4800-8eda-23c892dcd814']
         # str_nick1 = ''
         # str_nick2 = ''
         # stats1 = ''
@@ -284,21 +284,20 @@ class MyClient(discord.Client):
         # my_color = 9936031
         channel = self.get_channel(id=channel_id)
         statistics = match_stats(request_json['payload']['id'])
-
+        my_color = 1
         str_nick = ''
         for team in statistics['rounds'][0]['teams']:
             for player in team['players']:
                 str_nick += '{}, '.format(player['nickname'])
+                for idx in sub_players:
+                    if player['player_id'] == idx:
+                        if team['team_stats']['Team Win'] == '1':
+                            my_color = 2067276
+                            break
+                        else:
+                            my_color = 10038562
+                            break
         str_nick = str_nick[:-2]
-        #         for idx in sub_players:
-        #             if player['player_id'] == idx:
-        #                 if team['team_stats']['Team Win'] == '1':
-        #                     my_color = 2067276
-        #                     break
-        #                 else:
-        #                     my_color = 10038562
-        #                     break
-        #
         # embed_msg = discord.Embed(title="Match Finished", type="rich",
         #                           description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
         #                               statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
@@ -332,16 +331,17 @@ class MyClient(discord.Client):
         #                     value=str_nick2, inline=True)
         # embed_msg.add_field(name='(K/D|KD)', value=stats2, inline=True)
         # embed_msg.add_field(name='(MVP|HS%)', value=mvphs2, inline=True)
-
+        embed_msg = discord.Embed(title=str_nick, type="rich",
+                                  description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
+                                      statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
+                                  color=my_color)
         image_list = collect_image(request_json, statistics)
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                await channel.send('[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
-                    statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']) + ' | '
-                    + str_nick, file=discord.File(fp=image_binary, filename='image.png'))
+                await channel.send(embed=embed_msg, file=discord.File(fp=image_binary, filename='image.png'))
         return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):

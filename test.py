@@ -146,16 +146,28 @@ class MyClient(discord.Client):
         #     # await channel.send(
         #     #     'https://www.faceit.com/en/csgo/room/{0}'.format('1-6672c059-bfbf-48f3-a6d6-8e8fddd2a5e3'))
         #     await channel.send('message', file=discord.File(fp=image_binary, filename='image.png'))
+        str_nick = ''
+        for team in stats['rounds'][0]['teams']:
+            for player in team['players']:
+                str_nick += '{}, '.format(player['nickname'])
+        str_nick = str_nick[:-2]
 
+        embed_msg = discord.Embed(title=str_nick, type="rich",
+                                  description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
+                                      stats['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
+                                  color=1)
+        # embed_msg.set_image(image)
+        # embed_msg.add_field(name='players', value=str_nick)
         image_list = collect_image(request_json, stats)
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
+                # embed_msg.set_image(image)
                 await channel.send(
-                    'https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']) + ','
-                    + stats['rounds'][0]['round_stats']['Map'],
-                    file=discord.File(fp=image_binary, filename='image.png'))
+                    #'https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']) + ','
+                    #+ stats['rounds'][0]['round_stats']['Map'],
+                    embed=embed_msg, file=discord.File(fp=image_binary, filename='image.png'))
 
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)

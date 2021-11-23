@@ -35,7 +35,7 @@ def collect_image(request_json, stat_json):
         img1.paste(dark_middle, (0, 0), dark_middle)
 
         if 'Overtime score' in round['teams'][0]['team_stats'].keys():
-            if round['teams'][0]['team_stats']['Overtime score'] == 0 and round['teams'][1]['team_stats']['Overtime score'] == 0:
+            if round['teams'][0]['team_stats']['Overtime score'] == '0' and round['teams'][1]['team_stats']['Overtime score'] == '0':
                 isOvertimeinGame = False
             else:
                 isOvertimeinGame = True
