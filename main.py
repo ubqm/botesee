@@ -335,13 +335,16 @@ class MyClient(discord.Client):
                                   description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=my_color)
+
         image_list = collect_image(request_json, statistics)
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                await channel.send(embed=embed_msg, file=discord.File(fp=image_binary, filename='image.png'))
+                binary_image = discord.File(fp=image_binary, filename='image.png')
+                embed_msg.set_image(url="attachment://image.png")
+                await channel.send(embed=embed_msg, file=binary_image)
         return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):

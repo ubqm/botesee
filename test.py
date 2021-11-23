@@ -158,16 +158,15 @@ class MyClient(discord.Client):
                                   color=1)
         # embed_msg.set_image(image)
         # embed_msg.add_field(name='players', value=str_nick)
+
         image_list = collect_image(request_json, stats)
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                # embed_msg.set_image(image)
-                await channel.send(
-                    #'https://www.faceit.com/en/csgo/room/{0}'.format(request_json['payload']['id']) + ','
-                    #+ stats['rounds'][0]['round_stats']['Map'],
-                    embed=embed_msg, file=discord.File(fp=image_binary, filename='image.png'))
+                binary_image = discord.File(fp=image_binary, filename='image.png')
+                embed_msg.set_image(url="attachment://image.png")
+                await channel.send(embed=embed_msg, file=binary_image)
 
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)
