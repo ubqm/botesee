@@ -339,10 +339,9 @@ class MyClient(discord.Client):
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
                 image_binary.seek(0)
-                await channel.send('[{0}](https://www.faceit.com/en/csgo/room/{0})'.format(
+                await channel.send('[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
                     statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']) + ' | '
-                    + str_nick + statistics['rounds'][0]['round_stats']['Map'],
-                    file=discord.File(fp=image_binary, filename='image.png'))
+                    + str_nick, file=discord.File(fp=image_binary, filename='image.png'))
         return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
