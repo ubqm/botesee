@@ -48,7 +48,7 @@ def collect_image(request_json, stat_json):
                 draw.text((25, 235 + 50 * idx_team), halftimes, font=font_halftimes)
             else:
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}"
-                draw.text((33, 235 + 50 * idx_team), halftimes, font=font_halftimes)
+                draw.text((45, 235 + 50 * idx_team), halftimes, font=font_halftimes)
             for idx_player, player in enumerate(team['players']):
                 if request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'] != '':
                     avatar_req = requests.get(request_json['payload']['teams'][idx_team]['roster'][idx_player]['avatar'], stream=True)

@@ -286,7 +286,9 @@ class MyClient(discord.Client):
         statistics = match_stats(request_json['payload']['id'])
         my_color = 1
         str_nick = ''
-        for team in statistics['rounds'][0]['teams']:
+        for idx_team, team in enumerate(statistics['rounds'][0]['teams']):
+            if idx_team == 1:
+                str_nick += '\n'
             for player in team['players']:
                 str_nick += '{}, '.format(player['nickname'])
                 for idx in sub_players:
