@@ -15,8 +15,6 @@ def collect_image(request_json, stat_json):
     font_player_stats = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
     font_halftimes = ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
 
-    steam_question = Image.open('templates/question-mark-icon.jpg')
-    steam_question = steam_question.resize((130, 130))
     dark_avatar_bot = Image.open('templates/background_features/for_avatar_bot.png')
     dark_avatar_top = Image.open('templates/background_features/for_avatar_top.png')
     for idx_round, round in enumerate(stat_json['rounds']):
@@ -55,7 +53,8 @@ def collect_image(request_json, stat_json):
                     avatar_img = Image.open(avatar_req.raw)
                     avatar_img = avatar_img.resize((130, 130))
                 else:
-                    avatar_img = steam_question
+                    avatar_img = Image.open('templates/question-mark-icon.jpg')
+                    avatar_img = avatar_img.resize((130, 130))
                 faceitlvl = request_json['payload']['teams'][idx_team]['roster'][idx_player]['game_skill_level']
                 if idx_team == 0:
                     avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
@@ -75,7 +74,6 @@ def collect_image(request_json, stat_json):
                 else:
                     draw_avatar.text(((130 - w) / 2, 107 - idx_team * 107), request_json['payload']['teams'][idx_team]['roster'][idx_player]['nickname'], font=font_avs)
 
-                img1.paste(steam_question, (146 + idx_player * 162, 20 + 370 * idx_team))
                 img1.paste(avatar_img, (146 + idx_player * 162, 20 + 370 * idx_team))
 
                 kad = f'{player["player_stats"]["Kills"]}/{player["player_stats"]["Assists"]}/{player["player_stats"]["Deaths"]}'
