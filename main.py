@@ -275,13 +275,7 @@ class MyClient(discord.Client):
                        '9da3572e-1960-4ba0-bd3c-d38ef34c1f1c',
                        'b8e5cd07-1b43-4203-9173-465fddcd391f',
                        '4e7d1f6c-9045-4800-8eda-23c892dcd814']
-        # str_nick1 = ''
-        # str_nick2 = ''
-        # stats1 = ''
-        # stats2 = ''
-        # mvphs1 = ''
-        # mvphs2 = ''
-        # my_color = 9936031
+
         channel = self.get_channel(id=channel_id)
         statistics = match_stats(request_json['payload']['id'])
         my_color = 1
@@ -300,39 +294,7 @@ class MyClient(discord.Client):
                             my_color = 10038562
                             break
         str_nick = str_nick[:-2]
-        # embed_msg = discord.Embed(title="Match Finished", type="rich",
-        #                           description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
-        #                               statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
-        #                           color=my_color)  # DARK RED - 10038562, DARK GREEN - 2067276, GREY - 9936031
-        #
-        # for player in statistics['rounds'][0]['teams'][0]['players']:
-        #     str_nick1 += '{}\n'.format(player['nickname'])
-        #     stats1 += '({}/{} | {})\n'.format(
-        #         player['player_stats']['Kills'],
-        #         player['player_stats']['Deaths'],
-        #         player['player_stats']['K/D Ratio'])
-        #     mvphs1 += '({} | {})\n'.format(
-        #         player['player_stats']['MVPs'],
-        #         player['player_stats']['Headshots %'])
-        #
-        # for player in statistics['rounds'][0]['teams'][1]['players']:
-        #     str_nick2 += '{}\n'.format(player['nickname'])
-        #     stats2 += '({}/{} | {})\n'.format(
-        #         player['player_stats']['Kills'],
-        #         player['player_stats']['Deaths'],
-        #         player['player_stats']['K/D Ratio'])
-        #     mvphs2 += '({} | {})\n'.format(
-        #         player['player_stats']['MVPs'],
-        #         player['player_stats']['Headshots %'])
-        #
-        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][0]['team_stats']['Final Score'],
-        #                     value=str_nick1, inline=True)
-        # embed_msg.add_field(name='(K/D|KD)', value=stats1, inline=True)
-        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs1, inline=True)
-        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][1]['team_stats']['Final Score'],
-        #                     value=str_nick2, inline=True)
-        # embed_msg.add_field(name='(K/D|KD)', value=stats2, inline=True)
-        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs2, inline=True)
+
         embed_msg = discord.Embed(title=str_nick, type="rich",
                                   description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
