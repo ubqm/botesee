@@ -46,10 +46,12 @@ def collect_image(request_json, stat_json):
         for idx_team, team in enumerate(round['teams']):
             if isOvertimeinGame:
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}—{team['team_stats']['Overtime score']}"
-                draw.text((25, 235 + 42 * idx_team), halftimes, font=font_halftimes)
+                w, h = draw.textsize(halftimes, font=font_halftimes)
+                draw.text(((146 - w) / 2, 235 + 42 * idx_team), halftimes, font=font_halftimes)
             else:
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}"
-                draw.text((45, 235 + 42 * idx_team), halftimes, font=font_halftimes)
+                w, h = draw.textsize(halftimes, font=font_halftimes)
+                draw.text(((146 - w) / 2, 235 + 42 * idx_team), halftimes, font=font_halftimes)
 
             for idx_player, player in enumerate(team['players']):
                 for idx_req_player, req_player in enumerate(request_json['payload']['teams'][idx_team]['roster']):
@@ -99,3 +101,5 @@ def collect_image(request_json, stat_json):
         image_list.append(img1)
 
     return image_list
+
+
