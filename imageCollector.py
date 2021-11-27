@@ -53,6 +53,15 @@ def collect_image(request_json, stat_json):
             for idx_player, player in enumerate(team['players']):
                 for idx_req_player, req_player in enumerate(request_json['payload']['teams'][idx_team]['roster']):
                     if player['nickname'] == req_player['nickname']:
+                        if float(player["player_stats"]["K/D Ratio"]) >= 1.3:
+                            stat_color = (0, 190, 0, 255)
+                        elif float(player["player_stats"]["K/D Ratio"]) < 0.6:
+                            stat_color = (170, 0, 0, 255)
+                        elif 0.8 > float(player["player_stats"]["K/D Ratio"]) >= 0.6:
+                            stat_color = (255, 165, 0, 255)
+                        else:
+                            stat_color = (255, 255, 255, 255)
+
                         if req_player['avatar'] != '':
                             avatar_req = requests.get(req_player['avatar'], stream=True)
                             avatar_img = Image.open(avatar_req.raw)
@@ -88,8 +97,10 @@ def collect_image(request_json, stat_json):
                         draw.text((146 + idx_player * 162, 200 + 116 * idx_team), mvp, font=font_player_stats)
                         kr = f'K/R: {player["player_stats"]["K/R Ratio"]}'
                         draw.text((146 + idx_player * 162, 220 + 76 * idx_team), kr, font=font_player_stats)
-                        hs = f'HS %: {player["player_stats"]["Headshots %"]}'
-                        draw.text((146 + idx_player * 162, 240 + 36 * idx_team), hs, font=font_player_stats)
+                        kd = f'K/D: {player["player_stats"]["K/D Ratio"]}'
+                        draw.text((146 + idx_player * 162, 240 + 36 * idx_team), kd, font=font_player_stats, fill=stat_color)
+                        # hs = f'HS %: {player["player_stats"]["Headshots %"]}'
+                        # draw.text((146 + idx_player * 162, 240 + 36 * idx_team), hs, font=font_player_stats)
 
         w, h = draw.textsize(round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)
         draw.text(((146 - w) / 2, 65), round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)
