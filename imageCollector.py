@@ -1,5 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 import requests
+from faceit_get_funcs import player_details
 
 
 def collect_image(request_json, stat_json):
@@ -53,6 +54,8 @@ def collect_image(request_json, stat_json):
             for idx_player, player in enumerate(team['players']):
                 for idx_req_player, req_player in enumerate(request_json['payload']['teams'][idx_team]['roster']):
                     if player['nickname'] == req_player['nickname']:
+
+                        player_elo = str(player_details(player['nickname'])['games']['csgo']['faceit_elo'])
                         if float(player["player_stats"]["K/D Ratio"]) >= 1.3:
                             stat_color = (0, 190, 0, 255)
                         elif float(player["player_stats"]["K/D Ratio"]) < 0.6:
@@ -69,18 +72,24 @@ def collect_image(request_json, stat_json):
                         else:
                             avatar_img = Image.open('templates/question-mark-icon.jpg')
                             avatar_img = avatar_img.resize((130, 130))
+                        draw_avatar = ImageDraw.Draw(avatar_img)
                         faceitlvl = req_player['game_skill_level']
                         if idx_team == 0:
                             avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
+                            avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
                             avatar_img.paste(Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
                                              (0, 0),
                                              Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
+                            w, h = draw.textsize(player_elo, font=font_avs)
+                            draw_avatar.text((125 - w, 0), player_elo, font=font_avs)
                         else:
                             avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
+                            avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
                             avatar_img.paste(Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
                                              (0, 106),
                                              Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
-                        draw_avatar = ImageDraw.Draw(avatar_img)
+                            w, h = draw.textsize(player_elo, font=font_avs)
+                            draw_avatar.text((125 - w, 107), player_elo, font=font_avs)
 
                         w, h = draw.textsize(req_player['nickname'], font=font_avs)
                         if w > 130:

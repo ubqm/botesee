@@ -37,8 +37,6 @@ def player_details(nickname=None, game=None, game_player_id=None):
         api_url += "&game={}".format(game)
 
     res = requests.get(api_url, headers=headers)
-    print(res)
-    print(res.headers)
 
     if res.status_code == 200:
         return json.loads(res.content.decode('utf-8'))

@@ -264,7 +264,6 @@ class MyClient(discord.Client):
         embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
         await channel.send(embed=embed_msg)
-        return 0
 
     async def post_faceit_message_finished(self, channel_id, request_json):
         sub_players = ['ad42c90b-45a9-49b6-8ab0-9c8662330543',
@@ -309,7 +308,6 @@ class MyClient(discord.Client):
                 binary_image = discord.File(fp=image_binary, filename='image.png')
                 embed_msg.set_image(url="attachment://image.png")
                 await channel.send(embed=embed_msg, file=binary_image)
-        return 0
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
@@ -329,7 +327,6 @@ class MyClient(discord.Client):
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
         await channel.send(embed=embed_msg)
-        return 0
 
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)
@@ -338,9 +335,6 @@ class MyClient(discord.Client):
             if message.embeds:
                 if match_id in message.embeds[0].description:
                     await message.delete()
-
-    async def post_faceit_test_finished(self, channel_id, request_json):
-        pass
 
 
 if __name__ == '__main__':
