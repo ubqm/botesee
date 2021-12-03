@@ -3,7 +3,7 @@ import requests
 from faceit_get_funcs import player_details
 
 
-def collect_image(request_json, stat_json):
+def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, prev_elo2):
     image_list = []
     font_folder = 'Outfit'
     font_file = 'Outfit-Bold.ttf'
@@ -74,6 +74,7 @@ def collect_image(request_json, stat_json):
                             avatar_img = avatar_img.resize((130, 130))
                         draw_avatar = ImageDraw.Draw(avatar_img)
                         faceitlvl = req_player['game_skill_level']
+
                         if idx_team == 0:
                             avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
                             avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
@@ -82,6 +83,13 @@ def collect_image(request_json, stat_json):
                                              Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                             w, h = draw.textsize(player_elo, font=font_avs)
                             draw_avatar.text((125 - w, 0), player_elo, font=font_avs)
+                            for idn, nick in enumerate(prev_nick1.split('\n')):
+                                if nick == player['nickname']:
+                                    if int(player_elo) > int(prev_elo1.split('\n')[idn]):
+                                        diff_elo_team_1 = '+' + str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
+                                    else:
+                                        diff_elo_team_1 = str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
+
                         else:
                             avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
                             avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
@@ -90,6 +98,12 @@ def collect_image(request_json, stat_json):
                                              Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                             w, h = draw.textsize(player_elo, font=font_avs)
                             draw_avatar.text((125 - w, 107), player_elo, font=font_avs)
+                            for idn, nick in enumerate(prev_nick2.split('\n')):
+                                if nick == player['nickname']:
+                                    if int(player_elo) > int(prev_elo2.split('\n')[idn]):
+                                        diff_elo_team_2 = '+' + str(abs(int(player_elo) - int(prev_elo2.split('\n')[idn])))
+                                    else:
+                                        diff_elo_team_2 = str(abs(int(player_elo) - int(prev_elo2.split('\n')[idn])))
 
                         w, h = draw.textsize(req_player['nickname'], font=font_avs)
                         if w > 130:
@@ -114,7 +128,17 @@ def collect_image(request_json, stat_json):
         w, h = draw.textsize(round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)
         draw.text(((146 - w) / 2, 65), round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)
         w, h = draw.textsize(round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
-        draw.text(((146 - w) / 2, 425), round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
+        draw.text(((146 - w) / 2, 415), round["teams"][1]["team_stats"]["Final Score"], font=font_mainscore)
         image_list.append(img1)
+
+        w, h = draw.textsize(diff_elo_team_1, font=font_avs)
+        draw.text(((146 - w) / 2, 150 - h), diff_elo_team_1, font=font_avs)
+        w, h = draw.textsize(diff_elo_team_2, font=font_avs)
+        draw.text(((146 - w) / 2, 390), diff_elo_team_2, font=font_avs)
+
+        # w, h = draw.textsize('+25', font=font_avs)
+        # draw.text(((146 - w) / 2, 150 - h), '+25', font=font_avs)
+        # w, h = draw.textsize('-25', font=font_avs)
+        # draw.text(((146 - w) / 2, 390), '-25', font=font_avs)
 
     return image_list

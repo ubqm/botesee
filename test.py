@@ -57,9 +57,6 @@ request_json = {'transaction_id': 'aab7fe07-9433-457b-8ac7-8793a804196c', 'event
                                                         'game_id': '76561198877437783', 'game_name': 'morto por dentro', 'game_skill_level': 10,
                                                         'membership': '', 'anticheat_required': True}], 'substitutions': 0, 'substitutes': None}],
                                  'created_at': '2021-11-22T18:08:25Z', 'updated_at': '2021-11-22T18:45:43Z', 'started_at': '2021-11-22T18:14:57Z', 'finished_at': '2021-11-22T18:45:43Z'}}
-
-with open('token_discord.txt', 'r') as file:
-    TOKEN = file.read()
 stats = {'rounds': [{'best_of': '2', 'competition_id': None, 'game_id': 'csgo', 'game_mode': '5v5',
                      'match_id': '1-d1844336-87fd-4c87-805d-451bb8c32570', 'match_round': '1', 'played': '1',
                      'round_stats': {'Score': '22 / 18', 'Winner': 'ebe8d675-f5b9-49e5-971a-bf846865a7e9', 'Rounds': '40', 'Map': 'de_train', 'Region': 'EU'},
@@ -123,6 +120,8 @@ stats = {'rounds': [{'best_of': '2', 'competition_id': None, 'game_id': 'csgo', 
                                                                        'player_stats': {'Kills': '20', 'Assists': '1', 'Result': '0', 'K/R Ratio': '0.5',
                                                                                         'Triple Kills': '0', 'Penta Kills': '0', 'Quadro Kills': '0', 'K/D Ratio': '0.69',
                                                                                         'MVPs': '3', 'Headshots %': '25', 'Headshots': '5', 'Deaths': '29'}}]}]}]}
+with open('token_discord.txt', 'r') as file:
+    TOKEN = file.read()
 
 
 class MyClient(discord.Client):
@@ -156,17 +155,16 @@ class MyClient(discord.Client):
                                   description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
                                       stats['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=1)
-        # embed_msg.set_image(image)
-        # embed_msg.add_field(name='players', value=str_nick)
-
-        image_list = collect_image(request_json, stats)
-        for image in image_list:
-            with BytesIO() as image_binary:
-                image.save(image_binary, 'PNG')
-                image_binary.seek(0)
-                binary_image = discord.File(fp=image_binary, filename='image.png')
-                embed_msg.set_image(url="attachment://image.png")
-                await channel.send(embed=embed_msg, file=binary_image)
+        embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value='nick1', inline=True)
+        embed_msg.add_field(name='ELO', value='value1', inline=True)
+        embed_msg.add_field(name='\u200b', value='\u200b')
+        embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value='str_nick2', inline=True)
+        embed_msg.add_field(name='ELO', value='elo2', inline=True)
+        embed_msg.add_field(name='\u200b', value='\u200b')
+        print(embed_msg.fields[0])
+        print(embed_msg.fields[1])
+        print(embed_msg.fields[2])
+        await channel.send(embed=embed_msg)
 
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)

@@ -267,25 +267,12 @@ class MyClient(discord.Client):
                     str_nick2 += player['nickname'] + '\n'
                     elo2 += str(player_details(player['nickname'])['games']['csgo']['faceit_elo']) + '\n'
 
-        # for player in range(0, 5):
-        #     str_nick1 += str(request_json['payload']['teams'][0]['roster'][player]['nickname']) + '\n'
-        #     str_nick2 += str(request_json['payload']['teams'][1]['roster'][player]['nickname']) + '\n'
-
-
         embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
         embed_msg.add_field(name='ELO', value=elo1, inline=True)
         embed_msg.add_field(name='\u200b', value='\u200b')
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
         embed_msg.add_field(name='ELO', value=elo2, inline=True)
-
-        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][0]['team_stats']['Final Score'],
-        #                     value=str_nick1, inline=True)
-        # embed_msg.add_field(name='(K/D|KD)', value=stats1, inline=True)
-        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs1, inline=True)
-        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][1]['team_stats']['Final Score'],
-        #                     value=str_nick2, inline=True)
-        # embed_msg.add_field(name='(K/D|KD)', value=stats2, inline=True)
-        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs2, inline=True)
+        embed_msg.add_field(name='\u200b', value='\u200b')
 
         await channel.send(embed=embed_msg)
 
@@ -323,8 +310,9 @@ class MyClient(discord.Client):
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=my_color)
 
-        image_list = collect_image(request_json, statistics)
-        await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
+        nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
+
+        image_list = collect_image(request_json, statistics, nick1, elo1, nick2, elo2)
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
@@ -355,10 +343,17 @@ class MyClient(discord.Client):
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)
         messages = await channel.history(limit=10).flatten()
+        nick1, elo1, nick2, elo2 = '', '', '', ''
         for message in messages:
             if message.embeds:
                 if match_id in message.embeds[0].description:
+                    nick1 = message.embeds[0].fields[0].value
+                    elo1 = message.embeds[1].fields[0].value
+                    nick2 = message.embeds[3].fields[0].value
+                    elo2 = message.embeds[4].fields[0].value
                     await message.delete()
+        return nick1, elo1, nick2, elo2
+
 
 
 if __name__ == '__main__':
