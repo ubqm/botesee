@@ -88,7 +88,7 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
                                     if int(player_elo) > int(prev_elo1.split('\n')[idn]):
                                         diff_elo_team_1 = '+' + str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
                                     else:
-                                        diff_elo_team_1 = str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
+                                        diff_elo_team_1 = str(int(player_elo) - int(prev_elo1.split('\n')[idn]))
 
                         else:
                             avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
