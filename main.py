@@ -3,7 +3,7 @@ import os
 
 from io import BytesIO
 from imageCollector import collect_image
-from faceit_get_funcs import match_stats
+from faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
 from flask import Flask, request, Response
@@ -256,13 +256,37 @@ class MyClient(discord.Client):
                                   color=my_color)
         str_nick1 = ''
         str_nick2 = ''
+        elo1 = ''
+        elo2 = ''
+        for idx_team, team in enumerate(request_json['payload']['teams']):
+            for player in team['roster']:
+                if idx_team == 0:
+                    str_nick1 += player['nickname'] + '\n'
+                    elo1 += str(player_details(player['nickname'])['games']['csgo']['faceit_elo']) + '\n'
+                else:
+                    str_nick2 += player['nickname'] + '\n'
+                    elo2 += str(player_details(player['nickname'])['games']['csgo']['faceit_elo']) + '\n'
 
-        for player in range(0, 5):
-            str_nick1 += str(request_json['payload']['teams'][0]['roster'][player]['nickname']) + '\n'
-            str_nick2 += str(request_json['payload']['teams'][1]['roster'][player]['nickname']) + '\n'
+        # for player in range(0, 5):
+        #     str_nick1 += str(request_json['payload']['teams'][0]['roster'][player]['nickname']) + '\n'
+        #     str_nick2 += str(request_json['payload']['teams'][1]['roster'][player]['nickname']) + '\n'
+
 
         embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
+        embed_msg.add_field(name='ELO', value=elo1, inline=True)
+        embed_msg.add_field(name='\u200b', value='\u200b')
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
+        embed_msg.add_field(name='ELO', value=elo2, inline=True)
+
+        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][0]['team_stats']['Final Score'],
+        #                     value=str_nick1, inline=True)
+        # embed_msg.add_field(name='(K/D|KD)', value=stats1, inline=True)
+        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs1, inline=True)
+        # embed_msg.add_field(name='Rounds: ' + statistics['rounds'][0]['teams'][1]['team_stats']['Final Score'],
+        #                     value=str_nick2, inline=True)
+        # embed_msg.add_field(name='(K/D|KD)', value=stats2, inline=True)
+        # embed_msg.add_field(name='(MVP|HS%)', value=mvphs2, inline=True)
+
         await channel.send(embed=embed_msg)
 
     async def post_faceit_message_finished(self, channel_id, request_json):
