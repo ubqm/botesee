@@ -103,7 +103,7 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
                                     if int(player_elo) > int(prev_elo2.split('\n')[idn]):
                                         diff_elo_team_2 = '+' + str(abs(int(player_elo) - int(prev_elo2.split('\n')[idn])))
                                     else:
-                                        diff_elo_team_2 = str(abs(int(player_elo) - int(prev_elo2.split('\n')[idn])))
+                                        diff_elo_team_2 = str(int(player_elo) - int(prev_elo2.split('\n')[idn]))
 
                         w, h = draw.textsize(req_player['nickname'], font=font_avs)
                         if w > 130:
@@ -135,10 +135,5 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
         draw.text(((146 - w) / 2, 150 - h), diff_elo_team_1, font=font_avs)
         w, h = draw.textsize(diff_elo_team_2, font=font_avs)
         draw.text(((146 - w) / 2, 390), diff_elo_team_2, font=font_avs)
-
-        # w, h = draw.textsize('+25', font=font_avs)
-        # draw.text(((146 - w) / 2, 150 - h), '+25', font=font_avs)
-        # w, h = draw.textsize('-25', font=font_avs)
-        # draw.text(((146 - w) / 2, 390), '-25', font=font_avs)
 
     return image_list
