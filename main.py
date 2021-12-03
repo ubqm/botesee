@@ -348,12 +348,11 @@ class MyClient(discord.Client):
             if message.embeds:
                 if match_id in message.embeds[0].description:
                     nick1 = message.embeds[0].fields[0].value
-                    elo1 = message.embeds[1].fields[0].value
-                    nick2 = message.embeds[3].fields[0].value
-                    elo2 = message.embeds[4].fields[0].value
+                    elo1 = message.embeds[0].fields[1].value
+                    nick2 = message.embeds[0].fields[3].value
+                    elo2 = message.embeds[0].fields[4].value
                     await message.delete()
         return nick1, elo1, nick2, elo2
-
 
 
 if __name__ == '__main__':
