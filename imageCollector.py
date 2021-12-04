@@ -41,6 +41,8 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
         else:
             isOvertimeinGame = False
 
+        diff_elo_team_1 = ''
+        diff_elo_team_2 = ''
         for idx_team, team in enumerate(round['teams']):
             if isOvertimeinGame:
                 halftimes = f"{team['team_stats']['First Half Score']}—{team['team_stats']['Second Half Score']}—{team['team_stats']['Overtime score']}"
@@ -89,7 +91,6 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
                                         diff_elo_team_1 = '+' + str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
                                     else:
                                         diff_elo_team_1 = str(int(player_elo) - int(prev_elo1.split('\n')[idn]))
-
                         else:
                             avatar_img.paste(dark_avatar_top, (0, 0), dark_avatar_top)
                             avatar_img.paste(dark_avatar_bot, (0, 0), dark_avatar_bot)
@@ -122,8 +123,6 @@ def collect_image(request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, pr
                         draw.text((146 + idx_player * 162, 220 + 76 * idx_team), kr, font=font_player_stats)
                         kd = f'K/D: {player["player_stats"]["K/D Ratio"]}'
                         draw.text((146 + idx_player * 162, 240 + 36 * idx_team), kd, font=font_player_stats, fill=stat_color)
-                        # hs = f'HS %: {player["player_stats"]["Headshots %"]}'
-                        # draw.text((146 + idx_player * 162, 240 + 36 * idx_team), hs, font=font_player_stats)
 
         w, h = draw.textsize(round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)
         draw.text(((146 - w) / 2, 65), round["teams"][0]["team_stats"]["Final Score"], font=font_mainscore)

@@ -1,3 +1,5 @@
+import os
+
 import discord
 from discord import Client
 import io
@@ -120,8 +122,8 @@ stats = {'rounds': [{'best_of': '2', 'competition_id': None, 'game_id': 'csgo', 
                                                                        'player_stats': {'Kills': '20', 'Assists': '1', 'Result': '0', 'K/R Ratio': '0.5',
                                                                                         'Triple Kills': '0', 'Penta Kills': '0', 'Quadro Kills': '0', 'K/D Ratio': '0.69',
                                                                                         'MVPs': '3', 'Headshots %': '25', 'Headshots': '5', 'Deaths': '29'}}]}]}]}
-with open('token_discord.txt', 'r') as file:
-    TOKEN = file.read()
+
+Discord_token = os.environ['Discord_token']
 
 
 class MyClient(discord.Client):
@@ -179,7 +181,7 @@ class MyClient(discord.Client):
 def main():
     intents = discord.Intents.all()
     bot_client = MyClient(intents=intents)
-    bot_client.run(TOKEN)
+    bot_client.run(Discord_token)
 
 
 if __name__ == '__main__':
