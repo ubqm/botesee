@@ -2,7 +2,7 @@ import discord
 import os
 
 from io import BytesIO
-from imageCollector import collect_image
+from imageCollector import ImageCollector
 from faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
@@ -198,7 +198,8 @@ class MyClient(discord.Client):
 
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
 
-        image_list = collect_image(request_json, statistics, nick1, elo1, nick2, elo2)
+        img_collector = ImageCollector(request_json, statistics, nick1, elo1, nick2, elo2)
+        image_list = img_collector.collect_image()
         for image in image_list:
             with BytesIO() as image_binary:
                 image.save(image_binary, 'PNG')
