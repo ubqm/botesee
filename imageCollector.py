@@ -203,46 +203,53 @@ class ImageCollectorStatLast:
 
     def collect_image(self):
         player_stat = self.collect_stat(self.nickname)
-        image = self.drawImage(player_stat)
-        return image
+        if player_stat is None:
+            return None
+        else:
+            image = self.drawImage(player_stat)
+            return image
 
     def collect_stat(self, nickname):
         lrc = []
         pd = player_details(nickname)
-        history = player_history(pd['player_id'])
-        while len(lrc) < 11:
-            for match_h in history['items']:
-                ms = match_stats(match_h['match_id'])
-                if ms is not None:
-                    for map_s in ms['rounds'][::-1]:
-                        for team in map_s['teams']:
-                            for player in team['players']:
-                                if nickname == player['nickname']:
-                                    rc = {}
-                                    rc['nickname'] = nickname
-                                    rc['steam_id'] = pd['games']['csgo']['game_player_id']
-                                    rc['avatar'] = pd['avatar']
-                                    rc['background'] = pd['cover_image']
-                                    rc['country'] = pd['country']
-                                    rc['player_id'] = pd['player_id']
-                                    rc['region'] = pd['games']['csgo']['region']
-                                    rc['skill_level'] = pd['games']['csgo']['skill_level']
-                                    rc['faceit_elo'] = pd['games']['csgo']['faceit_elo']
-                                    rc['result'] = player['player_stats']['Result']
-                                    rc['kills'] = player['player_stats']['Kills']
-                                    rc['assists'] = player['player_stats']['Assists']
-                                    rc['deaths'] = player['player_stats']['Deaths']
-                                    rc['kdratio'] = player['player_stats']['K/D Ratio']
-                                    rc['krratio'] = player['player_stats']['K/R Ratio']
-                                    rc['mvps'] = player['player_stats']['MVPs']
-                                    rc['headshots%'] = player['player_stats']['Headshots %']
-                                    rc['4k'] = player['player_stats']['Quadro Kills']
-                                    rc['5k'] = player['player_stats']['Penta Kills']
-                                    rc['mapscore'] = map_s['round_stats']['Score']
-                                    rc['mapname'] = map_s['round_stats']['Map']
-                                    rc['started_at'] = match_h['started_at']
-                                    lrc.append(rc)
-                                    break
+        if pd is not None:
+            history = player_history(pd['player_id'])
+            if history is not None:
+                while len(lrc) < 11:
+                    for match_h in history['items']:
+                        ms = match_stats(match_h['match_id'])
+                        if ms is not None:
+                            for map_s in ms['rounds'][::-1]:
+                                for team in map_s['teams']:
+                                    for player in team['players']:
+                                        if nickname == player['nickname']:
+                                            rc = {}
+                                            rc['nickname'] = nickname
+                                            rc['steam_id'] = pd['games']['csgo']['game_player_id']
+                                            rc['avatar'] = pd['avatar']
+                                            rc['background'] = pd['cover_image']
+                                            rc['country'] = pd['country']
+                                            rc['player_id'] = pd['player_id']
+                                            rc['region'] = pd['games']['csgo']['region']
+                                            rc['skill_level'] = pd['games']['csgo']['skill_level']
+                                            rc['faceit_elo'] = pd['games']['csgo']['faceit_elo']
+                                            rc['result'] = player['player_stats']['Result']
+                                            rc['kills'] = player['player_stats']['Kills']
+                                            rc['assists'] = player['player_stats']['Assists']
+                                            rc['deaths'] = player['player_stats']['Deaths']
+                                            rc['kdratio'] = player['player_stats']['K/D Ratio']
+                                            rc['krratio'] = player['player_stats']['K/R Ratio']
+                                            rc['mvps'] = player['player_stats']['MVPs']
+                                            rc['headshots%'] = player['player_stats']['Headshots %']
+                                            rc['4k'] = player['player_stats']['Quadro Kills']
+                                            rc['5k'] = player['player_stats']['Penta Kills']
+                                            rc['mapscore'] = map_s['round_stats']['Score']
+                                            rc['mapname'] = map_s['round_stats']['Map']
+                                            rc['started_at'] = match_h['started_at']
+                                            lrc.append(rc)
+                                            break
+        else:
+            return None
         return lrc
 
     def drawImage(self, player_stat):

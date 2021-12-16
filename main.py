@@ -62,11 +62,12 @@ class MyClient(discord.Client):
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(message.content.split(' ')[1])
                 image = imgclst.collect_image()
-                with BytesIO() as image_binary:
-                    image.save(image_binary, 'PNG')
-                    image_binary.seek(0)
-                    binary_image = discord.File(fp=image_binary, filename='image.png')
-                    await channel.send(file=binary_image)
+                if image is not None:
+                    with BytesIO() as image_binary:
+                        image.save(image_binary, 'PNG')
+                        image_binary.seek(0)
+                        binary_image = discord.File(fp=image_binary, filename='image.png')
+                        await channel.send(file=binary_image)
 
 
     async def on_raw_reaction_add(self, payload):

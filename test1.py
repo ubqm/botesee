@@ -33,7 +33,7 @@ from steam_funcs import user_app_stat, user_rec_played_stat
 # csgotime = user_app_stat('76561198030140352')
 # print(csgotime['playerstats']['stats'][2]['value'])
 # print(user_rec_played_stat('76561198030140352'))
-imgclstl = ImageCollectorStatLast('s1mple')
+imgclstl = ImageCollectorStatLast('fghjjhgjghjghjgh')
 img = imgclstl.collect_image()
 img.show()
 # rc = imgclstl.collect_stat('Ayudesee')
