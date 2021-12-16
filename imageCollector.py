@@ -208,12 +208,10 @@ class ImageCollectorStatLast:
 
     def collect_stat(self, nickname):
         lrc = []
-
-        pd = player_details('Ayudesee')
+        pd = player_details(nickname)
         history = player_history(pd['player_id'])
         while len(lrc) < 11:
             for match_h in history['items']:
-
                 ms = match_stats(match_h['match_id'])
                 if ms is not None:
                     for map_s in ms['rounds'][::-1]:
