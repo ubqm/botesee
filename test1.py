@@ -13,7 +13,7 @@ from steam_funcs import user_app_stat, user_rec_played_stat
 # for image in imgl:
 #     image.show()
 #
-# pd = player_details('Ayudesee', 'csgo')
+# pd = player_details('-NAPAD', 'csgo')
 # print(player_details('Ayudesee')['country'])
 # print(player_details('Ayudesee')['games']['csgo']['region'])
 # print(region_stats("ad42c90b-45a9-49b6-8ab0-9c8662330543", "EU"))
@@ -33,7 +33,7 @@ from steam_funcs import user_app_stat, user_rec_played_stat
 # csgotime = user_app_stat('76561198030140352')
 # print(csgotime['playerstats']['stats'][2]['value'])
 # print(user_rec_played_stat('76561198030140352'))
-imgclstl = ImageCollectorStatLast('Ayudesee')
+imgclstl = ImageCollectorStatLast('-NAPAD')
 img = imgclstl.collect_image()
 img.show()
 # rc = imgclstl.collect_stat('Ayudesee')
