@@ -2,7 +2,7 @@ import discord
 import os
 
 from io import BytesIO
-from imageCollector import ImageCollector
+from imageCollector import ImageCollector, ImageCollectorStatLast
 from faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
@@ -58,6 +58,16 @@ class MyClient(discord.Client):
                     message.content.find('http://') != -1):
                 await message.add_reaction('👍')
                 await message.add_reaction('👎')
+            elif message.content.split(' ')[0] == '.statlast':
+                channel = self.get_channel(id=828940900033626113)
+                imgclst = ImageCollectorStatLast(message.content.split(' ')[1])
+                image = imgclst.collect_image()
+                with BytesIO() as image_binary:
+                    image.save(image_binary, 'PNG')
+                    image_binary.seek(0)
+                    binary_image = discord.File(fp=image_binary, filename='image.png')
+                    await channel.send(file=binary_image)
+
 
     async def on_raw_reaction_add(self, payload):
         upvotes = 0
