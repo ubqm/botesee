@@ -286,11 +286,11 @@ class ImageCollectorStatLast:
         app_stat = user_app_stat(player_stat[0]["steam_id"])
         rec_pl_stat = user_rec_played_stat(player_stat[0]['steam_id'])
 
-        playtime_2weeks = 'Unknown'
-        playtime_forever = 'Unknown'
-        percentage_played = 'Unknown'
-        csgotime_played_hrs = 'Unknown'
-        if rec_pl_stat is not None:
+        playtime_2weeks = 'Last 2 weeks: Unknown'
+        playtime_forever = 'Summary in CSGO: Unknown'
+        percentage_played = 'Activity: Unknown'
+        csgotime_played_hrs = 'Played in CSGO: Unknown'
+        if 'response' in rec_pl_stat.keys() and 'games' in rec_pl_stat['response'].keys():
             for app in rec_pl_stat['response']['games']:
                 if app['appid'] == 730:
                     playtime_2weeks = f'Last 2 weeks: {int(app["playtime_2weeks"] / 60)} hrs'
