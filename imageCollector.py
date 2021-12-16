@@ -229,6 +229,8 @@ class ImageCollectorStatLast:
                                             rc['avatar'] = pd['avatar']
                                             rc['background'] = pd['cover_image']
                                             rc['country'] = pd['country']
+                                            rc['country_place'] = region_stats(pd['player_id'], pd['games']['csgo']['region'], pd['country'])['items'][0]['position']
+                                            rc['region_place'] = region_stats(pd['player_id'], pd['games']['csgo']['region'])['items'][0]['position']
                                             rc['player_id'] = pd['player_id']
                                             rc['region'] = pd['games']['csgo']['region']
                                             rc['skill_level'] = pd['games']['csgo']['skill_level']
@@ -368,5 +370,8 @@ class ImageCollectorStatLast:
         draw_image_bg.text((10, 430), f'Total 4K: {total_4k}', font=font)
         draw_image_bg.text((10, 460), f'Total 5K: {total_5k}', font=font)
         draw_image_bg.text((10, 490), f'HS: {format(mean_hs, ".1f")}%', font=font)
+
+        draw_image_bg.text((270, 70), f'{player_stat[0]["region"]}: {player_stat[0]["region_place"]}', font=font)
+        draw_image_bg.text((270, 100), f'{player_stat[0]["country"]}: {player_stat[0]["country_place"]}', font=font)
 
         return image_background
