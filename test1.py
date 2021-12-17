@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from PIL import Image, ImageFont, ImageDraw
 from faceit_get_funcs import player_details, region_stats, player_history, match_stats, match_details
 import requests
@@ -34,7 +36,10 @@ from steam_funcs import user_app_stat, user_rec_played_stat
 # print(csgotime['playerstats']['stats'][2]['value'])
 # print(user_rec_played_stat('76561198030140352'))
 imgclstl = ImageCollectorStatLast('-NAPAD')
+start_time = datetime.now()
 img = imgclstl.collect_image()
+end_time = datetime.now()
+print('Duration: {}'.format(end_time - start_time))
 img.show()
 # rc = imgclstl.collect_stat('Ayudesee')
 # print(rc)
