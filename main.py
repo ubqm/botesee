@@ -1,5 +1,6 @@
 import discord
 import os
+import re
 
 from io import BytesIO
 from imageCollector import ImageCollector, ImageCollectorStatLast
@@ -58,7 +59,7 @@ class MyClient(discord.Client):
                     message.content.find('http://') != -1):
                 await message.add_reaction('👍')
                 await message.add_reaction('👎')
-            elif message.content.split(' ')[0] == '.statlast':
+            elif bool(re.search('^[.]stats?', message.content.split(' ')[0])) and len(message.content.split(' ')) == 2:
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(message.content.split(' ')[1])
                 image = imgclst.collect_image()

@@ -368,8 +368,8 @@ class ImageCollectorStatLast:
         mean_hs /= 10
         draw_image_bg.text((10, 310), 'Last 10 games played:', font=font)
         draw_image_bg.text((10, 340), f'KAD: {format(mean_k, ".1f")} / {format(mean_a, ".1f")} / {format(mean_d, ".1f")}', font=font)
-        draw_image_bg.text((10, 370), f'KD: {format(mean_kd, ".1f")}', font=font)
-        draw_image_bg.text((10, 400), f'KR: {format(mean_kr, ".1f")}', font=font)
+        draw_image_bg.text((10, 370), f'K/D: {format(mean_kd, ".1f")}', font=font)
+        draw_image_bg.text((10, 400), f'K/R: {format(mean_kr, ".1f")}', font=font)
         draw_image_bg.text((10, 430), f'Total 4K: {total_4k}', font=font)
         draw_image_bg.text((10, 460), f'Total 5K: {total_5k}', font=font)
         draw_image_bg.text((10, 490), f'HS: {format(mean_hs, ".1f")}%', font=font)
