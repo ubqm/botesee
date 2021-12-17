@@ -307,12 +307,12 @@ class ImageCollectorStatLast:
                 if app['appid'] == 730:
                     playtime_2weeks = f'Last 2 weeks: {int(app["playtime_2weeks"] / 60)} hrs'
                     playtime_forever = f'Summary in CSGO: {int(app["playtime_forever"] / 60)} hrs'
-                if app_stat is not None:
-                    csgotime_played_hrs = f'Played in CSGO: {int(app_stat["playerstats"]["stats"][2]["value"] / 60 / 60)} hrs'
-                    percentage_played = f'Activity: {format((app_stat["playerstats"]["stats"][2]["value"] / 60 / 60) / (app["playtime_forever"] / 60) * 100, ".1f")}%'
-                else:
-                    csgotime_played_hrs = f'Played in CSGO: Unknown'
-                    percentage_played = f'Activity: Unknown'
+                    if app_stat is not None:
+                        csgotime_played_hrs = f'Played in CSGO: {int(app_stat["playerstats"]["stats"][2]["value"] / 60 / 60)} hrs'
+                        percentage_played = f'Activity: {format((app_stat["playerstats"]["stats"][2]["value"] / 60 / 60) / (app["playtime_forever"] / 60) * 100, ".1f")}%'
+                    else:
+                        csgotime_played_hrs = f'Played in CSGO: Unknown'
+                        percentage_played = f'Activity: Unknown'
 
         draw_image_bg.text((10, 150), playtime_2weeks, font=font)
         draw_image_bg.text((10, 180), csgotime_played_hrs, font=font)
