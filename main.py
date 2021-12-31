@@ -1,7 +1,6 @@
 import discord
 import os
 import re
-
 from io import BytesIO
 from imageCollector import ImageCollector, ImageCollectorStatLast
 from faceit_get_funcs import match_stats, player_details
@@ -69,7 +68,6 @@ class MyClient(discord.Client):
                         image_binary.seek(0)
                         binary_image = discord.File(fp=image_binary, filename='image.png')
                         await channel.send(file=binary_image)
-
 
     async def on_raw_reaction_add(self, payload):
         upvotes = 0
@@ -171,7 +169,6 @@ class MyClient(discord.Client):
         embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
         embed_msg.add_field(name='ELO', value=elo2, inline=True)
         embed_msg.add_field(name='\u200b', value='\u200b')
-
         await channel.send(embed=embed_msg)
 
     async def post_faceit_message_finished(self, channel_id, request_json):

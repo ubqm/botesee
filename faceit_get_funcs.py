@@ -5,7 +5,6 @@ import os
 
 Faceit_token = os.environ['Faceit_token']
 base_url = "https://open.faceit.com/data/v4"
-
 headers = {'accept': 'application/json', 'Authorization': f'Bearer {Faceit_token}'}
 
 

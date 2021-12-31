@@ -213,7 +213,7 @@ class ImageCollectorStatLast:
     def collect_stat(self, nickname):
         lrc = []
         pd = player_details(nickname)
-
+        player_id = pd['player_id']
         if pd is not None:
             history = player_history(pd['player_id'])
             region_place = region_stats(pd['player_id'], pd['games']['csgo']['region'])['items'][0]['position']
@@ -226,7 +226,7 @@ class ImageCollectorStatLast:
                             for map_s in ms['rounds'][::-1]:
                                 for team in map_s['teams']:
                                     for player in team['players']:
-                                        if nickname == player['nickname']:
+                                        if player_id == player['player_id']:
                                             rc = {'nickname': nickname,
                                                   'steam_id': pd['games']['csgo']['game_player_id'],
                                                   'avatar': pd['avatar'],
@@ -368,8 +368,8 @@ class ImageCollectorStatLast:
         mean_hs /= 10
         draw_image_bg.text((10, 310), 'Last 10 games played:', font=font)
         draw_image_bg.text((10, 340), f'KAD: {format(mean_k, ".1f")} / {format(mean_a, ".1f")} / {format(mean_d, ".1f")}', font=font)
-        draw_image_bg.text((10, 370), f'K/D: {format(mean_kd, ".1f")}', font=font)
-        draw_image_bg.text((10, 400), f'K/R: {format(mean_kr, ".1f")}', font=font)
+        draw_image_bg.text((10, 370), f'K/D: {format(mean_kd, ".2f")}', font=font)
+        draw_image_bg.text((10, 400), f'K/R: {format(mean_kr, ".2f")}', font=font)
         draw_image_bg.text((10, 430), f'Total 4K: {total_4k}', font=font)
         draw_image_bg.text((10, 460), f'Total 5K: {total_5k}', font=font)
         draw_image_bg.text((10, 490), f'HS: {format(mean_hs, ".1f")}%', font=font)
