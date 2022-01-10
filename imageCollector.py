@@ -29,9 +29,9 @@ class ImageCollector:
         image_list = []
 
         for idx_match, match in enumerate(self.stat_json['rounds']):
-            elo_change_team1, elo_change_team2 = self.calculateEloChange(match, self.prev_nick1, self.prev_nick2,
-                                                                         self.prev_elo1, self.prev_elo2)
-            self.drawMapImage(match, elo_change_team1, elo_change_team2)
+            # elo_change_team1, elo_change_team2 = self.calculateEloChange(match, self.prev_nick1, self.prev_nick2,
+            #                                                              self.prev_elo1, self.prev_elo2)
+            self.drawMapImage(match)
             for idx_team, team in enumerate(match['teams']):
                 for idx_player, player in enumerate(team['players']):
                     self.drawPlayerOnImage(player, idx_team, idx_player)
@@ -49,32 +49,19 @@ class ImageCollector:
             isOvertimeinGame = False
         return isOvertimeinGame
 
-    def calculateEloChange(self, match, prev_nick1, prev_nick2, prev_elo1, prev_elo2):
-        diff_elo_team_1, diff_elo_team_2 = '', ''
+    def calculateEloChange(self, player, player_elo):
+        elo_diff = '(0)'
+        nicknames = (self.prev_nick1 + '\n' + self.prev_nick2).split('\n')
+        prevelo = (self.prev_elo1 + '\n' + self.prev_elo2).split('\n')
+        for idx, nick in enumerate(nicknames):
+            if nick == player['nickname']:
+                if int(prevelo[idx]) > int(player_elo):
+                    return '(+' + str(int(prevelo[idx]) - int(player_elo)) + ')'
+                else:
+                    return '(' + str(int(prevelo[idx]) - int(player_elo)) + ')'
+        return elo_diff
 
-        for idx_team, team in enumerate(match['teams']):
-            for idx_player, player in enumerate(team['players']):
-                player_elo = str(player_details(player['nickname'])['games']['csgo']['faceit_elo'])
-                for idn, nick in enumerate(prev_nick1.split('\n')):
-                    if nick == player['nickname']:
-                        if int(player_elo) > int(prev_elo1.split('\n')[idn]):
-                            diff_elo_team_1 = '+' + str(abs(int(player_elo) - int(prev_elo1.split('\n')[idn])))
-                            break
-                        else:
-                            diff_elo_team_1 = str(int(player_elo) - int(prev_elo1.split('\n')[idn]))
-                            break
-                for idn, nick in enumerate(prev_nick2.split('\n')):
-                    if nick == player['nickname']:
-                        if int(player_elo) > int(prev_elo2.split('\n')[idn]):
-                            diff_elo_team_2 = '+' + str(abs(int(player_elo) - int(prev_elo2.split('\n')[idn])))
-                            break
-                        else:
-                            diff_elo_team_2 = str(int(player_elo) - int(prev_elo2.split('\n')[idn]))
-                            break
-
-        return diff_elo_team_1, diff_elo_team_2
-
-    def drawMapImage(self, match, elo_change_team1, elo_change_team2):
+    def drawMapImage(self, match):
         self.image_map = Image.open(f'templates/maps/{match["round_stats"]["Map"]}.jpg')
         self.image_map = self.image_map.resize((960, 540))
         self.draw_image_map = ImageDraw.Draw(self.image_map)
@@ -96,11 +83,6 @@ class ImageCollector:
                                             font=self._fonts['mainscore'])
         self.draw_image_map.text(((146 - w) / 2, 415), match["teams"][1]["team_stats"]["Final Score"],
                                  font=self._fonts['mainscore'])
-
-        w, h = self.draw_image_map.textsize(elo_change_team1, font=self._fonts['avatar'])
-        self.draw_image_map.text(((146 - w) / 2, 150 - h), elo_change_team1, font=self._fonts['avatar'])
-        w, h = self.draw_image_map.textsize(elo_change_team2, font=self._fonts['avatar'])
-        self.draw_image_map.text(((146 - w) / 2, 390), elo_change_team2, font=self._fonts['avatar'])
 
         isOvertimeinMatch = self.boolOvertimeCheck(match)
         for idx_team, team in enumerate(match['teams']):
@@ -129,7 +111,7 @@ class ImageCollector:
 
     def drawAvatarOnImage(self, player, idx_team, idx_player):
         player_elo = str(player_details(player['nickname'])['games']['csgo']['faceit_elo'])
-
+        elo_diff = self.calculateEloChange(player, player_elo)
         for idx_req_player, req_player in enumerate(self.request_json['payload']['teams'][idx_team]['roster']):
             if player['nickname'] == req_player['nickname']:
                 if req_player['avatar'] != '':
@@ -151,6 +133,8 @@ class ImageCollector:
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                     w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((125 - w, 0), player_elo, font=self._fonts['avatar'])
+                    w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
+                    draw_image_avatar.text((25, 0), elo_diff, font=self._fonts['avatar'])
                 else:
                     image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
                     image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
@@ -160,6 +144,8 @@ class ImageCollector:
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
                     w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((125 - w, 107), player_elo, font=self._fonts['avatar'])
+                    w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
+                    draw_image_avatar.text((25, 107), elo_diff, font=self._fonts['avatar'])
 
                 w, h = self.draw_image_map.textsize(req_player['nickname'], font=self._fonts['avatar'])
                 if w > 130:
