@@ -191,19 +191,18 @@ class MyClient(discord.Client):
                 str_nick += '\n'
             for player in team['players']:
                 str_nick += f'{player["nickname"]}, '
-                for idx in sub_players:
-                    if player['player_id'] == idx:
-                        if idx_team == 0:
-                            isFoundInFirstTeam = True
-                        elif isFoundInFirstTeam:
-                            my_color = 9936031
-                            break
-                        if team['team_stats']['Team Win'] == '1':
-                            my_color = 2067276
-                            break
-                        else:
-                            my_color = 10038562
-                            break
+                if player['player_id'] in sub_players:
+                    if idx_team == 0:
+                        isFoundInFirstTeam = True
+                    elif isFoundInFirstTeam:
+                        my_color = 9936031
+                        break
+                    if team['team_stats']['Team Win'] == '1':
+                        my_color = 2067276
+                        break
+                    else:
+                        my_color = 10038562
+                        break
 
         str_nick = str_nick[:-2]
 

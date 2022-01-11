@@ -50,7 +50,7 @@ class ImageCollector:
         return isOvertimeinGame
 
     def calculateEloChange(self, player, player_elo):
-        elo_diff = '(0)'
+        elo_diff = ''
         nicknames = (self.prev_nick1 + '\n' + self.prev_nick2).split('\n')
         prevelo = (self.prev_elo1 + '\n' + self.prev_elo2).split('\n')
         for idx, nick in enumerate(nicknames):
@@ -131,10 +131,10 @@ class ImageCollector:
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
                         (0, 0),
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
-                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text((125 - w, 0), player_elo, font=self._fonts['avatar'])
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
-                    draw_image_avatar.text((25, 0), elo_diff, font=self._fonts['avatar'])
+                    draw_image_avatar.text((127 - w, 0), elo_diff, font=self._fonts['avatar'])
+                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
+                    draw_image_avatar.text((26, 0), player_elo, font=self._fonts['avatar'])
                 else:
                     image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
                     image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
@@ -142,10 +142,10 @@ class ImageCollector:
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
                         (0, 106),
                         Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
-                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text((125 - w, 107), player_elo, font=self._fonts['avatar'])
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
-                    draw_image_avatar.text((25, 107), elo_diff, font=self._fonts['avatar'])
+                    draw_image_avatar.text((127 - w, 107), elo_diff, font=self._fonts['avatar'])
+                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
+                    draw_image_avatar.text((26, 107), player_elo, font=self._fonts['avatar'])
 
                 w, h = self.draw_image_map.textsize(req_player['nickname'], font=self._fonts['avatar'])
                 if w > 130:
