@@ -200,7 +200,7 @@ class MyClient(discord.Client):
                     else:
                         my_color = 10038562
 
-                    if isFoundInFirstTeam:
+                    if idx_team == 1 and isFoundInFirstTeam:
                         my_color = 9936031
 
         str_nick = str_nick[:-2]
