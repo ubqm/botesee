@@ -194,15 +194,14 @@ class MyClient(discord.Client):
                 if player['player_id'] in sub_players:
                     if idx_team == 0:
                         isFoundInFirstTeam = True
-                    elif isFoundInFirstTeam:
-                        my_color = 9936031
-                        break
+
                     if team['team_stats']['Team Win'] == '1':
                         my_color = 2067276
-                        break
                     else:
                         my_color = 10038562
-                        break
+
+                    if isFoundInFirstTeam:
+                        my_color = 9936031
 
         str_nick = str_nick[:-2]
 
