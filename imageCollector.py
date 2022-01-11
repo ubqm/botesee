@@ -117,6 +117,7 @@ class ImageCollector:
                 if req_player['avatar'] != '':
                     avatar_req = requests.get(req_player['avatar'], stream=True)
                     image_avatar = Image.open(avatar_req.raw)
+                    image_avatar = image_avatar.convert('RGB')
                     image_avatar = image_avatar.resize((130, 130))
                 else:
                     image_avatar = Image.open('templates/question-mark-icon.jpg')
