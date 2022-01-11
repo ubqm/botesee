@@ -184,20 +184,27 @@ class MyClient(discord.Client):
         channel = self.get_channel(id=channel_id)
         statistics = match_stats(request_json['payload']['id'])
         my_color = 1
+        isFoundInFirstTeam = False
         str_nick = ''
         for idx_team, team in enumerate(statistics['rounds'][0]['teams']):
             if idx_team == 1:
                 str_nick += '\n'
             for player in team['players']:
-                str_nick += '{}, '.format(player['nickname'])
+                str_nick += f'{player["nickname"]}, '
                 for idx in sub_players:
                     if player['player_id'] == idx:
+                        if idx_team == 0:
+                            isFoundInFirstTeam = True
+                        elif isFoundInFirstTeam:
+                            my_color = 9936031
+                            break
                         if team['team_stats']['Team Win'] == '1':
                             my_color = 2067276
                             break
                         else:
                             my_color = 10038562
                             break
+
         str_nick = str_nick[:-2]
 
         embed_msg = discord.Embed(title=str_nick, type="rich",
