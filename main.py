@@ -1,3 +1,5 @@
+import time
+
 import discord
 import os
 import re
@@ -182,7 +184,10 @@ class MyClient(discord.Client):
                        '4e7d1f6c-9045-4800-8eda-23c892dcd814']
 
         channel = self.get_channel(id=channel_id)
-        statistics = match_stats(request_json['payload']['id'])
+        statistics = None
+        while not statistics:
+            statistics = match_stats(request_json['payload']['id'])
+            time.sleep(5)
         my_color = 1
         isFoundInFirstTeam = False
         str_nick = ''
