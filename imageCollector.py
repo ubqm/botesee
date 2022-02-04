@@ -56,9 +56,11 @@ class ImageCollector:
         for idx, nick in enumerate(nicknames):
             if nick == player['nickname']:
                 if int(prevelo[idx]) > int(player_elo):
-                    return '(' + str((int(player_elo) - int(prevelo[idx]))) + ')'
+                    elo_diff = '(' + str((int(player_elo) - int(prevelo[idx]))) + ')'
+                elif int(prevelo[idx]) < int(player_elo):
+                    elo_diff = '(+' + str(int(player_elo) - int(prevelo[idx])) + ')'
                 else:
-                    return '(+' + str(int(player_elo) - int(prevelo[idx])) + ')'
+                    break
         return elo_diff
 
     def drawMapImage(self, match):
