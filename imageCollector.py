@@ -1,5 +1,4 @@
 from PIL import Image, ImageFont, ImageDraw
-import threading
 from datetime import datetime
 import calendar
 import requests
@@ -9,9 +8,9 @@ from faceit_get_funcs import player_details, region_stats, player_history, match
 
 class ImageCollector:
     def __init__(self, request_json, stat_json, prev_nick1, prev_elo1, prev_nick2, prev_elo2):
-        self._fonts = self.getFonts(font_folder='Outfit', font_file='Outfit-Bold.ttf',
-                                    font_file_mainscore='Outfit-ExtraBold.ttf')
-        self._elo_change_team1, self._elo_change_team2 = '', ''
+        self._fonts = self.getFonts(font_folder="Outfit", font_file="Outfit-Bold.ttf",
+                                    font_file_mainscore="Outfit-ExtraBold.ttf")
+        self._elo_change_team1, self._elo_change_team2 = "", ""
         self.request_json = request_json
         self.stat_json = stat_json
         self.prev_nick1 = prev_nick1
@@ -19,11 +18,11 @@ class ImageCollector:
         self.prev_elo1 = prev_elo1
         self.prev_elo2 = prev_elo2
         self.stat_color = (255, 255, 255, 255)
-        self.image_map = Image.new(mode='RGBA', size=(960, 540))
+        self.image_map = Image.new(mode="RGBA", size=(960, 540))
         self.draw_image_map = ImageDraw.Draw(self.image_map)
-        self.image_dark_avatar_bot = Image.open('templates/background_features/for_avatar_bot.png')
-        self.image_dark_avatar_top = Image.open('templates/background_features/for_avatar_top.png')
-        self.image_dark_middle = Image.open('templates/background_features/dark-middle2.png')
+        self.image_dark_avatar_bot = Image.open("templates/background_features/for_avatar_bot.png")
+        self.image_dark_avatar_top = Image.open("templates/background_features/for_avatar_top.png")
+        self.image_dark_middle = Image.open("templates/background_features/dark-middle2.png")
 
     def collect_image(self):
         image_list = []
@@ -39,9 +38,9 @@ class ImageCollector:
         return image_list
 
     def boolOvertimeCheck(self, match):
-        if 'Overtime score' in match['teams'][0]['team_stats'].keys():
-            if match['teams'][0]['team_stats']['Overtime score'] == '0' and \
-                    match['teams'][1]['team_stats']['Overtime score'] == '0':
+        if "Overtime score" in match['teams'][0]['team_stats'].keys():
+            if match['teams'][0]['team_stats']['Overtime score'] == "0" and \
+                    match['teams'][1]['team_stats']['Overtime score'] == "0":
                 isOvertimeinGame = False
             else:
                 isOvertimeinGame = True
@@ -50,29 +49,29 @@ class ImageCollector:
         return isOvertimeinGame
 
     def calculateEloChange(self, player, player_elo):
-        elo_diff = ''
-        nicknames = (self.prev_nick1 + '\n' + self.prev_nick2).split('\n')
-        prevelo = (self.prev_elo1 + '\n' + self.prev_elo2).split('\n')
+        elo_diff = ""
+        nicknames = (self.prev_nick1 + "\n" + self.prev_nick2).split("\n")
+        prevelo = (self.prev_elo1 + "\n" + self.prev_elo2).split("\n")
         for idx, nick in enumerate(nicknames):
             if nick == player['nickname']:
                 if int(prevelo[idx]) > int(player_elo):
-                    elo_diff = '(' + str((int(player_elo) - int(prevelo[idx]))) + ')'
+                    elo_diff = "(" + str((int(player_elo) - int(prevelo[idx]))) + ")"
                 elif int(prevelo[idx]) < int(player_elo):
-                    elo_diff = '(+' + str(int(player_elo) - int(prevelo[idx])) + ')'
+                    elo_diff = "(+" + str(int(player_elo) - int(prevelo[idx])) + ")"
                 else:
                     break
         return elo_diff
 
     def drawMapImage(self, match):
-        self.image_map = Image.open(f'templates/maps/{match["round_stats"]["Map"]}.jpg')
+        self.image_map = Image.open(f"templates/maps/{match['round_stats']['Map']}.jpg")
         self.image_map = self.image_map.resize((960, 540))
         self.draw_image_map = ImageDraw.Draw(self.image_map)
-        if match['teams'][0]['team_stats']['Team Win'] == '1':
-            image_topcolor = Image.open('templates/background_features/Win-topleft.png')
-            image_botcolor = Image.open('templates/background_features/Lose-botleft.png')
+        if match['teams'][0]['team_stats']['Team Win'] == "1":
+            image_topcolor = Image.open("templates/background_features/Win-topleft.png")
+            image_botcolor = Image.open("templates/background_features/Lose-botleft.png")
         else:
-            image_topcolor = Image.open('templates/background_features/Lose-topleft.png')
-            image_botcolor = Image.open('templates/background_features/Win-botleft.png')
+            image_topcolor = Image.open("templates/background_features/Lose-topleft.png")
+            image_botcolor = Image.open("templates/background_features/Win-botleft.png")
         self.image_map.paste(image_topcolor, (0, 0), image_topcolor)
         self.image_map.paste(image_botcolor, (0, 0), image_botcolor)
         self.image_map.paste(self.image_dark_middle, (0, 0), self.image_dark_middle)
@@ -99,11 +98,11 @@ class ImageCollector:
             self.draw_image_map.text(((146 - w) / 2, 235 + 42 * idx_team), halftimes, font=self._fonts['halftime'])
 
     def getFonts(self, font_folder, font_file, font_file_mainscore):
-        fonts = {'mainscore': ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file_mainscore}', 50),
-                 'avatar': ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 18),
-                 'player_score': ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 32),
-                 'player_stats': ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22),
-                 'halftime': ImageFont.truetype(f'templates/fonts/{font_folder}/{font_file}', 22)
+        fonts = {'mainscore': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file_mainscore}", 50),
+                 'avatar': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 18),
+                 'player_score': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 32),
+                 'player_stats': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 22),
+                 'halftime': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 22)
                  }
         return fonts
 
@@ -116,13 +115,13 @@ class ImageCollector:
         elo_diff = self.calculateEloChange(player, player_elo)
         for idx_req_player, req_player in enumerate(self.request_json['payload']['teams'][idx_team]['roster']):
             if player['nickname'] == req_player['nickname']:
-                if req_player['avatar'] != '':
+                if req_player['avatar'] != "":
                     avatar_req = requests.get(req_player['avatar'], stream=True)
                     image_avatar = Image.open(avatar_req.raw)
                     image_avatar = image_avatar.convert('RGB')
                     image_avatar = image_avatar.resize((130, 130))
                 else:
-                    image_avatar = Image.open('templates/question-mark-icon.jpg')
+                    image_avatar = Image.open("templates/question-mark-icon.jpg")
                     image_avatar = image_avatar.resize((130, 130))
                 draw_image_avatar = ImageDraw.Draw(image_avatar)
                 faceitlvl = req_player['game_skill_level']
@@ -131,23 +130,23 @@ class ImageCollector:
                     image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
                     image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
                     image_avatar.paste(
-                        Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
+                        Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
                         (0, 0),
-                        Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
+                        Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"))
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
                     draw_image_avatar.text((127 - w, 0), elo_diff, font=self._fonts['avatar'])
-                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
+                    # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((26, 0), player_elo, font=self._fonts['avatar'])
                 else:
                     image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
                     image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
                     image_avatar.paste(
-                        Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"),
+                        Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
                         (0, 106),
-                        Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA"))
+                        Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"))
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
                     draw_image_avatar.text((127 - w, 107), elo_diff, font=self._fonts['avatar'])
-                    w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
+                    # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((26, 107), player_elo, font=self._fonts['avatar'])
 
                 w, h = self.draw_image_map.textsize(req_player['nickname'], font=self._fonts['avatar'])
@@ -172,17 +171,17 @@ class ImageCollector:
         else:
             self.stat_color = (255, 255, 255, 255)
 
-        kad = f'{player["player_stats"]["Kills"]}' \
-              f'/{player["player_stats"]["Assists"]}' \
-              f'/{player["player_stats"]["Deaths"]}'
+        kad = f"{player['player_stats']['Kills']}" \
+              f"/{player['player_stats']['Assists']}" \
+              f"/{player['player_stats']['Deaths']}"
         w, h = self.draw_image_map.textsize(kad, font=self._fonts['player_score'])
         self.draw_image_map.text((130 + (162 - w) / 2 + idx_player * 162, 155 + 195 * idx_team), kad,
                                  font=self._fonts['player_score'])
-        mvp = f'MVP: {player["player_stats"]["MVPs"]}'
+        mvp = f"MVP: {player['player_stats']['MVPs']}"
         self.draw_image_map.text((156 + idx_player * 162, 240 + 36 * idx_team), mvp, font=self._fonts['player_stats'])
-        kr = f'K/R: {player["player_stats"]["K/R Ratio"]}'
+        kr = f"K/R: {player['player_stats']['K/R Ratio']}"
         self.draw_image_map.text((156 + idx_player * 162, 220 + 76 * idx_team), kr, font=self._fonts['player_stats'])
-        kd = f'K/D: {player["player_stats"]["K/D Ratio"]}'
+        kd = f"K/D: {player['player_stats']['K/D Ratio']}"
         self.draw_image_map.text((156 + idx_player * 162, 200 + 116 * idx_team), kd, font=self._fonts['player_stats'],
                                  fill=self.stat_color)
 
@@ -216,30 +215,30 @@ class ImageCollectorStatLast:
                                 for team in map_s['teams']:
                                     for player in team['players']:
                                         if player_id == player['player_id']:
-                                            rc = {'nickname': nickname,
-                                                  'steam_id': pd['games']['csgo']['game_player_id'],
-                                                  'avatar': pd['avatar'],
-                                                  'background': pd['cover_image'],
-                                                  'country': pd['country'],
-                                                  'country_place': country_place,
-                                                  'region_place': region_place,
-                                                  'player_id': pd['player_id'],
-                                                  'region': pd['games']['csgo']['region'],
-                                                  'skill_level': pd['games']['csgo']['skill_level'],
-                                                  'faceit_elo': pd['games']['csgo']['faceit_elo'],
-                                                  'result': player['player_stats']['Result'],
-                                                  'kills': player['player_stats']['Kills'],
-                                                  'assists': player['player_stats']['Assists'],
-                                                  'deaths': player['player_stats']['Deaths'],
-                                                  'kdratio': player['player_stats']['K/D Ratio'],
-                                                  'krratio': player['player_stats']['K/R Ratio'],
-                                                  'mvps': player['player_stats']['MVPs'],
-                                                  'headshots%': player['player_stats']['Headshots %'],
-                                                  '4k': player['player_stats']['Quadro Kills'],
-                                                  '5k': player['player_stats']['Penta Kills'],
-                                                  'mapscore': map_s['round_stats']['Score'],
-                                                  'mapname': map_s['round_stats']['Map'],
-                                                  'started_at': match_h['started_at']}
+                                            rc = {"nickname": nickname,
+                                                  "steam_id": pd['games']['csgo']['game_player_id'],
+                                                  "avatar": pd['avatar'],
+                                                  "background": pd['cover_image'],
+                                                  "country": pd['country'],
+                                                  "country_place": country_place,
+                                                  "region_place": region_place,
+                                                  "player_id": pd['player_id'],
+                                                  "region": pd['games']['csgo']['region'],
+                                                  "skill_level": pd['games']['csgo']['skill_level'],
+                                                  "faceit_elo": pd['games']['csgo']['faceit_elo'],
+                                                  "result": player['player_stats']['Result'],
+                                                  "kills": player['player_stats']['Kills'],
+                                                  "assists": player['player_stats']['Assists'],
+                                                  "deaths": player['player_stats']['Deaths'],
+                                                  "kdratio": player['player_stats']['K/D Ratio'],
+                                                  "krratio": player['player_stats']['K/R Ratio'],
+                                                  "mvps": player['player_stats']['MVPs'],
+                                                  "headshots%": player['player_stats']['Headshots %'],
+                                                  "4k": player['player_stats']['Quadro Kills'],
+                                                  "5k": player['player_stats']['Penta Kills'],
+                                                  "mapscore": map_s['round_stats']['Score'],
+                                                  "mapname": map_s['round_stats']['Map'],
+                                                  "started_at": match_h['started_at']}
                                             lrc.append(rc)
                                             break
         else:
@@ -247,16 +246,16 @@ class ImageCollectorStatLast:
         return lrc
 
     def drawImage(self, player_stat):
-        font = ImageFont.truetype(f'templates/fonts/Outfit/Outfit-Bold.ttf', 26)
-        font_name = ImageFont.truetype(f'templates/fonts/Outfit/Outfit-Bold.ttf', 36)
-        if player_stat[0]['background'] != '':
+        font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
+        font_name = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 36)
+        if player_stat[0]['background'] != "":
             bg_req = requests.get(player_stat[0]['background'], stream=True)
             image_background = Image.open(bg_req.raw)
         else:
-            image_background = Image.open(f'templates/background_features/dark-right-side-for-stat.png')
+            image_background = Image.open(f"templates/background_features/dark-right-side-for-stat.png")
 
-        lose_bg = Image.open(f'templates/background_features/right-side-lose.png')
-        win_bg = Image.open(f'templates/background_features/right-side-win.png')
+        lose_bg = Image.open(f"templates/background_features/right-side-lose.png")
+        win_bg = Image.open(f"templates/background_features/right-side-win.png")
 
         width, height = image_background.size
         if height != 540:
@@ -270,14 +269,14 @@ class ImageCollectorStatLast:
             bottom = height
             image_background = image_background.crop((left, top, right, bottom))
             image_background.resize((960, 540))
-        dark_right = Image.open(f'templates/background_features/dark-right-side-for-stat.png')
+        dark_right = Image.open(f"templates/background_features/dark-right-side-for-stat.png")
         image_background.paste(dark_right, (0, 0), dark_right)
-        if player_stat[0]['avatar'] != '':
+        if player_stat[0]['avatar'] != "":
             avatar_req = requests.get(player_stat[0]['avatar'], stream=True)
             image_avatar = Image.open(avatar_req.raw)
             image_avatar = image_avatar.resize((130, 130))
         else:
-            image_avatar = Image.open(f'templates/question-mark-icon.jpg')
+            image_avatar = Image.open(f"templates/question-mark-icon.jpg")
             image_avatar = image_avatar.resize((130, 130))
 
         image_background.paste(image_avatar, (10, 10))
@@ -287,21 +286,21 @@ class ImageCollectorStatLast:
         app_stat = user_app_stat(player_stat[0]["steam_id"])
         rec_pl_stat = user_rec_played_stat(player_stat[0]['steam_id'])
 
-        playtime_2weeks = 'Last 2 weeks: Unknown'
-        playtime_forever = 'Summary in CSGO: Unknown'
-        percentage_played = 'Activity: Unknown'
-        csgotime_played_hrs = 'Played in CSGO: Unknown'
-        if 'response' in rec_pl_stat.keys() and 'games' in rec_pl_stat['response'].keys():
+        playtime_2weeks = "Last 2 weeks: Unknown"
+        playtime_forever = "Summary in CSGO: Unknown"
+        percentage_played = "Activity: Unknown"
+        csgotime_played_hrs = "Played in CSGO: Unknown"
+        if "response" in rec_pl_stat.keys() and "games" in rec_pl_stat['response'].keys():
             for app in rec_pl_stat['response']['games']:
                 if app['appid'] == 730:
-                    playtime_2weeks = f'Last 2 weeks: {int(app["playtime_2weeks"] / 60)} hrs'
-                    playtime_forever = f'Summary in CSGO: {int(app["playtime_forever"] / 60)} hrs'
+                    playtime_2weeks = f"Last 2 weeks: {int(app['playtime_2weeks'] / 60)} hrs"
+                    playtime_forever = f"Summary in CSGO: {int(app['playtime_forever'] / 60)} hrs"
                     if app_stat is not None:
-                        csgotime_played_hrs = f'Played in CSGO: {int(app_stat["playerstats"]["stats"][2]["value"] / 60 / 60)} hrs'
-                        percentage_played = f'Activity: {format((app_stat["playerstats"]["stats"][2]["value"] / 60 / 60) / (app["playtime_forever"] / 60) * 100, ".1f")}%'
+                        csgotime_played_hrs = f"Played in CSGO: {int(app_stat['playerstats']['stats'][2]['value'] / 60 / 60)} hrs"
+                        percentage_played = f"Activity: {(app_stat['playerstats']['stats'][2]['value'] / 60 / 60) / (app['playtime_forever'] / 60) * 100:.1f}% "
                     else:
-                        csgotime_played_hrs = f'Played in CSGO: Unknown'
-                        percentage_played = f'Activity: Unknown'
+                        csgotime_played_hrs = f"Played in CSGO: Unknown"
+                        percentage_played = f"Activity: Unknown"
 
         draw_image_bg.text((10, 150), playtime_2weeks, font=font)
         draw_image_bg.text((10, 180), csgotime_played_hrs, font=font)
@@ -309,7 +308,7 @@ class ImageCollectorStatLast:
         draw_image_bg.text((10, 240), percentage_played, font=font)
 
         faceitlvl = player_stat[0]['skill_level']
-        image_lvl = Image.open(f'templates/faceit_icons/faceit{faceitlvl}.png').convert("RGBA")
+        image_lvl = Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA")
         image_lvl = image_lvl.resize((24, 24))
         image_background.paste(image_lvl, (155, 74), image_lvl)
 
@@ -326,44 +325,41 @@ class ImageCollectorStatLast:
             total_4k += int(player_stat[i]['4k'])
             total_5k += int(player_stat[i]['5k'])
 
-            if float(player_stat[i]["kdratio"]) >= 1.3:
+            if float(player_stat[i]['kdratio']) >= 1.3:
                 stat_color = (0, 190, 0, 255)
-            elif float(player_stat[i]["kdratio"]) < 0.6:
+            elif float(player_stat[i]['kdratio']) < 0.6:
                 stat_color = (170, 0, 0, 255)
-            elif 0.8 > float(player_stat[i]["kdratio"]) >= 0.6:
+            elif 0.8 > float(player_stat[i]['kdratio']) >= 0.6:
                 stat_color = (255, 165, 0, 255)
             else:
                 stat_color = (255, 255, 255, 255)
 
-            if player_stat[i]['result'] == '1':
+            if player_stat[i]['result'] == "1":
                 image_background.paste(win_bg, (775, 50 * i + 24), win_bg)
             else:
                 image_background.paste(lose_bg, (775, 50 * i + 24), lose_bg)
             draw_image_bg.text((870, 50 * i + 30), player_stat[i]['mapscore'], font=font)
-            current_map = Image.open(f'templates/maps/{player_stat[i]["mapname"]}.jpg')
+            current_map = Image.open(f"templates/maps/{player_stat[i]['mapname']}.jpg")
             current_map = current_map.resize((90, 50))
             image_background.paste(current_map, (770, 50 * i + 24))
-            kad = f'{player_stat[i]["kills"]}/{player_stat[i]["assists"]}/{player_stat[i]["deaths"]}'
+            kad = f"{player_stat[i]['kills']}/{player_stat[i]['assists']}/{player_stat[i]['deaths']}"
             draw_image_bg.text((665, 50 * i + 30), kad, font=font, fill=stat_color)
-            dd = datetime.utcfromtimestamp(player_stat[i]['started_at']).strftime('%m/%d')
-            cc = calendar.month_name[int(dd.split('/')[0])][:3]
-            draw_image_bg.text((570, 50 * i + 30), dd.split('/')[1] + " " + cc, font=font)
+            dd = datetime.utcfromtimestamp(player_stat[i]['started_at']).strftime("%m/%d")
+            cc = calendar.month_name[int(dd.split("/")[0])][:3]
+            draw_image_bg.text((570, 50 * i + 30), dd.split("/")[1] + " " + cc, font=font)
 
-        mean_k /= 10
-        mean_a /= 10
-        mean_d /= 10
-        mean_kd /= 10
-        mean_kr /= 10
-        mean_hs /= 10
-        draw_image_bg.text((10, 310), 'Last 10 games played:', font=font)
-        draw_image_bg.text((10, 340), f'KAD: {format(mean_k, ".1f")} / {format(mean_a, ".1f")} / {format(mean_d, ".1f")}', font=font)
-        draw_image_bg.text((10, 370), f'K/D: {format(mean_kd, ".2f")}', font=font)
-        draw_image_bg.text((10, 400), f'K/R: {format(mean_kr, ".2f")}', font=font)
-        draw_image_bg.text((10, 430), f'Total 4K: {total_4k}', font=font)
-        draw_image_bg.text((10, 460), f'Total 5K: {total_5k}', font=font)
-        draw_image_bg.text((10, 490), f'HS: {format(mean_hs, ".1f")}%', font=font)
+        mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs = \
+            map((lambda x: x / 10), [mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs])
 
-        draw_image_bg.text((270, 70), f'{player_stat[0]["region"]}: {player_stat[0]["region_place"]}', font=font)
-        draw_image_bg.text((270, 100), f'{player_stat[0]["country"]}: {player_stat[0]["country_place"]}', font=font)
+        draw_image_bg.text((10, 310), "Last 10 games played:", font=font)
+        draw_image_bg.text((10, 340), f"KAD: {mean_k:.1f} / {mean_a:.1f} / {mean_d:.1f}", font=font)
+        draw_image_bg.text((10, 370), f"K/D: {mean_kd:.2f}", font=font)
+        draw_image_bg.text((10, 400), f"K/R: {mean_kr:.2f}", font=font)
+        draw_image_bg.text((10, 430), f"Total 4K: {total_4k}", font=font)
+        draw_image_bg.text((10, 460), f"Total 5K: {total_5k}", font=font)
+        draw_image_bg.text((10, 490), f"HS: {mean_hs:.1f}%", font=font)
+
+        draw_image_bg.text((270, 70), f"{player_stat[0]['region']}: {player_stat[0]['region_place']}", font=font)
+        draw_image_bg.text((270, 100), f"{player_stat[0]['country']}: {player_stat[0]['country_place']}", font=font)
 
         return image_background

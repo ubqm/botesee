@@ -5,7 +5,7 @@ import os
 
 Faceit_token = os.environ['Faceit_token']
 base_url = "https://open.faceit.com/data/v4"
-headers = {'accept': 'application/json', 'Authorization': f'Bearer {Faceit_token}'}
+headers = {"accept": "application/json", "Authorization": f"Bearer {Faceit_token}"}
 
 
 def player_details(nickname=None, game=None, game_player_id=None):
@@ -24,17 +24,17 @@ def player_details(nickname=None, game=None, game_player_id=None):
     res = requests.get(api_url, headers=headers)
 
     if res.status_code == 200:
-        return json.loads(res.content.decode('utf-8'))
+        return json.loads(res.content.decode("utf-8"))
     else:
-        return ''
+        return ""
 
 
-def player_history(player_id=None, game='csgo', limit=20):
+def player_history(player_id=None, game="csgo", limit=20):
     api_url = f"{base_url}/players/{player_id}/history?game={game}&offset=0&limit={limit}"
     if player_id is not None:
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
-            return json.loads(res.content.decode('utf-8'))
+            return json.loads(res.content.decode("utf-8"))
         else:
             return None
     else:
@@ -49,7 +49,7 @@ def match_details(match_id=None):
 
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
-            return json.loads(res.content.decode('utf-8'))
+            return json.loads(res.content.decode("utf-8"))
         else:
             return None
 
@@ -62,7 +62,7 @@ def match_stats(match_id=None):
 
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
-            return json.loads(res.content.decode('utf-8'))
+            return json.loads(res.content.decode("utf-8"))
         else:
             return None
 
@@ -72,7 +72,7 @@ def region_stats(player_id, region, country=""):
         api_url = "{}/rankings/games/csgo/regions/{}/players/{}?limit=2".format(base_url, region, player_id)
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
-            return json.loads(res.content.decode('utf-8'))
+            return json.loads(res.content.decode("utf-8"))
         else:
             return None
     else:
@@ -80,6 +80,6 @@ def region_stats(player_id, region, country=""):
                                                                                            country)
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
-            return json.loads(res.content.decode('utf-8'))
+            return json.loads(res.content.decode("utf-8"))
         else:
             return None
