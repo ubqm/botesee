@@ -185,9 +185,12 @@ class MyClient(discord.Client):
 
         channel = self.get_channel(id=channel_id)
         statistics = None
-        while not statistics:
+        for _ in range(12):
             statistics = match_stats(request_json['payload']['id'])
+            if statistics:
+                break
             time.sleep(5)
+
         my_color = 1
         isFoundInFirstTeam = False
         str_nick = ""
@@ -227,24 +230,8 @@ class MyClient(discord.Client):
                 embed_msg.set_image(url="attachment://image.png")
                 await channel.send(embed=embed_msg, file=binary_image)
 
-    async def post_faceit_message_aborted(self, channel_id, request_json):
-        # channel = self.get_channel(id=channel_id)
-        # my_color = 1
-        # embed_msg = discord.Embed(title="Match Aborted", type="rich",
-        #                           description='[{0}](https://www.faceit.com/en/csgo/room/{1})'.format(
-        #                               request_json['payload']['id'], request_json['payload']['id']),
-        #                           color=my_color)
-        # str_nick1 = ''
-        # str_nick2 = ''
-        #
-        # for player in range(0, 5):
-        #     str_nick1 += str(request_json['payload']['teams'][0]['roster'][player]['nickname']) + '\n'
-        #     str_nick2 += str(request_json['payload']['teams'][1]['roster'][player]['nickname']) + '\n'
-        #
-        # embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
-        # embed_msg.add_field(name=request_json['payload']['teams'][1]['name'], value=str_nick2, inline=True)
+    async def post_faceit_message_aborted(self, request_json):
         await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
-        # await channel.send(embed=embed_msg)
 
     async def delete_message_by_faceit_match_id(self, match_id):
         channel = Client.get_channel(self, 828940900033626113)
@@ -260,6 +247,10 @@ class MyClient(discord.Client):
                     await message.delete()
         return nick1, elo1, nick2, elo2
 
+    async def on_restart(self):
+        channel = Client.get_channel(self, 828940900033626113)
+        channel.send("Restarted")
+
 
 if __name__ == "__main__":
     intents = discord.Intents.all()
@@ -273,3 +264,8 @@ if __name__ == "__main__":
     t.start()
 
     bot_client.run(Discord_token)
+    while True:
+        if bot_client.loop.is_closed():
+            bot_client.run(Discord_token)
+            bot_client.on_restart()
+        time.sleep(10)
