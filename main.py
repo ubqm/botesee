@@ -230,11 +230,11 @@ class MyClient(discord.Client):
                 embed_msg.set_image(url="attachment://image.png")
                 await channel.send(embed=embed_msg, file=binary_image)
 
-    async def post_faceit_message_aborted(self, request_json):
-        await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
+    async def post_faceit_message_aborted(self, channel_id, request_json):
+        await self.delete_message_by_faceit_match_id(channel_id, request_json['payload']['id'])
 
-    async def delete_message_by_faceit_match_id(self, match_id):
-        channel = Client.get_channel(self, 828940900033626113)
+    async def delete_message_by_faceit_match_id(self, channel_id, match_id):
+        channel = Client.get_channel(self, channel_id)
         messages = await channel.history(limit=10).flatten()
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
