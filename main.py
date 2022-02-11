@@ -218,7 +218,7 @@ class MyClient(discord.Client):
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=my_color)
 
-        nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(request_json['payload']['id'])
+        nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(match_id=request_json['payload']['id'])
 
         img_collector = ImageCollector(request_json, statistics, nick1, elo1, nick2, elo2)
         image_list = img_collector.collect_image()
