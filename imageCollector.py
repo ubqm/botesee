@@ -28,8 +28,6 @@ class ImageCollector:
         image_list = []
 
         for idx_match, match in enumerate(self.stat_json['rounds']):
-            # elo_change_team1, elo_change_team2 = self.calculateEloChange(match, self.prev_nick1, self.prev_nick2,
-            #                                                              self.prev_elo1, self.prev_elo2)
             self.drawMapImage(match)
             for idx_team, team in enumerate(match['teams']):
                 for idx_player, player in enumerate(team['players']):
@@ -37,7 +35,8 @@ class ImageCollector:
             image_list.append(self.image_map)
         return image_list
 
-    def boolOvertimeCheck(self, match):
+    @staticmethod
+    def boolOvertimeCheck(match):
         if "Overtime score" in match['teams'][0]['team_stats'].keys():
             if match['teams'][0]['team_stats']['Overtime score'] == "0" and \
                     match['teams'][1]['team_stats']['Overtime score'] == "0":
@@ -97,7 +96,8 @@ class ImageCollector:
             w, h = self.draw_image_map.textsize(halftimes, font=self._fonts['halftime'])
             self.draw_image_map.text(((146 - w) / 2, 235 + 42 * idx_team), halftimes, font=self._fonts['halftime'])
 
-    def getFonts(self, font_folder, font_file, font_file_mainscore):
+    @staticmethod
+    def getFonts(font_folder, font_file, font_file_mainscore):
         fonts = {'mainscore': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file_mainscore}", 50),
                  'avatar': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 18),
                  'player_score': ImageFont.truetype(f"templates/fonts/{font_folder}/{font_file}", 32),
@@ -198,7 +198,8 @@ class ImageCollectorStatLast:
             image = self.drawImage(player_stat)
             return image
 
-    def collect_stat(self, nickname):
+    @staticmethod
+    def collect_stat(nickname):
         lrc = []
         pd = player_details(nickname)
         player_id = pd['player_id']

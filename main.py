@@ -60,7 +60,7 @@ class MyClient(discord.Client):
                     message.content.find("http://") != -1):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
-            elif bool(re.search("^[.]stats?", message.content.split(" ")[0])) and len(message.content.split(" ")) == 2:
+            elif bool(re.search("^[.]stats?", message.content.split(" ")[0])) and len(message.content.split()) == 2:
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(message.content.split(" ")[1])
                 image = imgclst.collect_image()
@@ -80,8 +80,8 @@ class MyClient(discord.Client):
             print(payload)
             channel = Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            print(
-                f"Emoji {payload.emoji} added by:{payload.member}, Message by: {message.author}, Message: {message.content}")
+            print(f"Emoji {payload.emoji} added by:{payload.member}, "
+                  f"Message by: {message.author}, Message: {message.content}")
 
             for _ in message.reactions:
                 if _.emoji == "👍":
@@ -104,8 +104,7 @@ class MyClient(discord.Client):
             print(f"Upvotes/Downvotes = {upvotes}/{downvotes}")
             if upvotes < downvotes - 2:
                 await message.delete()
-                print(
-                    f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes, message_id:{message.id}")
+                print(f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes")
             print(" ")
 
     async def on_raw_reaction_remove(self, payload):
@@ -117,8 +116,8 @@ class MyClient(discord.Client):
             print(payload)
             channel = Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            print(
-                f"Emoji {payload.emoji} removed by:{payload.member}, Message by: {message.author}, Message: {message.content}")
+            print(f"Emoji {payload.emoji} removed by:{payload.member}, "
+                  f"Message by: {message.author}, Message: {message.content}")
 
             for _ in message.reactions:
                 if _.emoji == "👍":
@@ -142,7 +141,7 @@ class MyClient(discord.Client):
             if upvotes < downvotes - 2:
                 await message.delete()
                 print(
-                    f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes, message_id:{message.id}")
+                    f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes")
             print(" ")
 
     async def post_faceit_message_ready(self, channel_id, request_json):
@@ -204,12 +203,12 @@ class MyClient(discord.Client):
                         isFoundInFirstTeam = True
 
                     if team['team_stats']['Team Win'] == "1":
-                        my_color = 2067276
+                        my_color = 2067276  # Green color
                     else:
-                        my_color = 10038562
+                        my_color = 10038562  # Red color
 
                     if idx_team == 1 and isFoundInFirstTeam:
-                        my_color = 9936031
+                        my_color = 9936031  # Gray color
 
         str_nick = str_nick[:-2]
 
