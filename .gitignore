@@ -1,2 +1,5 @@
-/*.dem
-/*.py[cod]
+*.dem
+*.py[cod]
+/__pycache__/
+/.idea/
+test*.py
