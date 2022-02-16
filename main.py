@@ -4,7 +4,8 @@ import discord
 import os
 import re
 from io import BytesIO
-from imageCollector import ImageCollector, ImageCollectorStatLast
+from ImageCollectorMatchFinished import ImageCollectorMatchFinished
+from ImageCollectorStatLast import ImageCollectorStatLast
 from faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
@@ -62,6 +63,7 @@ class MyClient(discord.Client):
                 await message.add_reaction("👎")
             elif bool(re.search("^[.]stats?", message.content.split(" ")[0])) and len(message.content.split()) == 2:
                 channel = self.get_channel(id=828940900033626113)
+                # TODO: код ниже в отдельную функцию
                 imgclst = ImageCollectorStatLast(message.content.split(" ")[1])
                 image = imgclst.collect_image()
                 if image is not None:
@@ -219,7 +221,7 @@ class MyClient(discord.Client):
 
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(match_id=request_json['payload']['id'])
 
-        img_collector = ImageCollector(request_json, statistics, nick1, elo1, nick2, elo2)
+        img_collector = ImageCollectorMatchFinished(request_json, statistics, nick1, elo1, nick2, elo2)
         image_list = img_collector.collect_image()
         for image in image_list:
             with BytesIO() as image_binary:

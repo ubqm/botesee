@@ -26,7 +26,7 @@ def player_details(nickname=None, game=None, game_player_id=None):
     if res.status_code == 200:
         return json.loads(res.content.decode("utf-8"))
     else:
-        return ""
+        return None
 
 
 def player_history(player_id=None, game="csgo", limit=20):
