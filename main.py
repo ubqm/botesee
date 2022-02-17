@@ -6,6 +6,7 @@ import re
 from io import BytesIO
 from ImageCollectorMatchFinished import ImageCollectorMatchFinished
 from ImageCollectorStatLast import ImageCollectorStatLast
+from ImageCollectorCompare import ImageCollectorCompare
 from faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
@@ -56,16 +57,27 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f"New message from {message.author}: {message.content}")
+        _content: list = message.content.split()
         if message.author.id != 825393722186924112:
             if message.attachments or message.embeds or (message.content.find("https://") != -1) or (
                     message.content.find("http://") != -1):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
-            elif bool(re.search("^[.]stats?", message.content.split(" ")[0])) and len(message.content.split()) == 2:
+            elif bool(re.search("^[.]stats?$", _content[0])) and len(_content) == 2:
                 channel = self.get_channel(id=828940900033626113)
                 # TODO: код ниже в отдельную функцию
-                imgclst = ImageCollectorStatLast(message.content.split(" ")[1])
+                imgclst = ImageCollectorStatLast(_content[1])
                 image = imgclst.collect_image()
+                if image is not None:
+                    with BytesIO() as image_binary:
+                        image.save(image_binary, "PNG")
+                        image_binary.seek(0)
+                        binary_image = discord.File(fp=image_binary, filename="image.png")
+                        await channel.send(file=binary_image)
+            elif bool(re.search("^[.]compare$", message.content.split(" ")[0])) and len(_content) >= 3:
+                channel = self.get_channel(id=828940900033626113)
+                imgcmpr = ImageCollectorCompare(_content[1], _content[2], _content[3], _content[4])
+                image = imgcmpr.collect_image()
                 if image is not None:
                     with BytesIO() as image_binary:
                         image.save(image_binary, "PNG")
