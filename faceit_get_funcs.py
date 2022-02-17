@@ -29,8 +29,8 @@ def player_details(nickname=None, game=None, game_player_id=None):
         return None
 
 
-def player_history(player_id=None, game="csgo", limit=20):
-    api_url = f"{base_url}/players/{player_id}/history?game={game}&offset=0&limit={limit}"
+def player_history(player_id=None, game="csgo", offset=0, limit=20):
+    api_url = f"{base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
     if player_id is not None:
         res = requests.get(api_url, headers=headers)
         if res.status_code == 200:
