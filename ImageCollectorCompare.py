@@ -154,17 +154,17 @@ class ImageCollectorCompare:
         if category in ["1f", "2f", "%"]:
             rating = max(value) / min(value)
             if value[0] >= value[1]:
-                if rating >= 1.1:
-                    return (0, 190, 0, 255), (255, 255, 255, 255)
-                elif rating >= 1.2:
+                if rating >= 1.4:
                     return (0, 190, 0, 255), (170, 0, 0, 255)
+                elif rating >= 1.2:
+                    return (0, 190, 0, 255), (255, 255, 255, 255)
                 else:
                     return (255, 255, 255, 255), (255, 255, 255, 255)
             else:
-                if rating >= 1.1:
-                    return (255, 255, 255, 255), (0, 190, 0, 255)
-                elif rating >= 1.2:
+                if rating >= 1.4:
                     return (170, 0, 0, 255), (0, 190, 0, 255)
+                elif rating >= 1.2:
+                    return (255, 255, 255, 255), (0, 190, 0, 255)
                 else:
                     return (255, 255, 255, 255), (255, 255, 255, 255)
         elif category in ["total"]:
@@ -186,7 +186,7 @@ class ImageCollectorCompare:
                 color_left, color_right = self.compare_stats(value, "%")
                 w, h = self.draw_bg.textsize(f"{int(comparison_dict[key][0])}%", font=font)
                 self.draw_bg.text((left_stat_x - w, start_y + step * i), f"{int(comparison_dict[key][0])}%", font=font, fill=color_left)
-                self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]}%", font=font, fill=color_right)
+                self.draw_bg.text((right_stat_x, start_y + step * i), f"{int(comparison_dict[key][1])}%", font=font, fill=color_right)
                 i += 1
             elif key in stat_1f:
                 color_left, color_right = self.compare_stats(value, "1f")
@@ -207,28 +207,37 @@ class ImageCollectorCompare:
                 self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]}", font=font, fill=color_right)
                 i += 1
 
+    @staticmethod
+    def get_player_background(bg_link, output_width=960, output_height=540):
+        if bg_link != "":
+            bg_req = requests.get(bg_link, stream=True)
+            background = Image.open(bg_req.raw)
+        else:
+            background = Image.open(f"templates/background_features/dark-right-side-for-stat.png")
+
+        width, height = background.size
+        if height != output_height:
+            aspect_ratio = output_height / height
+            background = background.resize((int(width * aspect_ratio), output_height))
+        width, height = background.size
+        if width >= output_width:
+            left = int((width - output_width) / 2)
+            top = 0
+            right = int((width - output_width) / 2 + output_width)
+            bottom = height
+            background = background.crop((left, top, right, bottom))
+            background.resize((output_width, output_height))
+        return background
+
     def draw_image(self, player1_stats, player2_stats):
+        dark_middle = Image.open(f"templates/background_features/dark-middle-compare.png")
         font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
         font_name = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 36)
-        if player1_stats[0]['background'] != "":
-            bg_req = requests.get(player1_stats[0]['background'], stream=True)
-            self.background = Image.open(bg_req.raw)
-        else:
-            self.background = Image.open(f"templates/background_features/dark-right-side-for-stat.png")
-
-        width, height = self.background.size
-        if height != 540:
-            aspect_ratio = 540 / height
-            self.background = self.background.resize((int(width * aspect_ratio), 540))
-        width, height = self.background.size
-        if width >= 960:
-            left = int((width - 960) / 2)
-            top = 0
-            right = int((width - 960) / 2 + 960)
-            bottom = height
-            self.background = self.background.crop((left, top, right, bottom))
-            self.background.resize((960, 540))
-
+        player1_bg = self.get_player_background(player1_stats[0]['background'], 480, 540)
+        player2_bg = self.get_player_background(player2_stats[0]['background'], 480, 540)
+        self.background.paste(player1_bg, (0, 0))
+        self.background.paste(player2_bg, (480, 0))
+        self.background.paste(dark_middle, (0, 0), dark_middle)
         avatar1 = self.get_avatar(player1_stats[0]['avatar'])
         avatar2 = self.get_avatar(player2_stats[0]['avatar'])
         self.background.paste(avatar1, (10, 10))
