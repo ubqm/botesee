@@ -149,6 +149,64 @@ class ImageCollectorCompare:
             image_avatar = image_avatar.resize((130, 130))
         return image_avatar
 
+    @staticmethod
+    def compare_stats(value, category):
+        if category in ["1f", "2f", "%"]:
+            rating = max(value) / min(value)
+            if value[0] >= value[1]:
+                if rating >= 1.1:
+                    return (0, 190, 0, 255), (255, 255, 255, 255)
+                elif rating >= 1.2:
+                    return (0, 190, 0, 255), (170, 0, 0, 255)
+                else:
+                    return (255, 255, 255, 255), (255, 255, 255, 255)
+            else:
+                if rating >= 1.1:
+                    return (255, 255, 255, 255), (0, 190, 0, 255)
+                elif rating >= 1.2:
+                    return (170, 0, 0, 255), (0, 190, 0, 255)
+                else:
+                    return (255, 255, 255, 255), (255, 255, 255, 255)
+        elif category in ["total"]:
+            return (255, 255, 255, 255), (255, 255, 255, 255)
+
+    def place_stat(self, comparison_dict):
+        font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
+        left_stat_x = 410
+        right_stat_x = 550
+        start_y = 220
+        step = 30
+        i = 0
+        stat_percent = ["mean_hs", "winrate"]
+        stat_1f = ["mvps", "mean_k", "mean_d"]
+        stat_2f = ["mean_kd", "mean_kr"]
+        stat_total = ["total_4k", "total_5k", "faceit_elo"]
+        for key, value in comparison_dict.items():
+            if key in stat_percent:
+                color_left, color_right = self.compare_stats(value, "%")
+                w, h = self.draw_bg.textsize(f"{int(comparison_dict[key][0])}%", font=font)
+                self.draw_bg.text((left_stat_x - w, start_y + step * i), f"{int(comparison_dict[key][0])}%", font=font, fill=color_left)
+                self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]}%", font=font, fill=color_right)
+                i += 1
+            elif key in stat_1f:
+                color_left, color_right = self.compare_stats(value, "1f")
+                w, h = self.draw_bg.textsize(f"{comparison_dict[key][0]:.1f}", font=font)
+                self.draw_bg.text((left_stat_x - w, start_y + step * i), f"{comparison_dict[key][0]:.1f}", font=font, fill=color_left)
+                self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]:.1f}", font=font, fill=color_right)
+                i += 1
+            elif key in stat_2f:
+                color_left, color_right = self.compare_stats(value, "2f")
+                w, h = self.draw_bg.textsize(f"{comparison_dict[key][0]:.2f}", font=font)
+                self.draw_bg.text((left_stat_x - w, start_y + step * i), f"{comparison_dict[key][0]:.2f}", font=font, fill=color_left)
+                self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]:.2f}", font=font, fill=color_right)
+                i += 1
+            elif key in stat_total:
+                color_left, color_right = self.compare_stats(value, "total")
+                w, h = self.draw_bg.textsize(f"{comparison_dict[key][0]}", font=font)
+                self.draw_bg.text((left_stat_x - w, start_y + step * i), f"{int(comparison_dict[key][0])}", font=font, fill=color_left)
+                self.draw_bg.text((right_stat_x, start_y + step * i), f"{comparison_dict[key][1]}", font=font, fill=color_right)
+                i += 1
+
     def draw_image(self, player1_stats, player2_stats):
         font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
         font_name = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 36)
@@ -186,69 +244,35 @@ class ImageCollectorCompare:
         w, h = self.draw_bg.textsize(f"{self.amount} {self.output_type}", font=font)
         self.draw_bg.text(((960 - w) / 2, 24), f"{self.amount} {self.output_type}", font=font)
 
-        w, h = self.draw_bg.textsize(f"W/L", font=font)
-        self.draw_bg.text(((960 - w) / 2, 220), f"W/L", font=font)
         w, h = self.draw_bg.textsize(f"ELO", font=font)
-        self.draw_bg.text(((960 - w) / 2, 250), f"ELO", font=font)
-        w, h = self.draw_bg.textsize(f"MVP", font=font)
-        self.draw_bg.text(((960 - w) / 2, 280), f"MVP", font=font)
+        self.draw_bg.text(((960 - w) / 2, 220), f"ELO", font=font)
         w, h = self.draw_bg.textsize("avgK", font=font)
-        self.draw_bg.text(((960 - w) / 2, 310), "avgK", font=font)
+        self.draw_bg.text(((960 - w) / 2, 250), "avgK", font=font)
         w, h = self.draw_bg.textsize("avgD", font=font)
-        self.draw_bg.text(((960 - w) / 2, 340), "avgD", font=font)
+        self.draw_bg.text(((960 - w) / 2, 280), "avgD", font=font)
         w, h = self.draw_bg.textsize("K/D", font=font)
-        self.draw_bg.text(((960 - w) / 2, 370), "K/D", font=font)
+        self.draw_bg.text(((960 - w) / 2, 310), "K/D", font=font)
         w, h = self.draw_bg.textsize("K/R", font=font)
-        self.draw_bg.text(((960 - w) / 2, 400), "K/R", font=font)
+        self.draw_bg.text(((960 - w) / 2, 340), "K/R", font=font)
+        w, h = self.draw_bg.textsize("HS", font=font)
+        self.draw_bg.text(((960 - w) / 2, 370), "HS", font=font)
+        w, h = self.draw_bg.textsize(f"W/L", font=font)
+        self.draw_bg.text(((960 - w) / 2, 400), f"W/L", font=font)
         w, h = self.draw_bg.textsize("4K", font=font)
         self.draw_bg.text(((960 - w) / 2, 430), "4K", font=font)
         w, h = self.draw_bg.textsize("5K", font=font)
         self.draw_bg.text(((960 - w) / 2, 460), "5K", font=font)
-        w, h = self.draw_bg.textsize("HS", font=font)
-        self.draw_bg.text(((960 - w) / 2, 490), "HS", font=font)
+        w, h = self.draw_bg.textsize(f"MVP", font=font)
+        self.draw_bg.text(((960 - w) / 2, 490), f"MVP", font=font)
 
         self.draw_bg.text((160, 70), f"{comparison_dict['region'][0]}: {comparison_dict['region_place'][0]}", font=font)
         self.draw_bg.text((160, 100), f"{comparison_dict['country'][0]}: {comparison_dict['country_place'][0]}", font=font)
 
-        left_stat_x = 410
-        right_stat_x = 550
-
-        # self.place_stat()
-        w, h = self.draw_bg.textsize(f"{comparison_dict['winrate'][0]}%", font=font)
-        self.draw_bg.text((left_stat_x - w, 220), f"{comparison_dict['winrate'][0]}%", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['faceit_elo'][0]}", font=font)
-        self.draw_bg.text((left_stat_x - w, 250), f"{comparison_dict['faceit_elo'][0]}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mvps'][0]:.1f}", font=font)
-        self.draw_bg.text((left_stat_x - w, 280), f"{comparison_dict['mvps'][0]:.1f}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mean_k'][0]:.1f}", font=font)
-        self.draw_bg.text((left_stat_x - w, 310), f"{comparison_dict['mean_k'][0]:.1f}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mean_d'][0]:.1f}", font=font)
-        self.draw_bg.text((left_stat_x - w, 340), f"{comparison_dict['mean_d'][0]:.1f}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mean_kd'][0]:.2f}", font=font)
-        self.draw_bg.text((left_stat_x - w, 370), f"{comparison_dict['mean_kd'][0]:.2f}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mean_kr'][0]:.2f}", font=font)
-        self.draw_bg.text((left_stat_x - w, 400), f"{comparison_dict['mean_kr'][0]:.2f}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['total_4k'][0]}", font=font)
-        self.draw_bg.text((left_stat_x - w, 430), f"{comparison_dict['total_4k'][0]}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['total_5k'][0]}", font=font)
-        self.draw_bg.text((left_stat_x - w, 460), f"{comparison_dict['total_5k'][0]}", font=font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['mean_hs'][0]:.1f}%", font=font)
-        self.draw_bg.text((left_stat_x - w, 490), f"{comparison_dict['mean_hs'][0]:.1f}%", font=font)
+        self.place_stat(comparison_dict)
 
         w, h = self.draw_bg.textsize(f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}", font=font)
         self.draw_bg.text((810 - w, 70), f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}", font=font)
         w, h = self.draw_bg.textsize(f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}", font=font)
         self.draw_bg.text((810 - w, 100), f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}", font=font)
-
-        self.draw_bg.text((right_stat_x, 220), f"{comparison_dict['winrate'][1]}%", font=font)
-        self.draw_bg.text((right_stat_x, 250), f"{comparison_dict['faceit_elo'][1]}", font=font)
-        self.draw_bg.text((right_stat_x, 280), f"{comparison_dict['mvps'][1]:.1f}", font=font)
-        self.draw_bg.text((right_stat_x, 310), f"{comparison_dict['mean_k'][1]:.1f}", font=font)
-        self.draw_bg.text((right_stat_x, 340), f"{comparison_dict['mean_d'][1]:.1f}", font=font)
-        self.draw_bg.text((right_stat_x, 370), f"{comparison_dict['mean_kd'][1]:.2f}", font=font)
-        self.draw_bg.text((right_stat_x, 400), f"{comparison_dict['mean_kr'][1]:.2f}", font=font)
-        self.draw_bg.text((right_stat_x, 430), f"{comparison_dict['total_4k'][1]}", font=font)
-        self.draw_bg.text((right_stat_x, 460), f"{comparison_dict['total_5k'][1]}", font=font)
-        self.draw_bg.text((right_stat_x, 490), f"{comparison_dict['mean_hs'][1]:.1f}%", font=font)
 
         return self.background
