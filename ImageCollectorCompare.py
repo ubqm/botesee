@@ -13,6 +13,8 @@ class ImageCollectorCompare:
         self.background = Image.new(mode="RGBA", size=(960, 540))
         self.background = Image.open(f"templates/maps/black.jpg")
         self.draw_bg = ImageDraw.Draw(self.background)
+        self.available_maps = ["de_ancient", "de_dust2", "de_inferno", "de_mirage",
+                               "de_nuke", "de_overpass", "de_train", "de_vertigo"]
 
     @staticmethod
     def validate_output_type(output_type):
@@ -116,9 +118,12 @@ class ImageCollectorCompare:
 
         return comparison_dict
 
-    @staticmethod
-    def get_mean_stats(player_stat):
+    def get_mean_stats(self, player_stat):
         mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs, total_4k, total_5k, winrate, mvps = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        map_dict = {}
+        for single_map in self.available_maps:
+            map_dict[single_map] = [0, 0]  # [total_played, win_amount]
+
         for i in range(len(player_stat)):
             mean_k += int(player_stat[i]['kills'])
             mean_a += int(player_stat[i]['assists'])
@@ -130,13 +135,17 @@ class ImageCollectorCompare:
             total_5k += int(player_stat[i]['5k'])
             winrate += float(player_stat[i]['result'])
             mvps += int(player_stat[i]['mvps'])
+            if player_stat[i]['mapname'] in self.available_maps:
+                map_dict[player_stat[i]['mapname']][0] += 1
+                if player_stat[i]['result'] == "1":
+                    map_dict[player_stat[i]['mapname']][1] += 1
 
         mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs, winrate, mvps = \
             map((lambda x: x / len(player_stat)), [mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs, winrate, mvps])
         stat_dict = {"mean_k": mean_k, "mean_a": mean_a, "mean_d": mean_d, "mean_kd": mean_kd,
                      "mean_kr": mean_kr, "mean_hs": mean_hs, "winrate": int(winrate*100),
                      "total_4k": total_4k, "total_5k": total_5k, "mvps": mvps}
-        return stat_dict
+        return stat_dict | map_dict
 
     @staticmethod
     def get_avatar(avatar):
@@ -170,6 +179,33 @@ class ImageCollectorCompare:
         elif category in ["total"]:
             return (255, 255, 255, 255), (255, 255, 255, 255)
 
+    def place_stat_map(self, comparison_dict):
+        font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
+        map_w, map_h = 90, 50
+        map_y_start = 140
+        left_stat_x = 110
+        right_stat_x = 850
+        i = 0
+        for key in self.available_maps:
+            if comparison_dict[key][0][1] != 0:
+                left_line = f"{comparison_dict[key][0][1]} / {comparison_dict[key][0][0]} — {int(comparison_dict[key][0][1] / comparison_dict[key][0][0] * 100)}%"
+            else:
+                left_line = f"{comparison_dict[key][0][1]} / {comparison_dict[key][0][0]} — 0%"
+            if comparison_dict[key][1][1] != 0:
+                right_line = f"{int(comparison_dict[key][1][1] / comparison_dict[key][1][0] * 100)}% — {comparison_dict[key][1][1]} / {comparison_dict[key][1][0]}"
+            else:
+                right_line = f"{comparison_dict[key][1][1]} / {comparison_dict[key][1][0]} — 0%"
+
+            self.draw_bg.text((left_stat_x, map_h * i + map_y_start + 10), left_line, font=font)
+            w, h = self.draw_bg.textsize(right_line, font=font)
+            self.draw_bg.text((right_stat_x - w, map_h * i + map_y_start + 10), right_line, font=font)
+
+            current_map = Image.open(f"templates/maps/{key}.jpg")
+            current_map = current_map.resize((map_w, map_h))
+            self.background.paste(current_map, (10, map_h * i + map_y_start))
+            self.background.paste(current_map, (860, map_h * i + map_y_start))
+            i += 1
+
     def place_stat(self, comparison_dict):
         font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
         left_stat_x = 410
@@ -181,6 +217,7 @@ class ImageCollectorCompare:
         stat_1f = ["mvps", "mean_k", "mean_d"]
         stat_2f = ["mean_kd", "mean_kr"]
         stat_total = ["total_4k", "total_5k", "faceit_elo"]
+        self.place_stat_map(comparison_dict)
         for key, value in comparison_dict.items():
             if key in stat_percent:
                 color_left, color_right = self.compare_stats(value, "%")
