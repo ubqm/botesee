@@ -267,6 +267,7 @@ class ImageCollectorCompare:
         return background
 
     def draw_image(self, player1_stats, player2_stats):
+        dark_bg = Image.open(f"templates/background_features/dark-right-side-for-stat.png")
         dark_middle = Image.open(f"templates/background_features/dark-middle-compare.png")
         font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
         font_name = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 36)
@@ -274,6 +275,7 @@ class ImageCollectorCompare:
         player2_bg = self.get_player_background(player2_stats[0]['background'], 480, 540)
         self.background.paste(player1_bg, (0, 0))
         self.background.paste(player2_bg, (480, 0))
+        self.background.paste(dark_bg, (0, 0), dark_bg)
         self.background.paste(dark_middle, (0, 0), dark_middle)
         avatar1 = self.get_avatar(player1_stats[0]['avatar'])
         avatar2 = self.get_avatar(player2_stats[0]['avatar'])
