@@ -124,7 +124,7 @@ class ImageCollectorCompare:
         for single_map in self.available_maps:
             map_dict[single_map] = [0, 0]  # [total_played, win_amount]
 
-        for i in range(len(player_stat)):
+        for i in range(min(int(self.amount), len(player_stat))):
             mean_k += int(player_stat[i]['kills'])
             mean_a += int(player_stat[i]['assists'])
             mean_d += int(player_stat[i]['deaths'])
