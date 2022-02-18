@@ -145,7 +145,7 @@ class ImageCollectorCompare:
         stat_dict = {"mean_k": mean_k, "mean_a": mean_a, "mean_d": mean_d, "mean_kd": mean_kd,
                      "mean_kr": mean_kr, "mean_hs": mean_hs, "winrate": int(winrate*100),
                      "total_4k": total_4k, "total_5k": total_5k, "mvps": mvps}
-        return stat_dict | map_dict
+        return {**stat_dict, **map_dict}
 
     @staticmethod
     def get_avatar(avatar):
@@ -194,7 +194,7 @@ class ImageCollectorCompare:
             if comparison_dict[key][1][1] != 0:
                 right_line = f"{int(comparison_dict[key][1][1] / comparison_dict[key][1][0] * 100)}% — {comparison_dict[key][1][1]} / {comparison_dict[key][1][0]}"
             else:
-                right_line = f"{comparison_dict[key][1][1]} / {comparison_dict[key][1][0]} — 0%"
+                right_line = f"0% — {comparison_dict[key][1][1]} / {comparison_dict[key][1][0]}"
 
             self.draw_bg.text((left_stat_x, map_h * i + map_y_start + 10), left_line, font=font)
             w, h = self.draw_bg.textsize(right_line, font=font)
