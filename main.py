@@ -74,7 +74,7 @@ class MyClient(discord.Client):
                         image_binary.seek(0)
                         binary_image = discord.File(fp=image_binary, filename="image.png")
                         await channel.send(file=binary_image)
-            elif bool(re.search("^[.]compare$", message.content.split(" ")[0])) and len(_content) >= 3:
+            elif bool(re.search("^[.]compare$", message.content.split(" ")[0])) and len(_content) == 5:
                 channel = self.get_channel(id=828940900033626113)
                 imgcmpr = ImageCollectorCompare(_content[1], _content[2], _content[3], _content[4])
                 image = imgcmpr.collect_image()
