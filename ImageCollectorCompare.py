@@ -164,24 +164,26 @@ class ImageCollectorCompare:
         white = (255, 255, 255, 255)
         green = (0, 190, 0, 255)
         red = (170, 0, 0, 255)
-        result = None
-        if category in ["total"]:
-            result = [white, white]
+
+        values_dict = {"1f": {0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
+                              1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]}},
+                       "2f": {0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
+                              1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]}},
+                       "%": {0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
+                             1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]}},
+                       "reverse": {0: {"1.4": [red, green], "1.2": [green, white], "1": [white, white]},
+                                   1: {"1.4": [green, red], "1.2": [white, green], "1": [white, white]}},
+                       "total": {0: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]},
+                                 1: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]}}}
+
+        rating = (max(value) / min(value)) if min(value) != 0 else 100
+        if rating >= 1.4:
+            rating_s = "1.4"
+        elif rating >= 1.2:
+            rating_s = "1.2"
         else:
-            rating = (max(value) / min(value)) if min(value) != 0 else 100
-            if rating >= 1.4:
-                if category in ["1f", "2f", "%"]:
-                    result = [green, red] if value[0] > value[1] else [red, green]
-                elif category in ["reverse"]:
-                    result = [red, green] if value[0] > value[1] else [green, red]
-            elif rating >= 1.2:
-                if category in ["1f", "2f", "%"]:
-                    result = [green, white] if value[0] > value[1] else [white, green]
-                elif category in ["reverse"]:
-                    result = [white, green] if value[0] > value[1] else [green, white]
-            else:
-                result = [white, white]
-        return result
+            rating_s = "1"
+        return values_dict[category][value.index(max(value))][rating_s]
 
     def place_stat_map(self, comparison_dict):
         map_w, map_h = 90, 50
@@ -330,14 +332,20 @@ class ImageCollectorCompare:
 
         self.place_mid_text()
 
-        self.draw_bg.text((160, 70), f"{comparison_dict['region'][0]}: {comparison_dict['region_place'][0]}", font=self.font)
-        self.draw_bg.text((160, 100), f"{comparison_dict['country'][0]}: {comparison_dict['country_place'][0]}", font=self.font)
+        self.draw_bg.text((160, 70), f"{comparison_dict['region'][0]}: {comparison_dict['region_place'][0]}",
+                          font=self.font)
+        self.draw_bg.text((160, 100), f"{comparison_dict['country'][0]}: {comparison_dict['country_place'][0]}",
+                          font=self.font)
 
         self.place_stat(comparison_dict)
 
-        w, h = self.draw_bg.textsize(f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}", font=self.font)
-        self.draw_bg.text((810 - w, 70), f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}", font=self.font)
-        w, h = self.draw_bg.textsize(f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}", font=self.font)
-        self.draw_bg.text((810 - w, 100), f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}", font=self.font)
+        w, h = self.draw_bg.textsize(f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}",
+                                     font=self.font)
+        self.draw_bg.text((810 - w, 70), f"{comparison_dict['region'][1]}: {comparison_dict['region_place'][1]}",
+                          font=self.font)
+        w, h = self.draw_bg.textsize(f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}",
+                                     font=self.font)
+        self.draw_bg.text((810 - w, 100), f"{comparison_dict['country'][1]}: {comparison_dict['country_place'][1]}",
+                          font=self.font)
 
         return self.background
