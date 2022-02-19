@@ -15,7 +15,6 @@ from threading import Thread
 from functools import partial
 
 Discord_token = os.environ['Discord_token']
-
 app = Flask(__name__)
 
 
@@ -48,12 +47,28 @@ def respond_status_aborted():
     return Response(status=200)
 
 
-class MyClient(discord.Client):
-    roles_that_cant_vote = ["@everyone"]
+class MyDiscordClient(discord.Client):
+    sub_players = ["ad42c90b-45a9-49b6-8ab0-9c8662330543",
+                   "278790a2-1f08-4350-bd96-427f7dcc8722",
+                   "18e2a663-9e20-4db9-8b29-3c3cbdff30ac",
+                   "8cbb0b36-4c6b-4ebd-a92b-829234016626",
+                   "e1cddcbb-afdc-4e8e-abf2-eea5638f0363",
+                   "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c",
+                   "b8e5cd07-1b43-4203-9173-465fddcd391f",
+                   "4e7d1f6c-9045-4800-8eda-23c892dcd814"]
 
     async def on_ready(self):
         for guild in self.guilds:
             print(f"Logged on as {self.user}, server: {guild.name}, guild_id:{guild.id}")
+
+    @staticmethod
+    def compile_binary_image(image):
+        if image is not None:
+            with BytesIO() as image_binary:
+                image.save(image_binary, "PNG")
+                image_binary.seek(0)
+                binary_image = discord.File(fp=image_binary, filename="image.png")
+                return binary_image
 
     async def on_message(self, message):
         print(f"New message from {message.author}: {message.content}")
@@ -65,25 +80,14 @@ class MyClient(discord.Client):
                 await message.add_reaction("👎")
             elif bool(re.search("^[.]stats?$", _content[0])) and len(_content) == 2:
                 channel = self.get_channel(id=828940900033626113)
-                # TODO: код ниже в отдельную функцию
                 imgclst = ImageCollectorStatLast(_content[1])
                 image = imgclst.collect_image()
-                if image is not None:
-                    with BytesIO() as image_binary:
-                        image.save(image_binary, "PNG")
-                        image_binary.seek(0)
-                        binary_image = discord.File(fp=image_binary, filename="image.png")
-                        await channel.send(file=binary_image)
+                await channel.send(file=self.compile_binary_image(image))
             elif bool(re.search("^[.]compare$", message.content.split(" ")[0])) and len(_content) == 5:
                 channel = self.get_channel(id=828940900033626113)
                 imgcmpr = ImageCollectorCompare(_content[1], _content[2], _content[3], _content[4])
                 image = imgcmpr.collect_image()
-                if image is not None:
-                    with BytesIO() as image_binary:
-                        image.save(image_binary, "PNG")
-                        image_binary.seek(0)
-                        binary_image = discord.File(fp=image_binary, filename="image.png")
-                        await channel.send(file=binary_image)
+                await channel.send(file=self.compile_binary_image(image))
 
     async def on_raw_reaction_add(self, payload):
         upvotes = 0
@@ -97,29 +101,22 @@ class MyClient(discord.Client):
             print(f"Emoji {payload.emoji} added by:{payload.member}, "
                   f"Message by: {message.author}, Message: {message.content}")
 
-            for _ in message.reactions:
-                if _.emoji == "👍":
-                    users_upvote = await _.users().flatten()
-                elif _.emoji == "👎":
-                    users_downvote = await _.users().flatten()
-
+            for reaction in message.reactions:
+                if reaction.emoji == "👍":
+                    users_upvote = await reaction.users().flatten()
+                elif reaction.emoji == "👎":
+                    users_downvote = await reaction.users().flatten()
             for user in users_upvote:
-                for role in user.roles:
-                    if role.name != "@everyone":
-                        upvotes += 1
-                        break
-
+                if len(user.roles) > 1:
+                    upvotes += 1
             for user in users_downvote:
-                for role in user.roles:
-                    if role.name != "@everyone":
-                        downvotes += 1
-                        break
+                if len(user.roles) > 1:
+                    downvotes += 1
 
             print(f"Upvotes/Downvotes = {upvotes}/{downvotes}")
             if upvotes < downvotes - 2:
                 await message.delete()
-                print(f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes")
-            print(" ")
+                print(f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes\n")
 
     async def on_raw_reaction_remove(self, payload):
         upvotes = 0
@@ -133,30 +130,22 @@ class MyClient(discord.Client):
             print(f"Emoji {payload.emoji} removed by:{payload.member}, "
                   f"Message by: {message.author}, Message: {message.content}")
 
-            for _ in message.reactions:
-                if _.emoji == "👍":
-                    users_upvote = await _.users().flatten()
-                elif _.emoji == "👎":
-                    users_downvote = await _.users().flatten()
-
+            for reaction in message.reactions:
+                if reaction.emoji == "👍":
+                    users_upvote = await reaction.users().flatten()
+                elif reaction.emoji == "👎":
+                    users_downvote = await reaction.users().flatten()
             for user in users_upvote:
-                for role in user.roles:
-                    if role.name != "@everyone":
-                        upvotes += 1
-                        break
-
+                if len(user.roles) > 1:
+                    upvotes += 1
             for user in users_downvote:
-                for role in user.roles:
-                    if role.name != "@everyone":
-                        downvotes += 1
-                        break
+                if len(user.roles) > 1:
+                    downvotes += 1
 
             print(f"Upvotes/Downvotes = {upvotes}/{downvotes}")
             if upvotes < downvotes - 2:
                 await message.delete()
-                print(
-                    f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes")
-            print(" ")
+                print(f"*** Message \"{message.content}\" deleted with {upvotes} Upvotes, {downvotes} Downvotes\n")
 
     async def post_faceit_message_ready(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
@@ -186,17 +175,30 @@ class MyClient(discord.Client):
         embed_msg.add_field(name="\u200b", value="\u200b")
         await channel.send(embed=embed_msg)
 
-    async def post_faceit_message_finished(self, channel_id, request_json):
-        sub_players = ["ad42c90b-45a9-49b6-8ab0-9c8662330543",
-                       "278790a2-1f08-4350-bd96-427f7dcc8722",
-                       "18e2a663-9e20-4db9-8b29-3c3cbdff30ac",
-                       "8cbb0b36-4c6b-4ebd-a92b-829234016626",
-                       "e1cddcbb-afdc-4e8e-abf2-eea5638f0363",
-                       "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c",
-                       "b8e5cd07-1b43-4203-9173-465fddcd391f",
-                       "4e7d1f6c-9045-4800-8eda-23c892dcd814"]
+    def get_strnick_embed_color(self, statistics):
+        black, green, red, gray = 1, 2067276, 10038562, 9936031
+        my_color = black
+        is_found_in_first_team = False  # flag for situations where 2 of sub_players are in both teams
+        str_nick = ""
+        for idx_team, team in enumerate(statistics['rounds'][0]['teams']):
+            if idx_team == 1:
+                str_nick += "\n"
+            for player in team['players']:
+                str_nick += f"{player['nickname']}, "
+                if player['player_id'] in self.sub_players:
+                    if idx_team == 0:
+                        is_found_in_first_team = True
+                    my_color = green if team['team_stats']['Team Win'] == "1" else red
+                    if idx_team == 1 and is_found_in_first_team:
+                        my_color = gray
+                        break
+        str_nick = str_nick[:-2]  # last two symbols are ", "
+        return str_nick, my_color
 
+    async def post_faceit_message_finished(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
+
+        # loop to wait FaceIt API for 1 minute if we hadn't got response
         statistics = None
         for _ in range(12):
             statistics = match_stats(request_json['payload']['id'])
@@ -204,44 +206,18 @@ class MyClient(discord.Client):
                 break
             time.sleep(5)
 
-        my_color = 1
-        isFoundInFirstTeam = False
-        str_nick = ""
-        for idx_team, team in enumerate(statistics['rounds'][0]['teams']):
-            if idx_team == 1:
-                str_nick += "\n"
-            for player in team['players']:
-                str_nick += f"{player['nickname']}, "
-                if player['player_id'] in sub_players:
-                    if idx_team == 0:
-                        isFoundInFirstTeam = True
-
-                    if team['team_stats']['Team Win'] == "1":
-                        my_color = 2067276  # Green color
-                    else:
-                        my_color = 10038562  # Red color
-
-                    if idx_team == 1 and isFoundInFirstTeam:
-                        my_color = 9936031  # Gray color
-
-        str_nick = str_nick[:-2]
-
+        str_nick, my_color = self.get_strnick_embed_color(statistics)
         embed_msg = discord.Embed(title=str_nick, type="rich",
                                   description="[{0}](https://www.faceit.com/en/csgo/room/{1})".format(
                                       statistics['rounds'][0]['round_stats']['Map'], request_json['payload']['id']),
                                   color=my_color)
-
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(match_id=request_json['payload']['id'])
 
         img_collector = ImageCollectorMatchFinished(request_json, statistics, nick1, elo1, nick2, elo2)
         image_list = img_collector.collect_image()
         for image in image_list:
-            with BytesIO() as image_binary:
-                image.save(image_binary, "PNG")
-                image_binary.seek(0)
-                binary_image = discord.File(fp=image_binary, filename="image.png")
-                embed_msg.set_image(url="attachment://image.png")
-                await channel.send(embed=embed_msg, file=binary_image)
+            embed_msg.set_image(url="attachment://image.png")
+            await channel.send(embed=embed_msg, file=self.compile_binary_image(image))
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
         await self.delete_message_by_faceit_match_id(channel_id, request_json['payload']['id'])
@@ -251,23 +227,18 @@ class MyClient(discord.Client):
         messages = await channel.history(limit=10).flatten()
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
-            if message.embeds:
-                if match_id in message.embeds[0].description:
-                    nick1 = message.embeds[0].fields[0].value
-                    elo1 = message.embeds[0].fields[1].value
-                    nick2 = message.embeds[0].fields[3].value
-                    elo2 = message.embeds[0].fields[4].value
-                    await message.delete()
+            if message.embeds and match_id in message.embeds[0].description:
+                nick1 = message.embeds[0].fields[0].value
+                elo1 = message.embeds[0].fields[1].value
+                nick2 = message.embeds[0].fields[3].value
+                elo2 = message.embeds[0].fields[4].value
+                await message.delete()
         return nick1, elo1, nick2, elo2
-
-    async def on_restart(self):
-        channel = Client.get_channel(self, 828940900033626113)
-        channel.send("Restarted")
 
 
 if __name__ == "__main__":
     intents = discord.Intents.all()
-    bot_client = MyClient(intents=intents)
+    bot_client = MyDiscordClient(intents=intents)
 
     port = int(os.environ.get("PORT", 5000))
     print(f"variable port:{port}")
@@ -277,8 +248,3 @@ if __name__ == "__main__":
     t.start()
 
     bot_client.run(Discord_token)
-    while True:
-        if bot_client.loop.is_closed():
-            bot_client.run(Discord_token)
-            bot_client.on_restart()
-        time.sleep(10)
