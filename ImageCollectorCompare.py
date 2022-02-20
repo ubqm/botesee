@@ -1,6 +1,10 @@
 from PIL import Image, ImageFont, ImageDraw
 import requests
-from faceit_get_funcs import player_details, region_stats, player_history, match_stats
+import os
+import aiohttp
+import asyncio
+# from faceit_get_funcs import player_details, region_stats, player_history, match_stats
+from a_faceit_get_funcs import player_details, player_history, match_stats, region_stats
 from ProjectExceptions import NothingException
 
 
@@ -29,21 +33,29 @@ class ImageCollectorCompare:
         if self.output_type in ["game", "games"]:
             return int(amount) if amount.isdigit() and 5 <= int(amount) <= 100 else 20
 
-    def collect_image(self):
-        player1_stats = self.collect_stat(self.nickname1)
-        player2_stats = self.collect_stat(self.nickname2)
-        if player1_stats and player2_stats:
-            return self.draw_image(player1_stats, player2_stats)
+    async def collect_image(self):
+        Faceit_token = os.environ['Faceit_token']
+        headers = {"accept": "application/json", "Authorization": f"Bearer {Faceit_token}"}
+        async with aiohttp.ClientSession(headers=headers) as session:
+            task1 = asyncio.create_task(self.collect_stat(session, self.nickname1))
+            task2 = asyncio.create_task(self.collect_stat(session, self.nickname2))
 
-    def collect_stat(self, nickname):
+            player1_stats = await task1
+            player2_stats = await task2
+
+            if player1_stats and player2_stats:
+                return self.draw_image(player1_stats, player2_stats)
+
+    async def collect_stat(self, session, nickname):
         list_of_games = []
         try:
-            pd, history, player_info = self.get_player_info(nickname)
+            pd, history, player_info = await self.get_player_info(session, nickname)
         except NothingException:
             return None
 
         for match_h in history['items']:
-            match_stat = match_stats(match_h['match_id'])
+            task = asyncio.create_task(match_stats(session, match_h['match_id']))
+            match_stat = await task
             if match_stat is None:
                 continue
             for map_s in match_stat['rounds'][::-1]:
@@ -51,17 +63,23 @@ class ImageCollectorCompare:
                 list_of_games.append(game)
         return list_of_games
 
-    def get_player_info(self, nickname):
-        pd = player_details(nickname)
+    async def get_player_info(self, session, nickname):
+        pd = await player_details(session, nickname)
         # TODO: if output_type is not "games" -> change player_history() call
         if pd is not None:
-            history = player_history(pd['player_id'], offset=0, limit=self.amount)
+            history = await player_history(session, pd['player_id'], offset=0, limit=self.amount)
             if history is not None:
-                region_place = region_stats(player_id=pd['player_id'],
-                                            region=pd['games']['csgo']['region'])['items'][0]['position']
-                country_place = region_stats(player_id=pd['player_id'],
-                                             region=pd['games']['csgo']['region'],
-                                             country=pd['country'])['items'][0]['position']
+                task1 = asyncio.create_task(region_stats(session=session,
+                                                         player_id=pd['player_id'],
+                                                         region=pd['games']['csgo']['region']))
+                task2 = asyncio.create_task(region_stats(session=session,
+                                                         player_id=pd['player_id'],
+                                                         region=pd['games']['csgo']['region'],
+                                                         country=pd['country']))
+                region_place = await task1
+                country_place = await task2
+                region_place = region_place['items'][0]['position']
+                country_place = country_place['items'][0]['position']
                 player_info = {"nickname": nickname,
                                "region_place": region_place,
                                "country_place": country_place}

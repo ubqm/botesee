@@ -1,19 +1,27 @@
+import asyncio
+import os
+
+import aiohttp
 from PIL import Image, ImageFont, ImageDraw
 from datetime import datetime
 import requests
 import calendar
-from faceit_get_funcs import player_details, region_stats, player_history, match_stats
-from steam_funcs import user_app_stat, user_rec_played_stat
+# from faceit_get_funcs import player_details, region_stats, player_history, match_stats
+# from steam_funcs import user_app_stat, user_rec_played_stat
+
+from a_faceit_get_funcs import player_details, region_stats, player_history, match_stats
+from a_steam_funcs import user_app_stat, user_rec_played_stat
 
 
 class ImageCollectorStatLast:
     def __init__(self, nickname):
         self.nickname = nickname
 
-    def collect_image(self):
-        player_stat = self.collect_stat(self.nickname)
+    async def collect_image(self):
+        task = asyncio.create_task(self.collect_stat(self.nickname))
+        player_stat = await task
         if player_stat:
-            image = self.draw_image(player_stat)
+            image = await self.draw_image(player_stat)
             return image
         else:
             return None
@@ -51,43 +59,50 @@ class ImageCollectorStatLast:
         return game
 
     @staticmethod
-    def get_player_info(nickname):
-        pd = player_details(nickname)
+    async def get_player_info(session, nickname):
+        pd = await player_details(session, nickname)
         if pd is not None:
-            history = player_history(pd['player_id'])
+            history = await player_history(session, pd['player_id'])
             if history is not None:
-                region_place = region_stats(player_id=pd['player_id'],
-                                            region=pd['games']['csgo']['region'])['items'][0]['position']
-                country_place = region_stats(player_id=pd['player_id'],
-                                             region=pd['games']['csgo']['region'],
-                                             country=pd['country'])['items'][0]['position']
+                region_place = await region_stats(session=session, player_id=pd['player_id'],
+                                                  region=pd['games']['csgo']['region'])
+                region_place = region_place['items'][0]['position']
+                country_place = await region_stats(session=session, player_id=pd['player_id'],
+                                                   region=pd['games']['csgo']['region'],
+                                                   country=pd['country'])
+                country_place = country_place['items'][0]['position']
                 player_info = {"nickname": nickname,
                                "region_place": region_place,
                                "country_place": country_place}
                 return pd, history, player_info
         raise ValueError
 
-    def collect_stat(self, nickname):
+    async def collect_stat(self, nickname):
         list_of_games = []
-        try:
-            pd, history, player_info = self.get_player_info(nickname)
-        except ValueError:
-            return None
+        Faceit_token = os.environ['Faceit_token']
+        headers = {"accept": "application/json", "Authorization": f"Bearer {Faceit_token}"}
+        async with aiohttp.ClientSession(headers=headers) as session:
+            try:
+                task1 = asyncio.create_task(self.get_player_info(session, nickname))
+                pd, history, player_info = await task1
+            except ValueError:
+                return None
 
-        for match_h in history['items']:
-            match_stat = match_stats(match_h['match_id'])
-            if match_stat is None:
-                continue
-            for map_s in match_stat['rounds'][::-1]:
-                game = self.compile_game(player_info, pd, map_s, match_h)
-                list_of_games.append(game)
+            for match_h in history['items']:
+                task2 = asyncio.create_task(match_stats(session, match_h['match_id']))
+                match_stat = await task2
+                if match_stat is None:
+                    continue
+                for map_s in match_stat['rounds'][::-1]:
+                    game = self.compile_game(player_info, pd, map_s, match_h)
+                    list_of_games.append(game)
 
-                if len(list_of_games) >= 10:
-                    return list_of_games
+                    if len(list_of_games) >= 10:
+                        return list_of_games
         return list_of_games
 
     @staticmethod
-    def draw_image(player_stat):
+    async def draw_image(player_stat):
         font = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 26)
         font_name = ImageFont.truetype(f"templates/fonts/Outfit/Outfit-Bold.ttf", 36)
         if player_stat[0]['background'] != "":
@@ -125,8 +140,9 @@ class ImageCollectorStatLast:
         draw_image_bg = ImageDraw.Draw(image_background)
         draw_image_bg.text((160, 20), player_stat[0]['nickname'], font=font_name)
 
-        app_stat = user_app_stat(player_stat[0]["steam_id"])
-        rec_pl_stat = user_rec_played_stat(player_stat[0]['steam_id'])
+        async with aiohttp.ClientSession() as session:
+            app_stat = await user_app_stat(session, player_stat[0]["steam_id"])
+            rec_pl_stat = await user_rec_played_stat(session, player_stat[0]['steam_id'])
 
         playtime_2weeks = "Last 2 weeks: Unknown"
         playtime_forever = "Summary in CSGO: Unknown"
