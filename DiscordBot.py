@@ -80,12 +80,12 @@ class MyDiscordClient(discord.Client):
             elif bool(re.search("^[.]stats?$", _content[0])) and len(_content) == 2:
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(_content[1])
-                image = imgclst.collect_image()
+                image = await imgclst.collect_image()
                 await channel.send(file=self.compile_binary_image(image))
             elif bool(re.search(r"^[.]compare$", message.content.split(" ")[0])) and len(_content) == 5:
                 channel = self.get_channel(id=828940900033626113)
                 imgcmpr = ImageCollectorCompare(_content[1], _content[2], _content[3], _content[4])
-                image = imgcmpr.collect_image()
+                image = await imgcmpr.collect_image()
                 await channel.send(file=self.compile_binary_image(image))
 
     async def on_raw_reaction_add(self, payload):
