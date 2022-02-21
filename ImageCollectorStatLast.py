@@ -1,12 +1,16 @@
 import asyncio
+import os
+
 import aiohttp
 from PIL import Image, ImageFont, ImageDraw
 from datetime import datetime
 import requests
 import calendar
-from async_faceit_get_funcs import player_details, region_stats, player_history, match_stats
-from async_steam_funcs import user_app_stat, user_rec_played_stat
-from env_variables import faceit_headers
+# from faceit_get_funcs import player_details, region_stats, player_history, match_stats
+# from steam_funcs import user_app_stat, user_rec_played_stat
+
+from a_faceit_get_funcs import player_details, region_stats, player_history, match_stats
+from a_steam_funcs import user_app_stat, user_rec_played_stat
 
 
 class ImageCollectorStatLast:
@@ -75,7 +79,9 @@ class ImageCollectorStatLast:
 
     async def collect_stat(self, nickname):
         list_of_games = []
-        async with aiohttp.ClientSession(headers=faceit_headers) as session:
+        Faceit_token = os.environ['Faceit_token']
+        headers = {"accept": "application/json", "Authorization": f"Bearer {Faceit_token}"}
+        async with aiohttp.ClientSession(headers=headers) as session:
             try:
                 task1 = asyncio.create_task(self.get_player_info(session, nickname))
                 pd, history, player_info = await task1
@@ -148,9 +154,8 @@ class ImageCollectorStatLast:
                     playtime_2weeks = f"Last 2 weeks: {int(app['playtime_2weeks'] / 60)} hrs"
                     playtime_forever = f"Summary in CSGO: {int(app['playtime_forever'] / 60)} hrs"
                     if app_stat is not None:
-                        csgo_playtime = app_stat['playerstats']['stats'][2]['value'] / 60 / 60
-                        csgotime_played_hrs = f"Played in CSGO: {int(csgo_playtime)} hrs"
-                        percentage_played = f"Activity: {csgo_playtime / (app['playtime_forever'] / 60) * 100:.1f}%"
+                        csgotime_played_hrs = f"Played in CSGO: {int(app_stat['playerstats']['stats'][2]['value'] / 60 / 60)} hrs"
+                        percentage_played = f"Activity: {(app_stat['playerstats']['stats'][2]['value'] / 60 / 60) / (app['playtime_forever'] / 60) * 100:.1f}% "
                     else:
                         csgotime_played_hrs = f"Played in CSGO: Unknown"
                         percentage_played = f"Activity: Unknown"

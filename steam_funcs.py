@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-Steam_token = os.environ['steam_token']
+Steam_token = os.environ['Steam_token']
 base_url = "https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/"
 
 

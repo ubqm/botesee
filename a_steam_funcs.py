@@ -1,17 +1,15 @@
 import json
-from env_variables import steam_token
+import os
 
-
-base_url = "https://api.steampowered.com/"
-user_stats_url = base_url + "ISteamUserStats/GetUserStatsForGame/v2/"
-player_service_url = base_url + "IPlayerService/GetRecentlyPlayedGames/v0001/"
+Steam_token = os.environ['Steam_token']
+base_url = "https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/"
 
 
 async def user_app_stat(session, steamid, appid=730):
     if steamid is None:
         return None
 
-    api_url = f"{user_stats_url}?key={steam_token}&steamid={steamid}&appid={appid}"
+    api_url = f"{base_url}?key={Steam_token}&steamid={steamid}&appid={appid}"
     async with session.get(api_url) as res:
         if res.status == 200:
             bin_data = await res.read()
@@ -21,7 +19,7 @@ async def user_app_stat(session, steamid, appid=730):
 
 
 async def user_rec_played_stat(session, steamid=""):
-    api_url = f"{player_service_url}?key={steam_token}&steamid={steamid}&format=json"
+    api_url = f"http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key={Steam_token}&steamid={steamid}&format=json"
     if steamid is None:
         return None
 
