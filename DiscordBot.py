@@ -1,4 +1,5 @@
-import time
+import asyncio
+import aiohttp
 import discord
 import os
 import re
@@ -6,14 +7,16 @@ from io import BytesIO
 from ImageCollectorMatchFinished import ImageCollectorMatchFinished
 from ImageCollectorStatLast import ImageCollectorStatLast
 from ImageCollectorCompare import ImageCollectorCompare
-from faceit_get_funcs import match_stats, player_details
+from async_faceit_get_funcs import match_stats, player_details
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from discord import Client
 from flask import Flask, request, Response
 from threading import Thread
 from functools import partial
 
-Discord_token = os.environ['Discord_token']
+from env_variables import discord_token, faceit_headers
+
+
 app = Flask(__name__)
 
 
@@ -157,14 +160,18 @@ class MyDiscordClient(discord.Client):
         str_nick2 = ""
         elo1 = ""
         elo2 = ""
-        for idx_team, team in enumerate(request_json['payload']['teams']):
-            for player in team['roster']:
-                if idx_team == 0:
-                    str_nick1 += player['nickname'] + "\n"
-                    elo1 += str(player_details(player['nickname'])['games']['csgo']['faceit_elo']) + "\n"
-                else:
-                    str_nick2 += player['nickname'] + "\n"
-                    elo2 += str(player_details(player['nickname'])['games']['csgo']['faceit_elo']) + "\n"
+
+        async with aiohttp.ClientSession(headers=faceit_headers) as session:
+            for idx_team, team in enumerate(request_json['payload']['teams']):
+                for player in team['roster']:
+                    if idx_team == 0:
+                        str_nick1 += player['nickname'] + "\n"
+                        _ = await player_details(session, player['nickname'])
+                        elo1 += str(_['games']['csgo']['faceit_elo']) + "\n"
+                    else:
+                        str_nick2 += player['nickname'] + "\n"
+                        _ = await player_details(session, player['nickname'])
+                        elo2 += str(_['games']['csgo']['faceit_elo']) + "\n"
 
         embed_msg.add_field(name=request_json['payload']['teams'][0]['name'], value=str_nick1, inline=True)
         embed_msg.add_field(name="ELO", value=elo1, inline=True)
@@ -199,11 +206,12 @@ class MyDiscordClient(discord.Client):
 
         # loop to wait FaceIt API for 1 minute if we hadn't got response
         statistics = None
-        for _ in range(12):
-            statistics = match_stats(request_json['payload']['id'])
-            if statistics:
-                break
-            time.sleep(5)
+        async with aiohttp.ClientSession(headers=faceit_headers) as session:
+            for _ in range(12):
+                statistics = await match_stats(session, request_json['payload']['id'])
+                if statistics:
+                    break
+                await asyncio.sleep(5)
 
         str_nick, my_color = self.get_strnick_embed_color(statistics)
         embed_msg = discord.Embed(title=str_nick, type="rich",
@@ -213,7 +221,7 @@ class MyDiscordClient(discord.Client):
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(match_id=request_json['payload']['id'])
 
         img_collector = ImageCollectorMatchFinished(request_json, statistics, nick1, elo1, nick2, elo2)
-        image_list = img_collector.collect_image()
+        image_list = await img_collector.collect_image()
         for image in image_list:
             embed_msg.set_image(url="attachment://image.png")
             await channel.send(embed=embed_msg, file=self.compile_binary_image(image))
@@ -246,4 +254,4 @@ if __name__ == "__main__":
     t = Thread(target=partial_run)
     t.start()
 
-    bot_client.run(Discord_token)
+    bot_client.run(discord_token)
