@@ -1,9 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 import requests
-import asyncio
-import aiohttp
-from async_faceit_get_funcs import player_details
-from env_variables import faceit_headers
+from faceit_get_funcs import player_details
 
 
 class ImageCollectorMatchFinished:
@@ -27,18 +24,15 @@ class ImageCollectorMatchFinished:
         self.available_maps = ["de_ancient", "de_dust2", "de_inferno", "de_mirage",
                                "de_nuke", "de_overpass", "de_train", "de_vertigo"]
 
-    async def collect_image(self):
+    def collect_image(self):
         image_list = []
-        tasks = []
+
         for idx_match, match in enumerate(self.stat_json['rounds']):
             self.draw_map_image(match)
-            async with aiohttp.ClientSession(headers=faceit_headers) as session:
-                for idx_team, team in enumerate(match['teams']):
-                    for idx_player, player in enumerate(team['players']):
-                        task = asyncio.create_task(self.draw_player_on_image(session, player, idx_team, idx_player))
-                        tasks.append(task)
-                await asyncio.gather(*tasks)
-                image_list.append(self.image_map)
+            for idx_team, team in enumerate(match['teams']):
+                for idx_player, player in enumerate(team['players']):
+                    self.draw_player_on_image(player, idx_team, idx_player)
+            image_list.append(self.image_map)
         return image_list
 
     @staticmethod
@@ -110,13 +104,12 @@ class ImageCollectorMatchFinished:
                  }
         return fonts
 
-    async def draw_player_on_image(self, session, player, idx_team, idx_player):
-        await self.draw_avatar_on_image(session, player, idx_team, idx_player)
+    def draw_player_on_image(self, player, idx_team, idx_player):
+        self.draw_avatar_on_image(player, idx_team, idx_player)
         self.draw_player_stats_on_image(player, idx_team, idx_player)
 
-    async def draw_avatar_on_image(self, session, player, idx_team, idx_player):
-        player_elo = await player_details(session, player['nickname'])
-        player_elo = str(player_elo['games']['csgo']['faceit_elo'])
+    def draw_avatar_on_image(self, player, idx_team, idx_player):
+        player_elo = str(player_details(player['nickname'])['games']['csgo']['faceit_elo'])
         elo_diff = self.calculate_elo_change(player, player_elo)
         for idx_req_player, req_player in enumerate(self.request_json['payload']['teams'][idx_team]['roster']):
             if player['nickname'] == req_player['nickname']:
