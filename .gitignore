@@ -2,4 +2,6 @@
 *.py[cod]
 __pycache__/
 .idea/
-test*.py
+test[^_]*.py
+!./tests
+*.prof

@@ -175,7 +175,7 @@ class ImageCollectorCompare:
         return image_avatar
 
     @staticmethod
-    def compare_stats(value, category):
+    def compare_stats(value: tuple, category: str) -> list:
         white = (255, 255, 255, 255)
         green = (0, 190, 0, 255)
         red = (170, 0, 0, 255)
@@ -191,6 +191,10 @@ class ImageCollectorCompare:
                        "total": {0: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]},
                                  1: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]}}}
 
+        if not isinstance(value, tuple) or len(value) != 2:
+            return [white, white]
+        if value[0] == value[1] == 0:
+            return values_dict[category][value.index(max(value))]["1"]
         rating = (max(value) / min(value)) if min(value) != 0 else 100
         if rating >= 1.4:
             rating_s = "1.4"
