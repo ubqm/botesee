@@ -4,8 +4,8 @@ from PIL import Image, ImageFont, ImageDraw
 from datetime import datetime
 import requests
 import calendar
-from async_faceit_get_funcs import player_details, region_stats, player_history, match_stats
-from async_steam_funcs import user_app_stat, user_rec_played_stat
+from api_funcs.async_faceit_get_funcs import player_details, region_stats, player_history, match_stats
+from api_funcs.async_steam_funcs import user_app_stat, user_rec_played_stat
 from env_variables import faceit_headers
 
 

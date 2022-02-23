@@ -1,7 +1,8 @@
 *.dem
 *.py[cod]
-__pycache__/
-.idea/
+__pycache__
+.idea
 test[^_]*.py
 !./tests
 *.prof
+.pytest_cache

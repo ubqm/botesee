@@ -1,52 +1,13 @@
 import asyncio
 import aiohttp
 import discord
-import os
 import re
 from io import BytesIO
-from ImageCollectorMatchFinished import ImageCollectorMatchFinished
-from ImageCollectorStatLast import ImageCollectorStatLast
-from ImageCollectorCompare import ImageCollectorCompare
-from async_faceit_get_funcs import match_stats, player_details
-from IPython.terminal.pt_inputhooks.asyncio import loop
-from discord import Client
-from flask import Flask, request, Response
-from threading import Thread
-from functools import partial
-
-from env_variables import discord_token, faceit_headers
-
-
-app = Flask(__name__)
-
-
-@app.route("/", methods=["GET"])
-def respond_default_get():
-    return Response(status=200)
-
-
-@app.route("/match_status_ready", methods=["POST"])
-def respond_status_ready():
-    print(request.json)
-    loop.create_task(bot_client.post_faceit_message_ready(channel_id=828940900033626113, request_json=request.json))
-    print("respond match_status_ready function called")
-    return Response(status=200)
-
-
-@app.route("/match_status_finished", methods=["POST"])
-def respond_status_finished():
-    print(request.json)
-    loop.create_task(bot_client.post_faceit_message_finished(channel_id=828940900033626113, request_json=request.json))
-    print("respond match_status_finished function called")
-    return Response(status=200)
-
-
-@app.route("/match_status_aborted", methods=["POST"])
-def respond_status_aborted():
-    print(request.json)
-    loop.create_task(bot_client.post_faceit_message_aborted(channel_id=828940900033626113, request_json=request.json))
-    print("respond match_status_aborted function called")
-    return Response(status=200)
+from ImageCollectors.ImageCollectorMatchFinished import ImageCollectorMatchFinished
+from ImageCollectors.ImageCollectorStatLast import ImageCollectorStatLast
+from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
+from api_funcs.async_faceit_get_funcs import match_stats, player_details
+from env_variables import faceit_headers
 
 
 class MyDiscordClient(discord.Client):
@@ -98,7 +59,7 @@ class MyDiscordClient(discord.Client):
         users_downvote = []
         if payload.emoji.name == "👍" or payload.emoji.name == "👎":
             print(payload)
-            channel = Client.get_channel(self, payload.channel_id)
+            channel = discord.Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             print(f"Emoji {payload.emoji} added by:{payload.member}, "
                   f"Message by: {message.author}, Message: {message.content}")
@@ -127,7 +88,7 @@ class MyDiscordClient(discord.Client):
         users_downvote = []
         if payload.emoji.name == "👍" or payload.emoji.name == "👎":
             print(payload)
-            channel = Client.get_channel(self, payload.channel_id)
+            channel = discord.Client.get_channel(self, payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             print(f"Emoji {payload.emoji} removed by:{payload.member}, "
                   f"Message by: {message.author}, Message: {message.content}")
@@ -230,7 +191,7 @@ class MyDiscordClient(discord.Client):
         await self.delete_message_by_faceit_match_id(channel_id, request_json['payload']['id'])
 
     async def delete_message_by_faceit_match_id(self, channel_id=828940900033626113, match_id=None):
-        channel = Client.get_channel(self, channel_id)
+        channel = discord.Client.get_channel(self, channel_id)
         messages = await channel.history(limit=10).flatten()
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
@@ -241,17 +202,3 @@ class MyDiscordClient(discord.Client):
                 elo2 = message.embeds[0].fields[4].value
                 await message.delete()
         return nick1, elo1, nick2, elo2
-
-
-if __name__ == "__main__":
-    intents = discord.Intents.all()
-    bot_client = MyDiscordClient(intents=intents)
-
-    port = int(os.environ.get("PORT", 5000))
-    print(f"variable port:{port}")
-    partial_run = partial(app.run, host="0.0.0.0", port=port)
-
-    t = Thread(target=partial_run)
-    t.start()
-
-    bot_client.run(discord_token)

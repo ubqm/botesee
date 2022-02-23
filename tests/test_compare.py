@@ -1,4 +1,4 @@
-from ImageCollectorCompare import ImageCollectorCompare
+from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
 import pytest
 
 
