@@ -2,7 +2,7 @@ from PIL import Image, ImageFont, ImageDraw
 import requests
 import asyncio
 import aiohttp
-from async_faceit_get_funcs import player_details
+from api_funcs.async_faceit_get_funcs import player_details
 from env_variables import faceit_headers
 
 

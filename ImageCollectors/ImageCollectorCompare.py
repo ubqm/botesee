@@ -2,8 +2,9 @@ from PIL import Image, ImageFont, ImageDraw
 import requests
 import aiohttp
 import asyncio
-from async_faceit_get_funcs import player_details, player_history, match_stats, region_stats
-from ProjectExceptions import NothingException
+
+from ImageCollectors.ProjectExceptions import NothingException
+from api_funcs.async_faceit_get_funcs import player_details, player_history, match_stats, region_stats
 from env_variables import faceit_headers
 
 
