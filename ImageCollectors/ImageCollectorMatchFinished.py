@@ -35,7 +35,12 @@ class ImageCollectorMatchFinished:
             async with aiohttp.ClientSession(headers=faceit_headers) as session:
                 for idx_team, team in enumerate(match['teams']):
                     for idx_player, player in enumerate(team['players']):
-                        task = asyncio.create_task(self.draw_player_on_image(session, player, idx_team, idx_player))
+                        task = asyncio.create_task(
+                            self.draw_player_on_image(
+                                session,
+                                player,
+                                idx_team,
+                                idx_player))
                         tasks.append(task)
                 await asyncio.gather(*tasks)
                 image_list.append(self.image_map)
@@ -81,11 +86,13 @@ class ImageCollectorMatchFinished:
 
         w, h = self.draw_image_map.textsize(match["teams"][0]["team_stats"]["Final Score"],
                                             font=self._fonts['mainscore'])
-        self.draw_image_map.text(((146 - w) / 2, 65), match["teams"][0]["team_stats"]["Final Score"],
+        self.draw_image_map.text(((146 - w) / 2, 65),
+                                 match["teams"][0]["team_stats"]["Final Score"],
                                  font=self._fonts['mainscore'])
         w, h = self.draw_image_map.textsize(match["teams"][1]["team_stats"]["Final Score"],
                                             font=self._fonts['mainscore'])
-        self.draw_image_map.text(((146 - w) / 2, 415), match["teams"][1]["team_stats"]["Final Score"],
+        self.draw_image_map.text(((146 - w) / 2, 415),
+                                 match["teams"][1]["team_stats"]["Final Score"],
                                  font=self._fonts['mainscore'])
 
         is_overtime_in_match = self.bool_overtime_check(match)
@@ -98,7 +105,9 @@ class ImageCollectorMatchFinished:
                 halftimes = f"{team['team_stats']['First Half Score']}" \
                             f"—{team['team_stats']['Second Half Score']}"
             w, h = self.draw_image_map.textsize(halftimes, font=self._fonts['halftime'])
-            self.draw_image_map.text(((146 - w) / 2, 235 + 42 * idx_team), halftimes, font=self._fonts['halftime'])
+            self.draw_image_map.text(((146 - w) / 2, 235 + 42 * idx_team),
+                                     halftimes,
+                                     font=self._fonts['halftime'])
 
     @staticmethod
     def get_fonts(font_folder, font_file, font_file_mainscore):
@@ -118,7 +127,8 @@ class ImageCollectorMatchFinished:
         player_elo = await player_details(session, player['nickname'])
         player_elo = str(player_elo['games']['csgo']['faceit_elo'])
         elo_diff = self.calculate_elo_change(player, player_elo)
-        for idx_req_player, req_player in enumerate(self.request_json['payload']['teams'][idx_team]['roster']):
+        for idx_req_player, req_player in enumerate(
+                self.request_json['payload']['teams'][idx_team]['roster']):
             if player['nickname'] == req_player['nickname']:
                 if req_player['avatar'] != "":
                     avatar_req = requests.get(req_player['avatar'], stream=True)
@@ -132,23 +142,37 @@ class ImageCollectorMatchFinished:
                 faceitlvl = req_player['game_skill_level']
 
                 if idx_team == 0:
-                    image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
-                    image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
+                    image_avatar.paste(self.image_dark_avatar_bot,
+                                       (0, 0),
+                                       self.image_dark_avatar_bot)
+
+                    image_avatar.paste(self.image_dark_avatar_top,
+                                       (0, 0),
+                                       self.image_dark_avatar_top)
+
                     image_avatar.paste(
                         Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
                         (0, 0),
                         Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"))
+
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
                     draw_image_avatar.text((127 - w, 0), elo_diff, font=self._fonts['avatar'])
                     # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((26, 0), player_elo, font=self._fonts['avatar'])
                 else:
-                    image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
-                    image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
+                    image_avatar.paste(self.image_dark_avatar_top,
+                                       (0, 0),
+                                       self.image_dark_avatar_top)
+
+                    image_avatar.paste(self.image_dark_avatar_bot,
+                                       (0, 0),
+                                       self.image_dark_avatar_bot)
+
                     image_avatar.paste(
                         Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
                         (0, 106),
                         Image.open(f"templates/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"))
+
                     w, h = self.draw_image_map.textsize(elo_diff, font=self._fonts['avatar'])
                     draw_image_avatar.text((127 - w, 107), elo_diff, font=self._fonts['avatar'])
                     # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
