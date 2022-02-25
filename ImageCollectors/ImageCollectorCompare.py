@@ -2,14 +2,17 @@ from PIL import Image, ImageFont, ImageDraw
 import requests
 import aiohttp
 import asyncio
-
 from ImageCollectors.ProjectExceptions import NothingException
 from api_funcs.async_faceit_get_funcs import player_details, player_history, match_stats, region_stats
 from env_variables import faceit_headers
 
 
 class ImageCollectorCompare:
-    def __init__(self, nickname1: str, nickname2: str, amount: str = "50", output_type: str = "games"):
+    def __init__(
+            self, nickname1: str,
+            nickname2: str,
+            amount: str = "50",
+            output_type: str = "games"):
         self.nickname1 = nickname1
         self.nickname2 = nickname2
         self.output_type = self.validate_output_type(output_type)
@@ -117,17 +120,28 @@ class ImageCollectorCompare:
         return game
 
     def get_comparison_dict(self, player1_stats, player2_stats):
-        comparison_dict = {"nickname": (player1_stats[0]['nickname'], player2_stats[0]['nickname']),
-                           "steam_id": (player1_stats[0]['steam_id'], player2_stats[0]['steam_id']),
-                           "avatar": (player1_stats[0]['avatar'], player2_stats[0]['avatar']),
-                           "background": (player1_stats[0]['background'], player2_stats[0]['background']),
-                           "country": (player1_stats[0]['country'], player2_stats[0]['country']),
-                           "country_place": (player1_stats[0]['country_place'], player2_stats[0]['country_place']),
-                           "region_place": (player1_stats[0]['region_place'], player2_stats[0]['region_place']),
-                           "player_id": (player1_stats[0]['player_id'], player2_stats[0]['player_id']),
-                           "region": (player1_stats[0]['region'], player2_stats[0]['region']),
-                           "skill_level": (player1_stats[0]['skill_level'], player2_stats[0]['skill_level']),
-                           "faceit_elo": (player1_stats[0]['faceit_elo'], player2_stats[0]['faceit_elo'])}
+        comparison_dict = {"nickname": (player1_stats[0]['nickname'],
+                                        player2_stats[0]['nickname']),
+                           "steam_id": (player1_stats[0]['steam_id'],
+                                        player2_stats[0]['steam_id']),
+                           "avatar": (player1_stats[0]['avatar'],
+                                      player2_stats[0]['avatar']),
+                           "background": (player1_stats[0]['background'],
+                                          player2_stats[0]['background']),
+                           "country": (player1_stats[0]['country'],
+                                       player2_stats[0]['country']),
+                           "country_place": (player1_stats[0]['country_place'],
+                                             player2_stats[0]['country_place']),
+                           "region_place": (player1_stats[0]['region_place'],
+                                            player2_stats[0]['region_place']),
+                           "player_id": (player1_stats[0]['player_id'],
+                                         player2_stats[0]['player_id']),
+                           "region": (player1_stats[0]['region'],
+                                      player2_stats[0]['region']),
+                           "skill_level": (player1_stats[0]['skill_level'],
+                                           player2_stats[0]['skill_level']),
+                           "faceit_elo": (player1_stats[0]['faceit_elo'],
+                                          player2_stats[0]['faceit_elo'])}
         p1_mean_stats = self.get_mean_stats(player1_stats)
         p2_mean_stats = self.get_mean_stats(player2_stats)
 

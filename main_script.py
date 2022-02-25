@@ -19,7 +19,8 @@ def respond_default_get():
 @app.route("/match_status_ready", methods=["POST"])
 def respond_status_ready():
     print(request.json)
-    loop.create_task(bot_client.post_faceit_message_ready(channel_id=828940900033626113, request_json=request.json))
+    loop.create_task(bot_client.post_faceit_message_ready(
+        channel_id=828940900033626113, request_json=request.json))
     print("respond match_status_ready function called")
     return Response(status=200)
 
@@ -27,7 +28,8 @@ def respond_status_ready():
 @app.route("/match_status_finished", methods=["POST"])
 def respond_status_finished():
     print(request.json)
-    loop.create_task(bot_client.post_faceit_message_finished(channel_id=828940900033626113, request_json=request.json))
+    loop.create_task(bot_client.post_faceit_message_finished(
+        channel_id=828940900033626113, request_json=request.json))
     print("respond match_status_finished function called")
     return Response(status=200)
 
@@ -35,7 +37,8 @@ def respond_status_finished():
 @app.route("/match_status_aborted", methods=["POST"])
 def respond_status_aborted():
     print(request.json)
-    loop.create_task(bot_client.post_faceit_message_aborted(channel_id=828940900033626113, request_json=request.json))
+    loop.create_task(bot_client.post_faceit_message_aborted(
+        channel_id=828940900033626113, request_json=request.json))
     print("respond match_status_aborted function called")
     return Response(status=200)
 

@@ -150,7 +150,8 @@ class ImageCollectorStatLast:
                     if app_stat is not None:
                         csgo_playtime = app_stat['playerstats']['stats'][2]['value'] / 60 / 60
                         csgotime_played_hrs = f"Played in CSGO: {int(csgo_playtime)} hrs"
-                        percentage_played = f"Activity: {csgo_playtime / (app['playtime_forever'] / 60) * 100:.1f}%"
+                        percentage_played = f"Activity: " \
+                                            f"{csgo_playtime / (app['playtime_forever'] / 60) * 100:.1f}%"
                     else:
                         csgotime_played_hrs = f"Played in CSGO: Unknown"
                         percentage_played = f"Activity: Unknown"
@@ -167,7 +168,7 @@ class ImageCollectorStatLast:
 
         draw_image_bg.text((184, 70), str(player_stat[0]['faceit_elo']), font=font)
 
-        mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs, total_4k, total_5k = 0, 0, 0, 0, 0, 0, 0, 0
+        mean_k = mean_a = mean_d = mean_kd = mean_kr = mean_hs = total_4k = total_5k = 0
         for i in range(10):
             mean_k += int(player_stat[i]['kills'])
             mean_a += int(player_stat[i]['assists'])
@@ -195,7 +196,9 @@ class ImageCollectorStatLast:
             current_map = Image.open(f"templates/maps/{player_stat[i]['mapname']}.jpg")
             current_map = current_map.resize((90, 50))
             image_background.paste(current_map, (770, 50 * i + 24))
-            kad = f"{player_stat[i]['kills']}/{player_stat[i]['assists']}/{player_stat[i]['deaths']}"
+            kad = f"{player_stat[i]['kills']}/" \
+                  f"{player_stat[i]['assists']}/" \
+                  f"{player_stat[i]['deaths']}"
             draw_image_bg.text((665, 50 * i + 30), kad, font=font, fill=stat_color)
             dd = datetime.utcfromtimestamp(player_stat[i]['started_at']).strftime("%m/%d")
             cc = calendar.month_name[int(dd.split("/")[0])][:3]
@@ -205,14 +208,22 @@ class ImageCollectorStatLast:
             map((lambda x: x / 10), [mean_k, mean_a, mean_d, mean_kd, mean_kr, mean_hs])
 
         draw_image_bg.text((10, 310), "Last 10 games played:", font=font)
-        draw_image_bg.text((10, 340), f"KAD: {mean_k:.1f} / {mean_a:.1f} / {mean_d:.1f}", font=font)
+        draw_image_bg.text((10, 340), f"KAD: {mean_k:.1f} / "
+                                      f"{mean_a:.1f} / "
+                                      f"{mean_d:.1f}", font=font)
         draw_image_bg.text((10, 370), f"K/D: {mean_kd:.2f}", font=font)
         draw_image_bg.text((10, 400), f"K/R: {mean_kr:.2f}", font=font)
         draw_image_bg.text((10, 430), f"Total 4K: {total_4k}", font=font)
         draw_image_bg.text((10, 460), f"Total 5K: {total_5k}", font=font)
         draw_image_bg.text((10, 490), f"HS: {mean_hs:.1f}%", font=font)
 
-        draw_image_bg.text((270, 70), f"{player_stat[0]['region']}: {player_stat[0]['region_place']}", font=font)
-        draw_image_bg.text((270, 100), f"{player_stat[0]['country']}: {player_stat[0]['country_place']}", font=font)
+        draw_image_bg.text((270, 70),
+                           f"{player_stat[0]['region']}: "
+                           f"{player_stat[0]['region_place']}",
+                           font=font)
+        draw_image_bg.text((270, 100),
+                           f"{player_stat[0]['country']}: "
+                           f"{player_stat[0]['country_place']}",
+                           font=font)
 
         return image_background
