@@ -1,4 +1,6 @@
+import os
 import sqlite3
+import psycopg2
 import flask
 from env_variables import faceit_headers
 import aiohttp
@@ -186,7 +188,47 @@ def db_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50):
         return players_data, matches_data, elo_data
 
 
+async def dbps_match_finished(request, statistics):
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+
+    async with aiohttp.ClientSession(headers=faceit_headers) as session:
+        for idx_match, match in enumerate(statistics['rounds']):
+            cursor.execute('''INSERT OR IGNORE INTO matches(match_faceit_id, date)
+                              VALUES (?, ?)''', [match['match_id'], request['timestamp']])
+            for idx_team, team in enumerate(match['teams']):
+                for idx_player, player in enumerate(team['players']):
+                    player_elo = int(
+                        (await player_details_by_id(session, player['player_id']))['games']['csgo']['faceit_elo'])
+                    cursor.execute('''INSERT OR IGNORE INTO players(faceit_id)
+                                                              VALUES (?)''', [player['player_id']])
+                    conn.commit()
+                    cursor.execute('''INSERT OR IGNORE INTO elos(player_id, match_id, elo)
+                                                              VALUES ((SELECT id FROM players
+                                                                       WHERE faceit_id=?),
+                                                                      (SELECT id from matches
+                                                                       WHERE match_faceit_id=?),
+                                                                       ?)''',
+                                   [player['player_id'], match['match_id'], player_elo])
+
+
+def dbps_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50):
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute('''SELECT * FROM players LIMIT {}'''.format(pl_items))
+    players_data = cursor.fetchall()
+    cursor.execute('''SELECT * FROM matches LIMIT {}'''.format(mc_items))
+    matches_data = cursor.fetchall()
+    cursor.execute('''SELECT * FROM elos LIMIT {}'''.format(elo_items))
+    elo_data = cursor.fetchall()
+    return players_data, matches_data, elo_data
+
+
 if __name__ == '__main__':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(db_match_finished(request_json, stats))
+    d1, d2, d3 = dbps_fetch_data()
+    print(d1, d2, d3)
+    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    # asyncio.run(db_match_finished(request_json, stats))
 
