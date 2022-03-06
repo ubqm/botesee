@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        table{
+        display: inline-block;
+        }
+        table,
+        td {
+            border: 1px solid #333;
+        }
+
+        thead,
+        tfoot {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<table style="border: 1px solid #333;">
+    <thead>
+        <tr>
+            <th colspan="2">player</th>
+        </tr>
+        <tr>
+            <th >id</th>
+            <th >faceit_id</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for player in players %}
+    <tr>
+        <td>player.id</td>
+        <td>player.faceit_id</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<table style="border: 1px solid #333;">
+    <thead>
+        <tr>
+            <th colspan="3">matches</th>
+        </tr>
+        <tr>
+            <th >id</th>
+            <th >match_id</th>
+            <th >date</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for match in matches %}
+    <tr>
+        <td>match.id</td>
+        <td>match.match_faceit_id</td>
+        <td>match.date</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<table style="border: 1px solid #333;">
+    <thead>
+        <tr>
+            <th colspan="3">elo</th>
+        </tr>
+        <tr>
+            <th >player_id</th>
+            <th >match_id</th>
+            <th >elo</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in elo %}
+    <tr>
+        <td>item.player_id</td>
+        <td>item.match_id</td>
+        <td>item.elo</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

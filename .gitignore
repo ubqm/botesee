@@ -6,3 +6,4 @@ test[^_]*.py
 !./tests
 *.prof
 .pytest_cache
+*.sqlite3
