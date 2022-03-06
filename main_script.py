@@ -16,7 +16,7 @@ app = Flask(__name__)
 def respond_default_get():
     players_data, matches_data, elo_data = dbps_fetch_data()
     context = {"players": players_data, "matches": matches_data, "elo": elo_data}
-    return flask.render_template('templates/index.html', **context)
+    return flask.render_template('index.html', **context)
 
 
 @app.route("/match_status_ready", methods=["POST"])
