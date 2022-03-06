@@ -16,6 +16,19 @@ async def player_details(session, nickname=None):
             return None
 
 
+async def player_details_by_id(session, id=None):
+    api_url = "{}/players".format(base_url)
+    if id is None:
+        return None
+    api_url += f"/{id}"
+    async with session.get(api_url) as res:
+        if res.status == 200:
+            bin_data = await res.read()
+            return json.loads(bin_data.decode())
+        else:
+            return None
+
+
 async def player_history(session, player_id=None, game="csgo", offset=0, limit=20):
     api_url = f"{base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
     if player_id is None:
