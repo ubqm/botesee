@@ -8,6 +8,7 @@ from ImageCollectors.ImageCollectorStatLast import ImageCollectorStatLast
 from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
 from api_funcs.async_faceit_get_funcs import match_stats, player_details
 from env_variables import faceit_headers
+from database import db_match_finished
 
 
 class MyDiscordClient(discord.Client):
@@ -211,6 +212,7 @@ class MyDiscordClient(discord.Client):
             embed_msg.set_image(url="attachment://image.png")
             await channel.send(embed=embed_msg,
                                file=self.compile_binary_image(image))
+        await db_match_finished(request_json, statistics)
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
         await self.delete_message_by_faceit_match_id(channel_id,
