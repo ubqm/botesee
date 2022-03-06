@@ -1,19 +1,22 @@
 import discord
 import os
+import flask
 from IPython.terminal.pt_inputhooks.asyncio import loop
 from flask import Flask, request, Response
 from threading import Thread
 from functools import partial
 from discord_funcs import MyDiscordClient
 from env_variables import discord_token
-
+from database import dbps_fetch_data
 
 app = Flask(__name__)
 
 
 @app.route("/", methods=["GET"])
 def respond_default_get():
-    return Response(status=200)
+    players_data, matches_data, elo_data = dbps_fetch_data()
+    context = {"players": players_data, "matches": matches_data, "elo": elo_data}
+    return flask.render_template('templates/index.html', **context)
 
 
 @app.route("/match_status_ready", methods=["POST"])
