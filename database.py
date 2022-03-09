@@ -195,21 +195,25 @@ async def dbps_match_finished(request, statistics):
 
     async with aiohttp.ClientSession(headers=faceit_headers) as session:
         for idx_match, match in enumerate(statistics['rounds']):
-            cursor.execute('''INSERT OR IGNORE INTO matches(match_faceit_id, date)
-                              VALUES (?, ?)''', [match['match_id'], request['timestamp']])
+            cursor.execute('''INSERT INTO matches(match_faceit_id, date)
+                              VALUES (?, ?)
+                              ON CONFLICT DO NOTHING;''', [match['match_id'], request['timestamp']])
             for idx_team, team in enumerate(match['teams']):
                 for idx_player, player in enumerate(team['players']):
                     player_elo = int(
                         (await player_details_by_id(session, player['player_id']))['games']['csgo']['faceit_elo'])
-                    cursor.execute('''INSERT OR IGNORE INTO players(faceit_id)
-                                                              VALUES (?)''', [player['player_id']])
+                    cursor.execute('''INSERT INTO players(faceit_id)
+                                      VALUES (?)
+                                      ON CONFLICT DO NOTHING;''', [player['player_id']])
                     conn.commit()
-                    cursor.execute('''INSERT OR IGNORE INTO elos(player_id, match_id, elo)
-                                                              VALUES ((SELECT id FROM players
-                                                                       WHERE faceit_id=?),
-                                                                      (SELECT id from matches
-                                                                       WHERE match_faceit_id=?),
-                                                                       ?)''',
+                    cursor.execute('''INSERT INTO elos(player_id, match_id, elo)
+                                      VALUES (
+                                      (SELECT id FROM players
+                                      WHERE faceit_id=?),
+                                      (SELECT id from matches
+                                      WHERE match_faceit_id=?),
+                                      ?)
+                                      ON CONFLICT DO NOTHING;''',
                                    [player['player_id'], match['match_id'], player_elo])
 
 
