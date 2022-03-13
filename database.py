@@ -3,6 +3,7 @@ import sqlite3
 import psycopg2
 from env_variables import faceit_headers
 import aiohttp
+import asyncio
 
 from api_funcs.async_faceit_get_funcs import player_details_by_id
 
@@ -230,8 +231,9 @@ def dbps_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50)
 
 
 if __name__ == '__main__':
-    d1, d2, d3 = dbps_fetch_data()
-    print(d1, d2, d3)
+    # d1, d2, d3 = dbps_fetch_data()
+    # print(d1, d2, d3)
     # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # asyncio.run(db_match_finished(request_json, stats))
+    m, p, e = dbps_fetch_data()
 
+    print(m, p, e)
