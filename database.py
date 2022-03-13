@@ -193,7 +193,7 @@ async def dbps_match_finished(request, statistics):
 
     async with aiohttp.ClientSession(headers=faceit_headers) as session:
         for idx_match, match in enumerate(statistics['rounds']):
-            cursor.execute('''INSERT INTO matches(match_faceit_id, date)
+            cursor.execute('''INSERT INTO matches(match_id, date)
                               VALUES (%s, %s)
                               ON CONFLICT DO NOTHING;''', [match['match_id'], request['timestamp']])
             for idx_team, team in enumerate(match['teams']):
@@ -209,7 +209,7 @@ async def dbps_match_finished(request, statistics):
                                       (SELECT id FROM players
                                       WHERE faceit_id=%s),
                                       (SELECT id from matches
-                                      WHERE match_faceit_id=%s),
+                                      WHERE match_id=%s),
                                       %s)
                                       ON CONFLICT DO NOTHING;''',
                                    [player['player_id'], match['match_id'], player_elo])
