@@ -33,8 +33,8 @@
     <tbody>
     {% for player in players %}
     <tr>
-        <td>{{ player.id }}</td>
-        <td>{{ player.faceit_id }}</td>
+        <td>{{ player[0] }}</td>
+        <td>{{ player[1] }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -53,9 +53,9 @@
     <tbody>
     {% for match in matches %}
     <tr>
-        <td>{{ match.id }}</td>
-        <td>{{ match.match_faceit_id }}</td>
-        <td>{{ match.date }}</td>
+        <td>{{ match[0] }}</td>
+        <td>{{ match[1] }}</td>
+        <td>{{ match[2] }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -74,9 +74,9 @@
     <tbody>
     {% for item in elo %}
     <tr>
-        <td>{{ item.player_id }}</td>
-        <td>{{ item.match_id }}</td>
-        <td>{{ item.elo }}</td>
+        <td>{{ item[0] }}</td>
+        <td>{{ item[1] }}</td>
+        <td>{{ item[2] }}</td>
     </tr>
     {% endfor %}
     </tbody>
