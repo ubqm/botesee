@@ -1,10 +1,8 @@
 import os
 import sqlite3
 import psycopg2
-import flask
 from env_variables import faceit_headers
 import aiohttp
-import asyncio
 
 from api_funcs.async_faceit_get_funcs import player_details_by_id
 
@@ -196,25 +194,26 @@ async def dbps_match_finished(request, statistics):
     async with aiohttp.ClientSession(headers=faceit_headers) as session:
         for idx_match, match in enumerate(statistics['rounds']):
             cursor.execute('''INSERT INTO matches(match_faceit_id, date)
-                              VALUES (?, ?)
+                              VALUES (%s, %s)
                               ON CONFLICT DO NOTHING;''', [match['match_id'], request['timestamp']])
             for idx_team, team in enumerate(match['teams']):
                 for idx_player, player in enumerate(team['players']):
                     player_elo = int(
                         (await player_details_by_id(session, player['player_id']))['games']['csgo']['faceit_elo'])
                     cursor.execute('''INSERT INTO players(faceit_id)
-                                      VALUES (?)
+                                      VALUES (%s)
                                       ON CONFLICT DO NOTHING;''', [player['player_id']])
                     conn.commit()
                     cursor.execute('''INSERT INTO elos(player_id, match_id, elo)
                                       VALUES (
                                       (SELECT id FROM players
-                                      WHERE faceit_id=?),
+                                      WHERE faceit_id=%s),
                                       (SELECT id from matches
-                                      WHERE match_faceit_id=?),
-                                      ?)
+                                      WHERE match_faceit_id=%s),
+                                      %s)
                                       ON CONFLICT DO NOTHING;''',
                                    [player['player_id'], match['match_id'], player_elo])
+            conn.commit()
 
 
 def dbps_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50):
