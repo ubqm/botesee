@@ -25,7 +25,7 @@ class ImageCollectorMatchFinished:
         self.image_dark_avatar_top = Image.open("templates/background_features/for_avatar_top.png")
         self.image_dark_middle = Image.open("templates/background_features/dark-middle2.png")
         self.available_maps = ["de_ancient", "de_dust2", "de_inferno", "de_mirage",
-                               "de_nuke", "de_overpass", "de_train", "de_vertigo"]
+                               "de_nuke", "de_overpass", "de_train", "de_vertigo", "de_anubis"]
 
     async def collect_image(self):
         image_list = []
