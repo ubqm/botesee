@@ -142,11 +142,11 @@ class MyDiscordClient(discord.Client):
             for idx_team, team in enumerate(request_json['payload']['teams']):
                 for player in team['roster']:
                     if idx_team == 0:
-                        str_nick1 += player['nickname'] + "\n"
+                        str_nick1 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
                         _ = await player_details(session, player['nickname'])
                         elo1 += str(_['games']['csgo']['faceit_elo']) + "\n"
                     else:
-                        str_nick2 += player['nickname'] + "\n"
+                        str_nick2 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
                         _ = await player_details(session, player['nickname'])
                         elo2 += str(_['games']['csgo']['faceit_elo']) + "\n"
 
