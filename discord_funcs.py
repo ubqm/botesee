@@ -226,6 +226,7 @@ class MyDiscordClient(discord.Client):
         messages = await channel.history(limit=10).flatten()
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
+            print(f"{message = }")
             if message.embeds and match_id in message.embeds[0].description:
                 nick1 = message.embeds[0].fields[0].value
                 elo1 = message.embeds[0].fields[1].value
