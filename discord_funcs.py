@@ -227,9 +227,9 @@ class MyDiscordClient(discord.Client):
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
             if message.embeds and match_id in message.embeds[0].description:
-                nick1 = re.search(r"\[(?P<nickname>.*)]", message.embeds[0].fields[0].value)["nickname"]
+                nick1 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[0].value))
                 elo1 = message.embeds[0].fields[1].value
-                nick2 = re.search(r"\[(?P<nickname>.*)]", message.embeds[0].fields[3].value)["nickname"]
+                nick2 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[3].value))
                 elo2 = message.embeds[0].fields[4].value
                 await message.delete()
         return nick1, elo1, nick2, elo2
