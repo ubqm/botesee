@@ -7,7 +7,8 @@ async def init():
         db_url=f'postgres://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}',
         modules={'models': ['db.models']}
     )
-    await Tortoise.generate_schemas()
+
+    # await Tortoise.generate_schemas()
 
 
 if __name__ == '__main__':

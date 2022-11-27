@@ -52,8 +52,8 @@ urllib3 = "==1.26.8"
 wcwidth = "==0.2.5"
 werkzeug = "==2.0.3"
 yarl = "==1.7.2"
-tortoise-orm = {extras = ["asyncpg"], version = "*"}
 python-dotenv = "*"
+tortoise-orm = {extras = ["asyncpg"], version = "*"}
 
 [dev-packages]
 
