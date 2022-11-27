@@ -3,12 +3,15 @@ import aiohttp
 import discord
 import re
 from io import BytesIO
+
+from aiohttp import ClientConnectorError
+
 from ImageCollectors.ImageCollectorMatchFinished import ImageCollectorMatchFinished
 from ImageCollectors.ImageCollectorStatLast import ImageCollectorStatLast
 from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
 from api_funcs.async_faceit_get_funcs import match_stats, player_details
 from env_variables import faceit_headers
-from database import dbps_match_finished
+from database import db_match_finished
 
 
 class MyDiscordClient(discord.Client):
@@ -137,28 +140,33 @@ class MyDiscordClient(discord.Client):
         str_nick2 = ""
         elo1 = ""
         elo2 = ""
+        for i in range(12):
+            try:
+                async with aiohttp.ClientSession(headers=faceit_headers) as session:
+                    for idx_team, team in enumerate(request_json['payload']['teams']):
+                        for player in team['roster']:
+                            if idx_team == 0:
+                                str_nick1 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
+                                _ = await player_details(session, player['nickname'])
+                                elo1 += str(_['games']['csgo']['faceit_elo']) + "\n"
+                            else:
+                                str_nick2 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
+                                _ = await player_details(session, player['nickname'])
+                                elo2 += str(_['games']['csgo']['faceit_elo']) + "\n"
 
-        async with aiohttp.ClientSession(headers=faceit_headers) as session:
-            for idx_team, team in enumerate(request_json['payload']['teams']):
-                for player in team['roster']:
-                    if idx_team == 0:
-                        str_nick1 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
-                        _ = await player_details(session, player['nickname'])
-                        elo1 += str(_['games']['csgo']['faceit_elo']) + "\n"
-                    else:
-                        str_nick2 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
-                        _ = await player_details(session, player['nickname'])
-                        elo2 += str(_['games']['csgo']['faceit_elo']) + "\n"
-
-        embed_msg.add_field(name=request_json['payload']['teams'][0]['name'],
-                            value=str_nick1, inline=True)
-        embed_msg.add_field(name="ELO", value=elo1, inline=True)
-        embed_msg.add_field(name="\u200b", value="\u200b")
-        embed_msg.add_field(name=request_json['payload']['teams'][1]['name'],
-                            value=str_nick2, inline=True)
-        embed_msg.add_field(name="ELO", value=elo2, inline=True)
-        embed_msg.add_field(name="\u200b", value="\u200b")
-        await channel.send(embed=embed_msg)
+                embed_msg.add_field(name=request_json['payload']['teams'][0]['name'],
+                                    value=str_nick1, inline=True)
+                embed_msg.add_field(name="ELO", value=elo1, inline=True)
+                embed_msg.add_field(name="\u200b", value="\u200b")
+                embed_msg.add_field(name=request_json['payload']['teams'][1]['name'],
+                                    value=str_nick2, inline=True)
+                embed_msg.add_field(name="ELO", value=elo2, inline=True)
+                embed_msg.add_field(name="\u200b", value="\u200b")
+                await channel.send(embed=embed_msg)
+                break
+            except ClientConnectorError as e:
+                print(e)
+                await asyncio.sleep(5)
 
     def get_strnick_embed_color(self, statistics):
         black, green, red, gray = 1, 2067276, 10038562, 9936031
@@ -212,7 +220,7 @@ class MyDiscordClient(discord.Client):
             embed_msg.set_image(url="attachment://image.png")
             await channel.send(embed=embed_msg,
                                file=self.compile_binary_image(image))
-        await dbps_match_finished(request_json, statistics)
+        await db_match_finished(request_json, statistics)
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
         await self.delete_message_by_faceit_match_id(channel_id,

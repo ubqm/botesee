@@ -5,17 +5,21 @@ from IPython.terminal.pt_inputhooks.asyncio import loop
 from flask import Flask, request, Response
 from threading import Thread
 from functools import partial
+
+from tortoise import run_async
+
+from db.init import init
 from discord_funcs import MyDiscordClient
 from env_variables import discord_token
-from database import dbps_fetch_data
+from database import db_fetch_data
 
 app = Flask(__name__)
 
 
 @app.route("/", methods=["GET"])
-def respond_default_get():
-    players_data, matches_data, elo_data = dbps_fetch_data()
-    context = {"players": players_data, "matches": matches_data, "elo": elo_data}
+async def respond_default_get():
+    player_data, matches_data, elo_data = await db_fetch_data()
+    context = {"players": player_data, "matches": matches_data, "elo": elo_data}
     return flask.render_template('index.html', **context)
 
 
@@ -56,5 +60,5 @@ if __name__ == "__main__":
 
     t = Thread(target=partial_run)
     t.start()
-
+    run_async(init())
     bot_client.run(discord_token)
