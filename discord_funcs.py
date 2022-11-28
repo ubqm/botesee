@@ -1,4 +1,6 @@
 import asyncio
+import itertools
+
 import aiohttp
 import discord
 import re
@@ -15,14 +17,16 @@ from database import db_match_finished
 
 
 class MyDiscordClient(discord.Client):
-    sub_players = ["ad42c90b-45a9-49b6-8ab0-9c8662330543",
-                   "278790a2-1f08-4350-bd96-427f7dcc8722",
-                   "18e2a663-9e20-4db9-8b29-3c3cbdff30ac",
-                   "8cbb0b36-4c6b-4ebd-a92b-829234016626",
-                   "e1cddcbb-afdc-4e8e-abf2-eea5638f0363",
-                   "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c",
-                   "b8e5cd07-1b43-4203-9173-465fddcd391f",
-                   "4e7d1f6c-9045-4800-8eda-23c892dcd814"]
+    sub_players = [
+        "ad42c90b-45a9-49b6-8ab0-9c8662330543",
+        "278790a2-1f08-4350-bd96-427f7dcc8722",
+        "18e2a663-9e20-4db9-8b29-3c3cbdff30ac",
+        "8cbb0b36-4c6b-4ebd-a92b-829234016626",
+        "e1cddcbb-afdc-4e8e-abf2-eea5638f0363",
+        "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c",
+        "b8e5cd07-1b43-4203-9173-465fddcd391f",
+        "4e7d1f6c-9045-4800-8eda-23c892dcd814"
+    ]
 
     async def on_ready(self):
         for guild in self.guilds:
@@ -50,8 +54,9 @@ class MyDiscordClient(discord.Client):
                     (message.content.find("http://") != -1):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
-            elif bool(re.search("^[.]stats?$", _content[0])) and \
-                    len(_content) == 2:
+            elif bool(
+                    re.search("^[.]stats?$", _content[0])
+            ) and len(_content) == 2:
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(_content[1])
                 image = await imgclst.collect_image()
@@ -60,8 +65,12 @@ class MyDiscordClient(discord.Client):
                                 message.content.split(" ")[0])) and \
                     len(_content) == 5:
                 channel = self.get_channel(id=828940900033626113)
-                imgcmpr = ImageCollectorCompare(_content[1], _content[2],
-                                                _content[3], _content[4])
+                imgcmpr = ImageCollectorCompare(
+                    _content[1],
+                    _content[2],
+                    _content[3],
+                    _content[4]
+                )
                 image = await imgcmpr.collect_image()
                 await channel.send(file=self.compile_binary_image(image))
 
@@ -90,7 +99,7 @@ class MyDiscordClient(discord.Client):
                     downvotes += 1
 
             print(f"Upvotes/Downvotes = {upvotes}/{downvotes}")
-            if upvotes < downvotes - 2:
+            if downvotes >= upvotes + 3:
                 await message.delete()
                 print(
                     f"*** Message \"{message.content}\" "
@@ -122,7 +131,7 @@ class MyDiscordClient(discord.Client):
                     downvotes += 1
 
             print(f"Upvotes/Downvotes = {upvotes}/{downvotes}")
-            if upvotes < downvotes - 2:
+            if downvotes >= upvotes + 3:
                 await message.delete()
                 print(f"*** Message \"{message.content}\" "
                       f"deleted with {upvotes} Upvotes, "
@@ -131,11 +140,14 @@ class MyDiscordClient(discord.Client):
     async def post_faceit_message_ready(self, channel_id, request_json):
         channel = self.get_channel(id=channel_id)
         my_color = 9936031
-        embed_msg = discord.Embed(title="Match Ready", type="rich",
-                                  description=f"[{request_json['payload']['id']}]"
-                                              f"(https://www.faceit.com/en/csgo/room/"
-                                              f"{request_json['payload']['id']})",
-                                  color=my_color)
+        embed_msg = discord.Embed(
+            title="Match Ready",
+            type="rich",
+            description=f"[{request_json['payload']['id']}]"
+                        f"(https://www.faceit.com/en/csgo/room/"
+                        f"{request_json['payload']['id']})",
+            color=my_color
+        )
         str_nick1 = ""
         str_nick2 = ""
         elo1 = ""
@@ -231,9 +243,10 @@ class MyDiscordClient(discord.Client):
         await db_match_finished(request_json, statistics)
 
     async def post_faceit_message_aborted(self, channel_id, request_json):
-        await self.delete_message_by_faceit_match_id(channel_id,
-                                                     request_json['payload'][
-                                                         'id'])
+        await self.delete_message_by_faceit_match_id(
+            channel_id,
+            request_json['payload']['id']
+        )
 
     async def delete_message_by_faceit_match_id(self,
                                                 channel_id=828940900033626113,
@@ -243,9 +256,19 @@ class MyDiscordClient(discord.Client):
         nick1, elo1, nick2, elo2 = "", "", "", ""
         for message in messages:
             if message.embeds and match_id in message.embeds[0].description:
-                nick1 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[0].value))
+                nick1 = "\n".join(
+                    re.findall(
+                        r"\[(?P<nickname>.*)]",
+                        message.embeds[0].fields[0].value
+                    )
+                )
                 elo1 = message.embeds[0].fields[1].value
-                nick2 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[3].value))
+                nick2 = "\n".join(
+                    re.findall(
+                        r"\[(?P<nickname>.*)]",
+                        message.embeds[0].fields[3].value
+                    )
+                )
                 elo2 = message.embeds[0].fields[4].value
                 await message.delete()
         return nick1, elo1, nick2, elo2
