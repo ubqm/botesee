@@ -198,8 +198,10 @@ class MyDiscordClient(discord.Client):
         statistics = None
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
             for _ in range(12):
-                statistics = await match_stats(session,
-                                               request_json['payload']['id'])
+                statistics = await match_stats(
+                    session,
+                    request_json['payload']['id']
+                )
                 if statistics:
                     break
                 await asyncio.sleep(5)
@@ -213,8 +215,14 @@ class MyDiscordClient(discord.Client):
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(
             match_id=request_json['payload']['id'])
 
-        img_collector = ImageCollectorMatchFinished(request_json, statistics,
-                                                    nick1, elo1, nick2, elo2)
+        img_collector = ImageCollectorMatchFinished(
+            request_json,
+            statistics,
+            nick1,
+            elo1,
+            nick2,
+            elo2
+        )
         image_list = await img_collector.collect_image()
         for image in image_list:
             embed_msg.set_image(url="attachment://image.png")
