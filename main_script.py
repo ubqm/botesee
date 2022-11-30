@@ -50,7 +50,6 @@ async def main():
 
     intents = discord.Intents.all()
     loop = asyncio.get_running_loop()
-    print(f"{loop = }")
     bot_client = MyDiscordClient(intents=intents, loop=loop)
 
     port = int(os.environ.get("PORT", 5000))
