@@ -1,9 +1,10 @@
 import json
+from typing import Union
 
 base_url = "https://open.faceit.com/data/v4"
 
 
-async def player_details(session, nickname=None):
+async def player_details(session, nickname=None) -> Union[dict, None]:
     api_url = "{}/players".format(base_url)
     if nickname is None:
         return None
@@ -14,6 +15,11 @@ async def player_details(session, nickname=None):
             return json.loads(bin_data.decode())
         else:
             return None
+
+
+async def get_player_elo_by_nickname(session, nickname: str = None) -> str:
+    res = await player_details(session, nickname)
+    return str(res['games']['csgo']['faceit_elo']) if res else 'N/A'
 
 
 async def player_details_by_id(session, id=None):
