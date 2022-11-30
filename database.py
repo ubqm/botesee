@@ -164,14 +164,13 @@ async def db_match_finished(request, statistics):
     print("started tortoise match finished save")
     async with aiohttp.ClientSession(headers=faceit_headers) as session:
         for match in statistics['rounds']:
-            match_db, created = await Match.get_or_create(
+            await Match.get_or_create(
                 id=match.get("match_id"),
                 date=request.get("timestamp")
             )
-            print(f"{match_db = }")
             for team in match['teams']:
                 for player in team['players']:
-                    player_db, created = await Player.get_or_create(
+                    await Player.get_or_create(
                         id=player.get("player_id")
                     )
                     player_elo = int(
@@ -182,11 +181,9 @@ async def db_match_finished(request, statistics):
                             )
                         )['games']['csgo']['faceit_elo']
                     )
-                    print(f"{player_elo = }, {player_db = }")
-                    elo_db = await Elo.create(
+                    await Elo.create(
                         match_id=match.get("match_id"),
                         player_id=player.get("player_id"),
                         elo=player_elo
                     )
-                    print(f"{elo_db = }")
     await Tortoise.close_connections()
