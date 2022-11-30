@@ -1,3 +1,5 @@
+from tortoise import Tortoise
+
 from db.models import Match, Player, Elo
 from env_variables import faceit_headers
 import aiohttp
@@ -154,6 +156,7 @@ async def db_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int =
     players_data = await Player.all().limit(pl_items).values_list()
     matches_data = await Match.all().limit(mc_items).values_list()
     elo_data = await Elo.all().limit(elo_items).values_list()
+    await Tortoise.close_connections()
     return players_data, matches_data, elo_data
 
 
@@ -186,3 +189,4 @@ async def db_match_finished(request, statistics):
                         elo=player_elo
                     )
                     print(f"{elo_db = }")
+    await Tortoise.close_connections()
