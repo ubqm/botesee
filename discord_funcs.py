@@ -9,7 +9,7 @@ from aiohttp import ClientConnectorError
 from ImageCollectors.ImageCollectorMatchFinished import ImageCollectorMatchFinished
 from ImageCollectors.ImageCollectorStatLast import ImageCollectorStatLast
 from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
-from api_funcs.async_faceit_get_funcs import match_stats, player_details
+from api_funcs.async_faceit_get_funcs import match_stats, player_details, get_player_elo_by_nickname
 from env_variables import faceit_headers
 from database import db_match_finished
 
@@ -147,12 +147,12 @@ class MyDiscordClient(discord.Client):
                         for player in team['roster']:
                             if idx_team == 0:
                                 str_nick1 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
-                                _ = await player_details(session, player['nickname'])
-                                elo1 += str(_['games']['csgo']['faceit_elo']) + "\n"
+                                player_elo = await get_player_elo_by_nickname(session, player['nickname'])
+                                elo1 += player_elo + "\n"
                             else:
                                 str_nick2 += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']})" + "\n"
-                                _ = await player_details(session, player['nickname'])
-                                elo2 += str(_['games']['csgo']['faceit_elo']) + "\n"
+                                player_elo = await get_player_elo_by_nickname(session, player['nickname'])
+                                elo2 += player_elo + "\n"
 
                 embed_msg.add_field(name=request_json['payload']['teams'][0]['name'],
                                     value=str_nick1, inline=True)
@@ -179,7 +179,7 @@ class MyDiscordClient(discord.Client):
             if idx_team == 1:
                 str_nick += "\n"
             for player in team['players']:
-                str_nick += f"{player['nickname']}, "
+                str_nick += f"[{player['nickname']}](https://www.faceit.com/en/players/{player['nickname']}), "
                 if player['player_id'] in self.sub_players:
                     if idx_team == 0:
                         is_found_in_first_team = True
@@ -207,11 +207,11 @@ class MyDiscordClient(discord.Client):
                 await asyncio.sleep(5)
 
         str_nick, my_color = self.get_strnick_embed_color(statistics)
-        embed_msg = discord.Embed(title=str_nick, type="rich",
-                                  description=f"[{statistics['rounds'][0]['round_stats']['Map']}]"
-                                              f"(https://www.faceit.com/en/csgo/room/"
-                                              f"{request_json['payload']['id']})",
-                                  color=my_color)
+        embed_msg = discord.Embed(description=str_nick,
+                                  type="rich",
+                                  title=f"{statistics['rounds'][0]['round_stats']['Map']}",
+                                  color=my_color,
+                                  url=f"https://www.faceit.com/en/csgo/room/{request_json['payload']['id']}")
         nick1, elo1, nick2, elo2 = await self.delete_message_by_faceit_match_id(
             match_id=request_json['payload']['id'])
 
