@@ -125,7 +125,7 @@ class ImageCollectorMatchFinished:
 
     async def draw_avatar_on_image(self, session, player, idx_team, idx_player):
         player_elo = await player_details(session, player['nickname'])
-        player_elo = str(player_elo['games']['csgo']['faceit_elo'])
+        player_elo = str(player_elo['games']['csgo']['faceit_elo'] if player_elo else 'N/A')
         elo_diff = self.calculate_elo_change(player, player_elo)
         for idx_req_player, req_player in enumerate(
                 self.request_json['payload']['teams'][idx_team]['roster']):
