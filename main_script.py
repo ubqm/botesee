@@ -15,8 +15,6 @@ from env_variables import discord_token
 from database import db_fetch_data
 
 
-
-
 async def main():
     app = Flask(__name__)
 
@@ -51,7 +49,7 @@ async def main():
         return Response(status=200)
 
     intents = discord.Intents.all()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     bot_client = MyDiscordClient(intents=intents, loop=loop)
 
     port = int(os.environ.get("PORT", 5000))
