@@ -1,5 +1,10 @@
+import asyncio
 import json
 from typing import Union
+
+import aiohttp
+
+from env_variables import faceit_headers
 
 base_url = "https://open.faceit.com/data/v4"
 
@@ -22,11 +27,11 @@ async def get_player_elo_by_nickname(session, nickname: str = None) -> str:
     return str(res['games']['csgo']['faceit_elo']) if res else 'N/A'
 
 
-async def player_details_by_id(session, id=None):
+async def player_details_by_id(session, player_id=None):
     api_url = "{}/players".format(base_url)
-    if id is None:
+    if player_id is None:
         return None
-    api_url += f"/{id}"
+    api_url += f"/{player_id}"
     async with session.get(api_url) as res:
         if res.status == 200:
             bin_data = await res.read()
@@ -83,3 +88,12 @@ async def region_stats(session, player_id, region, country=None):
             return json.loads(bin_data.decode())
         else:
             return None
+
+
+async def main():
+    async with aiohttp.ClientSession(headers=faceit_headers) as session:
+        res = await player_details(session, "Dantist")
+        print(res)
+
+if __name__ == '__main__':
+    asyncio.run(main())

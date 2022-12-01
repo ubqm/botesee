@@ -54,6 +54,8 @@ werkzeug = "==2.0.3"
 yarl = "==1.7.2"
 python-dotenv = "*"
 tortoise-orm = {extras = ["asyncpg"], version = "*"}
+matplotlib = "*"
+seaborn = "*"
 
 [dev-packages]
 
