@@ -5,24 +5,40 @@ import re
 from io import BytesIO
 
 from aiohttp import ClientConnectorError
+from discord import Message
 
 from ImageCollectors.ImageCollectorMatchFinished import ImageCollectorMatchFinished
 from ImageCollectors.ImageCollectorStatLast import ImageCollectorStatLast
 from ImageCollectors.ImageCollectorCompare import ImageCollectorCompare
-from api_funcs.async_faceit_get_funcs import match_stats, player_details, get_player_elo_by_nickname
+from api_funcs.async_faceit_get_funcs import match_stats, get_player_elo_by_nickname
 from env_variables import faceit_headers
 from database import db_match_finished
+from collections import namedtuple
+
+sub_players = namedtuple()
+AYUDESEE = "ad42c90b-45a9-49b6-8ab0-9c8662330543"
+NAPAD = "278790a2-1f08-4350-bd96-427f7dcc8722"
+MORZY = "18e2a663-9e20-4db9-8b29-3c3cbdff30ac"
+HAWK = "8cbb0b36-4c6b-4ebd-a92b-829234016626"
+DELPIX = "e1cddcbb-afdc-4e8e-abf2-eea5638f0363"
+SPARTACUS = "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c"
+DG = "b8e5cd07-1b43-4203-9173-465fddcd391f"
+QZAC = "4e7d1f6c-9045-4800-8eda-23c892dcd814"
+DANTIST = "24785d80-7265-4f50-970e-1c02666ede56"
 
 
 class MyDiscordClient(discord.Client):
-    sub_players = ["ad42c90b-45a9-49b6-8ab0-9c8662330543",
-                   "278790a2-1f08-4350-bd96-427f7dcc8722",
-                   "18e2a663-9e20-4db9-8b29-3c3cbdff30ac",
-                   "8cbb0b36-4c6b-4ebd-a92b-829234016626",
-                   "e1cddcbb-afdc-4e8e-abf2-eea5638f0363",
-                   "9da3572e-1960-4ba0-bd3c-d38ef34c1f1c",
-                   "b8e5cd07-1b43-4203-9173-465fddcd391f",
-                   "4e7d1f6c-9045-4800-8eda-23c892dcd814"]
+    sub_players = [
+        AYUDESEE,
+        NAPAD,
+        MORZY,
+        HAWK,
+        DELPIX,
+        SPARTACUS,
+        DG,
+        QZAC,
+        DANTIST
+    ]
 
     async def on_ready(self):
         for guild in self.guilds:
@@ -40,30 +56,46 @@ class MyDiscordClient(discord.Client):
                                             filename="image.png")
                 return binary_image
 
+    @staticmethod
+    def is_contains_media(message: Message):
+        return any((
+                message.attachments,
+                message.embeds,
+                message.content.find("https://") != -1,
+                message.content.find("http://") != -1))
+
+    @staticmethod
+    def is_stats_request(content: list):
+        return bool(re.search("^[.]stats?$", content[0]) and len(content) == 2)
+
+    @staticmethod
+    def is_compare_request(content: list):
+        return bool(re.search(r"^[.]compare$", content[0])) and len(content) == 5
+
     async def on_message(self, message):
         print(f"New message from {message.author}: {message.content}")
         _content: list = message.content.split()
         if message.author.id != 825393722186924112:
-            if message.attachments or \
-                    message.embeds or \
-                    (message.content.find("https://") != -1) or \
-                    (message.content.find("http://") != -1):
+            if self.is_contains_media(message):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
-            elif bool(re.search("^[.]stats?$", _content[0])) and \
-                    len(_content) == 2:
+            elif self.is_stats_request(_content):
                 channel = self.get_channel(id=828940900033626113)
                 imgclst = ImageCollectorStatLast(_content[1])
                 image = await imgclst.collect_image()
                 await channel.send(file=self.compile_binary_image(image))
-            elif bool(re.search(r"^[.]compare$",
-                                message.content.split(" ")[0])) and \
-                    len(_content) == 5:
+            elif self.is_compare_request(_content):
                 channel = self.get_channel(id=828940900033626113)
-                imgcmpr = ImageCollectorCompare(_content[1], _content[2],
-                                                _content[3], _content[4])
+                imgcmpr = ImageCollectorCompare(*_content[1:])
                 image = await imgcmpr.collect_image()
                 await channel.send(file=self.compile_binary_image(image))
+            elif bool(
+                    re.search(
+                        r"^[.]$",
+                        _content[0]
+                    )
+            ):
+                pass
 
     async def on_raw_reaction_add(self, payload):
         upvotes = 0
