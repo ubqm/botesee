@@ -10,7 +10,7 @@ base_url = "https://open.faceit.com/data/v4"
 
 
 async def player_details(session, nickname=None) -> Union[dict, None]:
-    api_url = "{}/players".format(base_url)
+    api_url = f"{base_url}/players"
     if nickname is None:
         return None
     api_url += f"?nickname={nickname}"
