@@ -7,3 +7,4 @@ test[^_]*.py
 *.prof
 .pytest_cache
 *.sqlite3
+/.venv/
