@@ -34,7 +34,7 @@ class Player(BaseModel):
 class TeamStats(BaseModel):
     team: str = Field(alias="Team")
     team_win: bool = Field(alias="Team Win")
-    team_headshots: int = Field(alias="Team Headshots")
+    team_headshots: float = Field(alias="Team Headshots")
     first_half_score: int = Field(alias="First Half Score")
     second_half_score: int = Field(alias="Second Half Score")
     overtime_score: int = Field(alias="Overtime score")
@@ -58,6 +58,10 @@ class Round(BaseModel):
     played: int
     round_stats: RoundStats
     teams: list[Team]
+
+    def has_overtime(self):
+        return self.teams[0].team_stats.overtime_score or \
+               self.teams[1].team_stats.overtime_score
 
 
 class MatchStatistics(BaseModel):

@@ -36,18 +36,18 @@ class Settings(BaseModel):
 class PlayerDetails(BaseModel):
     player_id: UUID
     nickname: str
-    avatar: HttpUrl | None
+    avatar: str
     country: str
-    cover_image: HttpUrl | None
+    cover_image: str
     platforms: Platforms
     games: Games
     settings: Settings
-    friends_ids: list[UUID]
+    friends_ids: list[UUID] | None
     new_steam_id: str
     steam_id_64: int
     steam_nickname: str
     memberships: list[str]
     faceit_url: HttpUrl
     membership_type: str
-    cover_featured_image: HttpUrl | str | None
-    infractions: dict
+    cover_featured_image: str | None
+    infractions: dict | None

@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class PlayerInfo(BaseModel):
-    avatar: HttpUrl | None
-    faceit_url: HttpUrl | None
+    avatar: str
+    faceit_url: str
     game_player_id: str
     game_player_name: str
     nickname: str
@@ -16,7 +16,7 @@ class PlayerInfo(BaseModel):
 
 
 class TeamHistory(BaseModel):
-    avatar: HttpUrl | None
+    avatar: str
     nickname: str
     players: list[PlayerInfo]
     team_id: UUID
@@ -42,7 +42,7 @@ class MatchHistory(BaseModel):
     competition_id: UUID
     competition_name: str
     competition_type: str
-    faceit_url: HttpUrl | None
+    faceit_url: HttpUrl
     finished_at: datetime
     game_id: str
     game_mode: str

@@ -17,7 +17,7 @@ class Results(BaseModel):
 class PlayerDetails(BaseModel):
     player_id: UUID
     nickname: str
-    avatar: HttpUrl | None
+    avatar: str
     membership: str
     game_player_id: str
     game_player_name: str
@@ -28,7 +28,7 @@ class PlayerDetails(BaseModel):
 class TeamDetails(BaseModel):
     faction_id: UUID
     leader: UUID
-    avatar: HttpUrl | None
+    avatar: str
     roster: list[PlayerDetails]
     substituted: bool
     name: str
@@ -45,8 +45,8 @@ class MapEntity(BaseModel):
     class_name: str
     game_map_id: str
     guid: str
-    image_lg: HttpUrl | None
-    image_sm: HttpUrl | None
+    image_lg: str
+    image_sm: str
 
 
 class MapVoting(BaseModel):
@@ -59,8 +59,8 @@ class LocationEntity(BaseModel):
     class_name: str
     game_location_id: str
     guid: str
-    image_lg: HttpUrl | None
-    image_sm: HttpUrl | None
+    image_lg: str
+    image_sm: str
 
 
 class LocationVoting(BaseModel):
@@ -88,7 +88,7 @@ class MatchDetails(BaseModel):
     configured_at: datetime
     started_at: datetime
     finished_at: datetime
-    demo_url: list[HttpUrl] | None
+    demo_url: list[str] | None
     chat_room_id: str
     best_of: int
     results: Results
