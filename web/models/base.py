@@ -2,9 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel
-
-from models.entities import Team
+from pydantic import BaseModel, HttpUrl
 
 
 class EventEnum(str, Enum):
@@ -18,6 +16,29 @@ class Entity(BaseModel):
     id: UUID
     name: str
     type: str
+
+
+class Player(BaseModel):
+    id: UUID
+    nickname: str
+    avatar: HttpUrl | None
+    game_id: str
+    game_name: str | None
+    game_skill_level: int
+    membership: str | None
+    anticheat_required: bool
+
+
+class Team(BaseModel):
+    id: UUID
+    name: str
+    type: UUID | str | None
+    avatar: HttpUrl | None
+    leader_id: UUID
+    co_leader_id: UUID | None
+    roster: list[Player]
+    substitutions: int
+    substitutes: list[Player] | None
 
 
 class BasePayload(BaseModel):

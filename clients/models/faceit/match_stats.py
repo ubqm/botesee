@@ -33,7 +33,7 @@ class Player(BaseModel):
 
 class TeamStats(BaseModel):
     team: str = Field(alias="Team")
-    team_win: int = Field(alias="Team Win")
+    team_win: bool = Field(alias="Team Win")
     team_headshots: int = Field(alias="Team Headshots")
     first_half_score: int = Field(alias="First Half Score")
     second_half_score: int = Field(alias="Second Half Score")
