@@ -3,7 +3,7 @@ from typing import Annotated, Union, Literal
 
 from pydantic import Field
 
-from models.base import BasePayload, BaseMatch
+from web.models.base import BasePayload, BaseMatch
 
 
 class PayloadCancelled(BasePayload):

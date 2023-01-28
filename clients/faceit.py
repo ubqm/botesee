@@ -16,22 +16,26 @@ class FaceitClient:
     base_url = "https://open.faceit.com/data/v4"
 
     @classmethod
-    async def player_details(cls, session: ClientSession, nickname: str) -> PlayerDetails:
+    async def player_details(cls, session: ClientSession, nickname: str) -> PlayerDetails | None:
         api_url = f"{cls.base_url}/players?nickname={nickname}"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return PlayerDetails(**res)
 
     @classmethod
     async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str) -> int:
         details = await cls.player_details(session, nickname)
-        return details.games.csgo.faceit_elo
+        return details.games.csgo.faceit_elo if details else 0
 
     @classmethod
-    async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails:
+    async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails | None:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/players/{player_id}"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return PlayerDetails(**res)
 
@@ -39,35 +43,43 @@ class FaceitClient:
     async def player_history(
             cls, session: ClientSession, player_id: UUID | str,
             game: str = "csgo", offset: int = 0, limit: int = 20
-    ) -> PlayerHistory:
+    ) -> PlayerHistory | None:
         api_url = f"{cls.base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return PlayerHistory(**res)
 
     @classmethod
-    async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails:
+    async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails | None:
         api_url = f"{cls.base_url}/matches/{match_id}"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return MatchDetails(**res)
 
     @classmethod
-    async def match_stats(cls, session: ClientSession, match_id: str) -> MatchStatistics:
+    async def match_stats(cls, session: ClientSession, match_id: str) -> MatchStatistics | None:
         api_url = f"{cls.base_url}/matches/{match_id}/stats"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return MatchStatistics(**res)
 
     @classmethod
     async def region_stats(
             cls, session: ClientSession, player_id: UUID | str, region: str, country: str | None = None
-    ) -> RegionStatistics:
+    ) -> RegionStatistics | None:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/rankings/games/csgo/regions/{region}/players/{player_id}?limit=2"
         if country:
             api_url += f"&country={country}"
         async with session.get(api_url) as response:
+            if response.status != 200:
+                return None
             res = await response.json()
             return RegionStatistics(**res)
 

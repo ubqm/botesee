@@ -6,7 +6,7 @@ from clients.models.faceit.match_stats import MatchStatistics
 from env_variables import faceit_headers
 import aiohttp
 
-from models.events import MatchFinished
+from web.models.events import MatchFinished
 
 
 async def db_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50):

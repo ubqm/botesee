@@ -21,7 +21,7 @@ class Entity(BaseModel):
 class Player(BaseModel):
     id: UUID
     nickname: str
-    avatar: HttpUrl | None
+    avatar: str
     game_id: str
     game_name: str | None
     game_skill_level: int
@@ -33,9 +33,9 @@ class Team(BaseModel):
     id: UUID
     name: str
     type: UUID | str | None
-    avatar: HttpUrl | None
+    avatar: str
     leader_id: UUID
-    co_leader_id: UUID | None
+    co_leader_id: UUID | str | None
     roster: list[Player]
     substitutions: int
     substitutes: list[Player] | None
@@ -60,8 +60,6 @@ class BaseMatch(BaseModel):
     timestamp: datetime
     retry_count: int
     version: int
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         use_enum_values = True
