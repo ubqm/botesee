@@ -4,10 +4,11 @@ from uuid import UUID
 import aiohttp
 from aiohttp import ClientSession
 
-from discord_bot.models.faceit import PlayerDetails, PlayerHistory
-from discord_bot.models.match_details import MatchDetails
-from discord_bot.models.match_stats import MatchStatistics
-from discord_bot.models.region_stats import RegionStatistics
+from clients.models.faceit.player_details import PlayerDetails
+from clients.models.faceit.match_details import MatchDetails
+from clients.models.faceit.match_stats import MatchStatistics
+from clients.models.faceit.player_history import PlayerHistory
+from clients.models.faceit.region_stats import RegionStatistics
 from env_variables import faceit_headers
 
 
@@ -71,15 +72,15 @@ class FaceitClient:
             return RegionStatistics(**res)
 
 
-async def main():
-    async with aiohttp.ClientSession(headers=faceit_headers) as session:
-        # res = await FaceitClient.match_stats(session, "1-c900d437-eff7-4536-9a32-f01c5cf7580c")
-        # res = await FaceitClient.player_details_by_id(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"))
-        # res = await FaceitClient.player_details(session, "Ayudesee")
-        # res = await FaceitClient.player_history(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"), limit=2)
-        # res = await FaceitClient.match_details(session, "1-f0ad4c71-7fce-432b-8ca0-5261d85be686")
-        res = await FaceitClient.region_stats(session, UUID('278790a2-1f08-4350-bd96-427f7dcc8722'), region="EU")
-        print(f"{res = }")
-
 if __name__ == '__main__':
+    async def main():
+        async with aiohttp.ClientSession(headers=faceit_headers) as session:
+            # res = await FaceitClient.match_stats(session, "1-c900d437-eff7-4536-9a32-f01c5cf7580c")
+            # res = await FaceitClient.player_details_by_id(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"))
+            # res = await FaceitClient.player_details(session, "-NAPAD")
+            # res = await FaceitClient.player_history(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"), limit=2)
+            # res = await FaceitClient.match_details(session, "1-f0ad4c71-7fce-432b-8ca0-5261d85be686")
+            res = await FaceitClient.region_stats(session, UUID('278790a2-1f08-4350-bd96-427f7dcc8722'), region="EU")
+            print(f"{res = }")
+
     asyncio.run(main())

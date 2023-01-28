@@ -1,11 +1,11 @@
 from tortoise import Tortoise
 
+from clients.faceit import FaceitClient
 from db.models import Match, Player, Elo
-from discord_bot.models.match_stats import MatchStatistics
+from clients.models.faceit.match_stats import MatchStatistics
 from env_variables import faceit_headers
 import aiohttp
 
-from api_funcs.async_faceit_get_funcs import FaceitClient
 from models.events import MatchFinished
 
 
