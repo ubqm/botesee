@@ -1,99 +1,85 @@
 import asyncio
-import json
-from typing import Union
+from uuid import UUID
 
 import aiohttp
+from aiohttp import ClientSession
 
+from discord_bot.models.faceit import PlayerDetails, PlayerHistory
+from discord_bot.models.match_details import MatchDetails
+from discord_bot.models.match_stats import MatchStatistics
+from discord_bot.models.region_stats import RegionStatistics
 from env_variables import faceit_headers
 
-base_url = "https://open.faceit.com/data/v4"
 
+class FaceitClient:
+    base_url = "https://open.faceit.com/data/v4"
 
-async def player_details(session, nickname=None) -> Union[dict, None]:
-    api_url = f"{base_url}/players"
-    if nickname is None:
-        return None
-    api_url += f"?nickname={nickname}"
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
+    @classmethod
+    async def player_details(cls, session: ClientSession, nickname: str) -> PlayerDetails:
+        api_url = f"{cls.base_url}/players?nickname={nickname}"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return PlayerDetails(**res)
 
+    @classmethod
+    async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str) -> int:
+        details = await cls.player_details(session, nickname)
+        return details.games.csgo.faceit_elo
 
-async def get_player_elo_by_nickname(session, nickname: str = None) -> str:
-    res = await player_details(session, nickname)
-    return str(res['games']['csgo']['faceit_elo']) if res else 'N/A'
+    @classmethod
+    async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails:
+        player_id = str(player_id)
+        api_url = f"{cls.base_url}/players/{player_id}"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return PlayerDetails(**res)
 
+    @classmethod
+    async def player_history(
+            cls, session: ClientSession, player_id: UUID | str,
+            game: str = "csgo", offset: int = 0, limit: int = 20
+    ) -> PlayerHistory:
+        api_url = f"{cls.base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return PlayerHistory(**res)
 
-async def player_details_by_id(session, player_id=None):
-    api_url = "{}/players".format(base_url)
-    if player_id is None:
-        return None
-    api_url += f"/{player_id}"
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
+    @classmethod
+    async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails:
+        api_url = f"{cls.base_url}/matches/{match_id}"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return MatchDetails(**res)
 
+    @classmethod
+    async def match_stats(cls, session: ClientSession, match_id: str) -> MatchStatistics:
+        api_url = f"{cls.base_url}/matches/{match_id}/stats"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return MatchStatistics(**res)
 
-async def player_history(session, player_id=None, game="csgo", offset=0, limit=20):
-    api_url = f"{base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
-    if player_id is None:
-        return None
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
-
-
-async def match_details(session, match_id=None):
-    if match_id is None:
-        return None
-    api_url = "{}/matches/{}".format(base_url, match_id)
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
-
-
-async def match_stats(session, match_id=None):
-    if match_id is None:
-        return None
-    api_url = "{}/matches/{}/stats".format(base_url, match_id)
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
-
-
-async def region_stats(session, player_id, region, country=None):
-    api_url = f"{base_url}/rankings/games/csgo/regions/{region}/players/{player_id}"
-    if country:
-        api_url += f"?country={country}&limit=2"
-    else:
-        api_url += "&limit=2"
-    async with session.get(api_url) as res:
-        if res.status == 200:
-            bin_data = await res.read()
-            return json.loads(bin_data.decode())
-        else:
-            return None
+    @classmethod
+    async def region_stats(
+            cls, session: ClientSession, player_id: UUID | str, region: str, country: str | None = None
+    ) -> RegionStatistics:
+        player_id = str(player_id)
+        api_url = f"{cls.base_url}/rankings/games/csgo/regions/{region}/players/{player_id}?limit=2"
+        if country:
+            api_url += f"&country={country}"
+        async with session.get(api_url) as response:
+            res = await response.json()
+            return RegionStatistics(**res)
 
 
 async def main():
     async with aiohttp.ClientSession(headers=faceit_headers) as session:
-        res = await player_details(session, "Dantist")
-        print(res)
+        # res = await FaceitClient.match_stats(session, "1-c900d437-eff7-4536-9a32-f01c5cf7580c")
+        # res = await FaceitClient.player_details_by_id(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"))
+        # res = await FaceitClient.player_details(session, "Ayudesee")
+        # res = await FaceitClient.player_history(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"), limit=2)
+        # res = await FaceitClient.match_details(session, "1-f0ad4c71-7fce-432b-8ca0-5261d85be686")
+        res = await FaceitClient.region_stats(session, UUID('278790a2-1f08-4350-bd96-427f7dcc8722'), region="EU")
+        print(f"{res = }")
 
 if __name__ == '__main__':
     asyncio.run(main())
