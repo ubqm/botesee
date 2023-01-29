@@ -54,8 +54,8 @@ class MatchFinishedImCol:
     async def collect_images(self) -> list[Image]:
         images: list[Image] = []
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
-            for round_match in self.statistics.rounds:
-                canvas = await self._draw_image(session, round_match)
+            for match_round in self.statistics.rounds:
+                canvas = await self._draw_image(session, match_round)
                 images.append(canvas)
         return images
 

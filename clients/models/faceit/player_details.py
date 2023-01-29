@@ -44,7 +44,7 @@ class PlayerDetails(BaseModel):
     settings: Settings
     friends_ids: list[UUID] | None
     new_steam_id: str
-    steam_id_64: int
+    steam_id_64: str
     steam_nickname: str
     memberships: list[str]
     faceit_url: HttpUrl

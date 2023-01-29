@@ -44,6 +44,7 @@ class FaceitClient:
             cls, session: ClientSession, player_id: UUID | str,
             game: str = "csgo", offset: int = 0, limit: int = 20
     ) -> PlayerHistory | None:
+        player_id = str(player_id)
         api_url = f"{cls.base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
         async with session.get(api_url) as response:
             if response.status != 200:
