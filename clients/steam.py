@@ -15,14 +15,14 @@ class SteamClient:
     player_service_url = base_url + f"IPlayerService/GetRecentlyPlayedGames/v0001/?key={steam_token}"
 
     @classmethod
-    async def user_app_stat(cls, session: ClientSession, steamid: str, appid: int = 730):
+    async def user_app_stat(cls, session: ClientSession, steamid: str, appid: int = 730) -> UserAppStatistics:
         api_url = f"{cls.user_stats_url}&steamid={steamid}&appid={appid}"
         async with session.get(api_url) as response:
             res = await response.json()
             return UserAppStatistics(**res)
 
     @classmethod
-    async def user_rec_played_stat(cls, session: ClientSession, steamid: str):
+    async def user_rec_played_stat(cls, session: ClientSession, steamid: str) -> RecentStatisticsResponse:
         api_url = f"{cls.player_service_url}&steamid={steamid}&format=json"
         async with session.get(api_url) as response:
             res = await response.json()

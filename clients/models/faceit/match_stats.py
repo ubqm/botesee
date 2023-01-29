@@ -63,6 +63,12 @@ class Round(BaseModel):
         return self.teams[0].team_stats.overtime_score or \
                self.teams[1].team_stats.overtime_score
 
+    def get_player_stats(self, player_id: UUID) -> PlayerStats:
+        for team in self.teams:
+            for player in team.players:
+                if player.player_id == player_id:
+                    return player.player_stats
+
 
 class MatchStatistics(BaseModel):
     rounds: list[Round]

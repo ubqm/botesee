@@ -19,4 +19,7 @@ class PlayerStatistics(BaseModel):
 
 
 class UserAppStatistics(BaseModel):
-    playerstats: PlayerStatistics
+    playerstats: PlayerStatistics | None
+
+    def __bool__(self):
+        return bool(self.playerstats)
