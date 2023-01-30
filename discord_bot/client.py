@@ -1,63 +1,62 @@
-import asyncio
 import re
 from io import BytesIO
 from typing import Any
 
 import aiohttp
 import discord
-import httpx
-from aiohttp import ClientConnectorError
 from discord import Intents, RawReactionActionEvent
 
-from api_funcs.async_faceit_get_funcs import (get_player_elo_by_nickname,
-                                              match_stats)
+from clients.faceit import FaceitClient
 from database import db_match_finished
 from discord_bot._exceptions import StartMessageNotFoundException
-from discord_bot.models.embed import NickEloStorage
-from discord_bot.models.match_stats import MatchStatistics
+from discord_bot.models.embed import NickEloStorage, PlayerStorage
+from clients.models.faceit.match_stats import MatchStatistics
 from env_variables import faceit_headers
 
-from image_collectors.compare_collector import ImageCollectorCompare
-from image_collectors.finished_collector import \
-    ImageCollectorMatchFinished
-from image_collectors.stats_collector import ImageCollectorStatLast
-from models.entities import Player
-from models.events import MatchReady, MatchFinished, MatchAborted
+
+from image_collectors.match_finished import MatchFinishedImCol
+
 from utils.enums import subscribers
+from web.models.base import Player
+
+from web.models.events import MatchReady, MatchFinished, MatchAborted
 
 
-def get_strnick_embed_color(statistics: MatchStatistics):
+def get_match_finished_message_color(statistics: MatchStatistics):
     black, green, red, gray = 1, 2067276, 10038562, 9936031
-    my_color = black
-
-    # flag for situations where 2 of sub_players are in both teams
-    is_found_in_first_team = False
-    str_nick = ""
+    teams_subscribers_found = [False, False]  # Team1 and Team2 boolean
     for idx_team, team in enumerate(statistics.rounds[0].teams):
-        if idx_team == 1:
-            str_nick += "\n"
         for player in team.players:
-            str_nick += (f"[{player.nickname}]"
-                         f"(https://www.faceit.com/en/players/{player.nickname}), ")
             if player.player_id in subscribers:
-                if idx_team == 0:
-                    is_found_in_first_team = True
-                my_color = green if team.team_stats.team_win else red
-                if idx_team == 1 and is_found_in_first_team:
-                    my_color = gray
-                    break
-    str_nick = str_nick[:-2]  # last two symbols are ", "
-    return str_nick, my_color
+                teams_subscribers_found[idx_team] = True
+    if all(teams_subscribers_found):
+        return gray
+    if not any(teams_subscribers_found):
+        return black
+    if teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win:
+        return green
+    return red
+
+
+def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
+    color = get_match_finished_message_color(statistics)
+
+    nicknames_1 = [f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+                   for player in statistics.rounds[0].teams[0].players]
+    nicknames_2 = [f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+                   for player in statistics.rounds[0].teams[1].players]
+    str_nick_1 = ", ".join(nicknames_1)
+    str_nick_2 = ", ".join(nicknames_2)
+
+    return str_nick_1 + "\n" + str_nick_2, color
 
 
 async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
-    nicknames: str = ""
-    elos: str = ""
+    players_storage: list[PlayerStorage] = []
     for player in roster:
-        nicknames += (f"[{player.nickname}]"
-                      f"(https://www.faceit.com/en/players/{player.nickname})\n")
-        elos += str(await get_player_elo_by_nickname(session, player.nickname)) + "\n"
-    return NickEloStorage(nicknames=nicknames, elos=elos)
+        elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname)
+        players_storage.append(PlayerStorage(nickname=player.nickname, elo=elo))
+    return NickEloStorage(players=players_storage)
 
 
 def form_ready_embed_message(
@@ -67,14 +66,14 @@ def form_ready_embed_message(
     description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
     embed_msg = discord.Embed(title="Match Ready", type="rich", description=description, color=my_color)
     embed_msg.add_field(name=match.payload.teams[0].name,
-                        value=nick_elo_1.nicknames,
+                        value=nick_elo_1.get_discord_nicknames(),
                         inline=True)
-    embed_msg.add_field(name="ELO", value=nick_elo_1.elos, inline=True)
+    embed_msg.add_field(name="ELO", value=nick_elo_1.get_discord_elos(), inline=True)
     embed_msg.add_field(name="\u200b", value="\u200b")
     embed_msg.add_field(name=match.payload.teams[1].name,
-                        value=nick_elo_2.nicknames,
+                        value=nick_elo_2.get_discord_nicknames(),
                         inline=True)
-    embed_msg.add_field(name="ELO", value=nick_elo_2.elos, inline=True)
+    embed_msg.add_field(name="ELO", value=nick_elo_2.get_discord_elos(), inline=True)
     embed_msg.add_field(name="\u200b", value="\u200b")
     return embed_msg
 
@@ -179,7 +178,7 @@ class DiscordClient(discord.Client):
         channel = self.get_channel(channel_id)
 
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
-            statistics = await match_stats(session, match.payload.id)
+            statistics = await FaceitClient.match_stats(session, match.payload.id)
 
         await db_match_finished(match, statistics)
 
@@ -192,13 +191,10 @@ class DiscordClient(discord.Client):
             color=my_color,
             url=f"https://www.faceit.com/en/csgo/room/{match.payload.id}",
         )
-        nick_elo_1, nick_elo_2 = await self.delete_message_by_faceit_match_id(channel_id, match.payload.id)
+        nick_elo = await self.delete_message_by_faceit_match_id(channel_id, match.payload.id)
 
-        # TODO:
-        img_collector = ImageCollectorMatchFinished(
-            request_json, statistics, nick1, elo1, nick2, elo2
-        )
-        image_list = await img_collector.collect_image()
+        img_collector = MatchFinishedImCol(match, statistics, nick_elo)
+        image_list = await img_collector.collect_images()
         for image in image_list:
             embed_msg.set_image(url="attachment://image.png")
             await channel.send(embed=embed_msg, file=self.compile_binary_image(image))
@@ -208,7 +204,7 @@ class DiscordClient(discord.Client):
 
     async def delete_message_by_faceit_match_id(
             self, channel_id: int, match_id: str
-    ) -> tuple[NickEloStorage, NickEloStorage]:
+    ) -> NickEloStorage:
         channel = discord.Client.get_channel(self, channel_id)
         messages = [message async for message in channel.history(limit=20)]
         for message in messages:
@@ -216,11 +212,16 @@ class DiscordClient(discord.Client):
                 continue
             if not (match_id in message.embeds[0].description):
                 continue
+
             # get nicknames from URL-embed discord format [nickname](URL)
-            nick1 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[0].value))
-            elo1 = message.embeds[0].fields[1].value
-            nick2 = "\n".join(re.findall(r"\[(?P<nickname>.*)]", message.embeds[0].fields[3].value))
-            elo2 = message.embeds[0].fields[4].value
+            nick1 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[0].value)
+            elo1 = message.embeds[0].fields[1].value.split("\n")
+            st1 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick1, elo1)]
+
+            nick2 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[3].value)
+            elo2 = message.embeds[0].fields[4].value.split("\n")
+            st2 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick2, elo2)]
+
             await message.delete()
-            return NickEloStorage(nicknames=nick1, elos=elo1), NickEloStorage(nicknames=nick2, elos=elo2)
+            return NickEloStorage(players=st1 + st2)
         raise StartMessageNotFoundException
