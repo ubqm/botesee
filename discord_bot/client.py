@@ -12,8 +12,10 @@ from discord_bot._exceptions import StartMessageNotFoundException
 from discord_bot.models.embed import NickEloStorage, PlayerStorage
 from clients.models.faceit.match_stats import MatchStatistics
 from env_variables import faceit_headers
+from loguru import logger
 
-
+from image_collectors.compare_imcol import CompareImCol
+from image_collectors.last_stat_imcol import LastStatsImCol
 from image_collectors.match_finished import MatchFinishedImCol
 
 from utils.enums import subscribers
@@ -22,6 +24,7 @@ from web.models.base import Player
 from web.models.events import MatchReady, MatchFinished, MatchAborted
 
 
+@logger.catch()
 def get_match_finished_message_color(statistics: MatchStatistics):
     black, green, red, gray = 1, 2067276, 10038562, 9936031
     teams_subscribers_found = [False, False]  # Team1 and Team2 boolean
@@ -38,6 +41,7 @@ def get_match_finished_message_color(statistics: MatchStatistics):
     return red
 
 
+@logger.catch()
 def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
     color = get_match_finished_message_color(statistics)
 
@@ -59,6 +63,7 @@ async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
     return NickEloStorage(players=players_storage)
 
 
+@logger.catch()
 def form_ready_embed_message(
         match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
@@ -93,6 +98,7 @@ class DiscordClient(discord.Client):
             )
 
     @staticmethod
+    @logger.catch()
     def compile_binary_image(image):
         if image is not None:
             with BytesIO() as image_binary:
@@ -102,18 +108,22 @@ class DiscordClient(discord.Client):
                 return binary_image
 
     @staticmethod
+    @logger.catch()
     def is_contains_media(message: discord.Message):
         return any(("http://" in message.content, message.attachments,
                     "https://" in message.content, message.embeds))
 
     @staticmethod
+    @logger.catch()
     def is_stats_request(content: list):
         return bool(re.search("^[.]stats?$", content[0]) and len(content) == 2)
 
     @staticmethod
+    @logger.catch()
     def is_compare_request(content: list):
         return bool(re.search(r"^[.]compare$", content[0])) and len(content) == 5
 
+    @logger.catch()
     async def on_message(self, message):
         print(f"New message from {message.author}: {message.content}")
         _content: list = message.content.split()
@@ -122,22 +132,25 @@ class DiscordClient(discord.Client):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
             elif self.is_stats_request(_content):
-                imgclst = ImageCollectorStatLast(_content[1])
+                imgclst = LastStatsImCol(_content[1])
                 image = await imgclst.collect_image()
                 await self.faceit_channel.send(file=self.compile_binary_image(image))
             elif self.is_compare_request(_content):
-                imgcmpr = ImageCollectorCompare(*_content[1:])
+                imgcmpr = CompareImCol(*_content[1:])
                 image = await imgcmpr.collect_image()
                 await self.faceit_channel.send(file=self.compile_binary_image(image))
             elif bool(re.search(r"^[.]$", _content[0])):
                 pass
 
+    @logger.catch()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent) -> None:
         await self._handle_reaction_event(payload)
 
+    @logger.catch()
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent) -> None:
         await self._handle_reaction_event(payload)
 
+    @logger.catch()
     async def _handle_reaction_event(self, payload: RawReactionActionEvent):
         upvotes = downvotes = 0
         print(payload)
@@ -166,6 +179,7 @@ class DiscordClient(discord.Client):
                 f"{downvotes} Downvotes\n"
             )
 
+    @logger.catch()
     async def post_faceit_message_ready(self, channel_id: int, match: MatchReady) -> None:
         channel = self.get_channel(channel_id)
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
@@ -174,7 +188,8 @@ class DiscordClient(discord.Client):
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
         await channel.send(embed=embed_msg)
 
-    async def post_faceit_message_finished(self, channel_id, match: MatchFinished):
+    @logger.catch()
+    async def post_faceit_message_finished(self, channel_id, match: MatchFinished) -> None:
         channel = self.get_channel(channel_id)
 
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
@@ -199,9 +214,11 @@ class DiscordClient(discord.Client):
             embed_msg.set_image(url="attachment://image.png")
             await channel.send(embed=embed_msg, file=self.compile_binary_image(image))
 
+    @logger.catch()
     async def post_faceit_message_aborted(self, channel_id, match: MatchAborted):
         await self.delete_message_by_faceit_match_id(channel_id, match.payload.id)
 
+    @logger.catch()
     async def delete_message_by_faceit_match_id(
             self, channel_id: int, match_id: str
     ) -> NickEloStorage:
@@ -216,10 +233,12 @@ class DiscordClient(discord.Client):
             # get nicknames from URL-embed discord format [nickname](URL)
             nick1 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[0].value)
             elo1 = message.embeds[0].fields[1].value.split("\n")
+            elo1 = [int(item) for item in elo1]
             st1 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick1, elo1)]
 
             nick2 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[3].value)
             elo2 = message.embeds[0].fields[4].value.split("\n")
+            elo2 = [int(item) for item in elo2]
             st2 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick2, elo2)]
 
             await message.delete()

@@ -10,14 +10,10 @@ from aiohttp import ClientSession
 
 from clients.faceit import FaceitClient
 from clients.models.faceit.match_stats import Round, MatchStatistics
-from clients.models.faceit.player_details import PlayerDetails
-from clients.models.faceit.player_history import MatchHistory, PlayerHistory
-from clients.models.faceit.region_stats import RegionStatistics
-from clients.models.steam.user_app_stats import UserAppStatistics
-from clients.models.steam.user_recently_stats import RecentStatisticsResponse
+from clients.models.faceit.player_history import MatchHistory
 from clients.steam import SteamClient
 from env_variables import faceit_headers
-from image_collectors.models.last_stat import GameStatLast, SteamStatLast, GameStatLastStorage
+from image_collectors.models.last_stat import GameStatLast, SteamStatLast, GameStatLastStorage, FullPlayerStat
 from utils.enums import colors
 
 
@@ -30,36 +26,31 @@ class LastStatsImCol:
 
     def __init__(self, nickname: str):
         self.nickname = nickname
-        self.player_details: PlayerDetails | None = None
-        self.player_history: PlayerHistory | None = None
-        self.player_region_stats: RegionStatistics | None = None
-        self.player_country_stats: RegionStatistics | None = None
-        self.steam_app_stat: UserAppStatistics | None = None
-        self.steam_recently_stat: RecentStatisticsResponse | None = None
+        self.player_stat: dict[str, FullPlayerStat] = {}
         self.avatar: Image = Image.new(mode="RGBA", size=(130, 130), color="black")
         self.image: Image = Image.new(mode="RGBA", size=(960, 540), color="black")
 
-    async def collect_images(self) -> list[Image] | None:
+    async def collect_image(self) -> Image | None:
         games = await self.collect_stat()
-        if not self.player_details:
-            return None
         await self._draw_image(games)
-        return [self.image]
+        return self.image
 
     async def collect_stat(self) -> GameStatLastStorage:
         games: list[GameStatLast] = []
         await self._collect_user_info()
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
             tasks: list[Task] = []
-            for match_history in self.player_history.items:
+            for match_history in self.player_stat[self.nickname].player_history.items:
                 task2 = asyncio.create_task(FaceitClient.match_stats(session, match_history.match_id))
                 tasks.append(task2)
-            results: list[MatchStatistics] = await asyncio.gather(*tasks)
+            results: list[MatchStatistics] = await asyncio.gather(*tasks)  # type: ignore
             for idx, match_stats in enumerate(results):
                 if not match_stats:
                     continue
                 for match_round in match_stats.rounds:
-                    game = self.compile_game(match_round, self.player_history.items[idx])
+                    game = self.compile_game(
+                        match_round, self.player_stat[self.nickname].player_history.items[idx]
+                    )
                     games.append(game)
 
                     if len(games) >= 10:
@@ -68,7 +59,7 @@ class LastStatsImCol:
 
     async def _draw_image(self, games: GameStatLastStorage) -> None:
         draw_image_bg = ImageDraw.Draw(self.image)
-        draw_image_bg.text((160, 20), self.player_details.nickname, font=self.font_name)
+        draw_image_bg.text((160, 20), self.player_stat[self.nickname].player_details.nickname, font=self.font_name)
 
         self._draw_avatar()
         self._draw_steam_stats(draw_image_bg)
@@ -82,7 +73,7 @@ class LastStatsImCol:
                 break
 
     def compile_game(self, match_round: Round, match_h: MatchHistory) -> GameStatLast:
-        player_stats = match_round.get_player_stats(self.player_details.player_id)
+        player_stats = match_round.get_player_stats(self.player_stat[self.nickname].player_details.player_id)
         return GameStatLast(
             result=player_stats.result,
             kills=player_stats.kills,
@@ -101,29 +92,38 @@ class LastStatsImCol:
 
     async def _collect_user_info(self):
         async with aiohttp.ClientSession(headers=faceit_headers) as session:
-            self.player_details = await FaceitClient.player_details(session, self.nickname)
-            self.player_history = await FaceitClient.player_history(session, self.player_details.player_id)
-            self.player_region_stats = await FaceitClient.region_stats(
+            player_details = await FaceitClient.player_details(session, self.nickname)
+            player_history = await FaceitClient.player_history(session, player_details.player_id)
+            player_region_stats = await FaceitClient.region_stats(
                 session=session,
-                player_id=self.player_details.player_id,
-                region=self.player_details.games.csgo.region,
+                player_id=player_details.player_id,
+                region=player_details.games.csgo.region,
             )
-            self.player_country_stats = await FaceitClient.region_stats(
+            player_country_stats = await FaceitClient.region_stats(
                 session=session,
-                player_id=self.player_details.player_id,
-                region=self.player_details.games.csgo.region,
-                country=self.player_details.country,
+                player_id=player_details.player_id,
+                region=player_details.games.csgo.region,
+                country=player_details.country,
             )
             await self._set_avatar(session)
             await self._set_background(session)
 
         async with aiohttp.ClientSession() as session:
-            self.steam_app_stat = await SteamClient.user_app_stat(session, self.player_details.steam_id_64)
-            self.steam_recently_stat = await SteamClient.user_rec_played_stat(session, self.player_details.steam_id_64)
+            steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
+            steam_recently_stat = await SteamClient.user_rec_played_stat(session, player_details.steam_id_64)
+
+        self.player_stat[self.nickname] = FullPlayerStat(
+            player_details=player_details,
+            player_history=player_history,
+            player_region_stats=player_region_stats,
+            player_country_stats=player_country_stats,
+            steam_app_stat=steam_app_stat,
+            steam_recently_stat=steam_recently_stat,
+        )
 
     async def _set_avatar(self, session: ClientSession) -> None:
-        if self.player_details.avatar:
-            async with session.get(self.player_details.avatar) as response:
+        if self.player_stat[self.nickname].player_details.avatar:
+            async with session.get(self.player_stat[self.nickname].player_details.avatar) as response:
                 self.image_avatar = Image.open(BytesIO(await response.read()))
             self.image_avatar = self.image_avatar.convert("RGB")
             self.image_avatar = self.image_avatar.resize((130, 130))
@@ -132,8 +132,8 @@ class LastStatsImCol:
             self.image_avatar = self.image_avatar.resize((130, 130))
 
     async def _set_background(self, session: ClientSession) -> None:
-        if self.player_details.cover_image:
-            async with session.get(self.player_details.cover_image) as response:
+        if self.player_stat[self.nickname].player_details.cover_image:
+            async with session.get(self.player_stat[self.nickname].player_details.cover_image) as response:
                 self.image = Image.open(BytesIO(await response.read()))
         else:
             self.image = Image.new(mode="RGBA", size=(960, 540), color="black")
@@ -155,7 +155,7 @@ class LastStatsImCol:
             self.image.resize((960, 540))
 
     def _get_steam_stats_text(self) -> SteamStatLast:
-        csgo_stats = self.steam_recently_stat.get_csgo()
+        csgo_stats = self.player_stat[self.nickname].steam_recently_stat.get_csgo()
         playtime_2weeks = "Last 2 weeks: Unknown"
         playtime_forever = "Summary in CSGO: Unknown"
         percentage_played = "Activity: Unknown"
@@ -165,8 +165,8 @@ class LastStatsImCol:
             playtime_2weeks = f"Last 2 weeks: {int(csgo_stats.playtime_2weeks / 60)} hrs"
             playtime_forever = f"Summary in CSGO: {int(csgo_playtime_hours)} hrs"
 
-            if self.steam_app_stat:
-                csgo_playtime = self.steam_app_stat.playerstats.stats[2].value / 60 / 60
+            if self.player_stat[self.nickname].steam_app_stat:
+                csgo_playtime = self.player_stat[self.nickname].steam_app_stat.playerstats.stats[2].value / 60 / 60
                 csgo_time_played_hrs = f"Played in CSGO: {int(csgo_playtime)} hrs"
                 percentage_played = f"Activity: {csgo_playtime / csgo_playtime_hours * 100:.1f}%"
             else:
@@ -188,18 +188,24 @@ class LastStatsImCol:
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
         canvas.text((270, 70),
-                    f"{self.player_details.games.csgo.region}: {self.player_region_stats.position}",
+                    f"{self.player_stat[self.nickname].player_details.games.csgo.region}: "
+                    f"{self.player_stat[self.nickname].player_region_stats.position}",
                     font=self.font)
         canvas.text((270, 100),
-                    f"{self.player_details.country}: {self.player_country_stats.position}",
+                    f"{self.player_stat[self.nickname].player_details.country}: "
+                    f"{self.player_stat[self.nickname].player_country_stats.position}",
                     font=self.font)
 
     def _draw_faceit_elo(self, canvas: ImageDraw) -> None:
-        faceit_lvl = self.player_details.games.csgo.skill_level
+        faceit_lvl = self.player_stat[self.nickname].player_details.games.csgo.skill_level
         image_lvl = Image.open(f"../templates/faceit_icons/faceit{faceit_lvl}.png").convert("RGBA")
         image_lvl = image_lvl.resize((24, 24))
         self.image.paste(image_lvl, (155, 74), image_lvl)
-        canvas.text((184, 70), str(self.player_details.games.csgo.faceit_elo), font=self.font)
+        canvas.text(
+            (184, 70),
+            str(self.player_stat[self.nickname].player_details.games.csgo.faceit_elo),
+            font=self.font,
+        )
 
     @staticmethod
     def _get_player_game_stat_color(kd_ratio: float) -> tuple[int, int, int, int]:
@@ -257,6 +263,6 @@ class LastStatsImCol:
 if __name__ == '__main__':
     async def main():
         last_imcol = LastStatsImCol("-NAPAD")
-        imgs = await last_imcol.collect_images()
+        imgs = await last_imcol.collect_image()
         imgs[0].show()
     asyncio.run(main())

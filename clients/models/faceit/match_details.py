@@ -14,7 +14,7 @@ class Results(BaseModel):
     score: Score
 
 
-class PlayerDetails(BaseModel):
+class PlayerDetailsFromMatch(BaseModel):
     player_id: UUID
     nickname: str
     avatar: str
@@ -29,7 +29,7 @@ class TeamDetails(BaseModel):
     faction_id: UUID
     leader: UUID
     avatar: str
-    roster: list[PlayerDetails]
+    roster: list[PlayerDetailsFromMatch]
     substituted: bool
     name: str
     type: str
