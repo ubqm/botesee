@@ -1,3 +1,4 @@
+from typing import Generator
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -34,12 +35,15 @@ class AvailableMaps(BaseModel):
     MIRAGE: str = "de_mirage"
     NUKE: str = "de_nuke"
     OVERPASS: str = "de_overpass"
-    TRAIN: str = "de_train"
     VERTIGO: str = "de_vertigo"
     ANUBIS: str = "de_anubis"
 
     def __contains__(self, item: str):
         return item in self.__dict__.values()
+
+    def __iter__(self) -> Generator:
+        """Iterate over actual values of instance ('de_ancient', 'de_dust2', ...)"""
+        return (it[1] for it in super().__iter__())
 
 
 subscribers = SubscribedPlayers()

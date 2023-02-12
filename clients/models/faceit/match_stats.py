@@ -22,7 +22,7 @@ class PlayerStats(BaseModel):
     tripple: int = Field(alias="Triple Kills")
     quadro: int = Field(alias="Quadro Kills")
     ace: int = Field(alias="Penta Kills")
-    result: int = Field(alias="Result")
+    result: bool = Field(alias="Result")
 
 
 class Player(BaseModel):
