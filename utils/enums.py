@@ -15,7 +15,7 @@ class SubscribedPlayers(BaseModel):
     QZAC: UUID = UUID("4e7d1f6c-9045-4800-8eda-23c892dcd814")
     DANTIST: UUID = UUID("24785d80-7265-4f50-970e-1c02666ede56")
 
-    def __contains__(self, item: str | UUID):
+    def __contains__(self, item: str | UUID) -> bool:
         if isinstance(item, str):
             item = UUID(hex=item)
         return item in self.__dict__.values()
@@ -38,7 +38,7 @@ class AvailableMaps(BaseModel):
     VERTIGO: str = "de_vertigo"
     ANUBIS: str = "de_anubis"
 
-    def __contains__(self, item: str):
+    def __contains__(self, item: str) -> bool:
         return item in self.__dict__.values()
 
     def __iter__(self) -> Generator:
