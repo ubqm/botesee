@@ -3,7 +3,7 @@
 __pycache__
 .idea
 test[^_]*.py
-!application/tests
+!bot/tests
 *.prof
 .pytest_cache
 *.sqlite3

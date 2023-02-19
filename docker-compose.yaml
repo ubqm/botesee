@@ -1,9 +1,42 @@
 version: "3.8"
 
 services:
+  postgres:
+    container_name: "postgres"
+    image: postgres:15.0
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=bot_pwd
+
   rabbit:
     container_name: "rabbit"
-    image: rabbitmq:3.11.8-management
+    build: rabbitmq
+    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 3s
+      timeout: 60s
+      retries: 20
+
+  discord-bot:
+    container_name: "discord-bot"
+    build:
+      context: .
+      target: discord-bot
+    restart: always
+    depends_on:
+      rabbit:
+        condition: service_healthy
+
+  web:
+    container_name: "web"
+    build:
+      context: .
+      target: web
+    restart: always
+    ports:
+      - "8080:8080"
+
