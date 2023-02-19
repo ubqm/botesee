@@ -1,12 +1,12 @@
 from tortoise import Tortoise
 
-from clients.faceit import FaceitClient
-from db.models import Match, Player, Elo
-from clients.models.faceit.match_stats import MatchStatistics
-from env_variables import faceit_headers
+from bot import conf
+from bot.clients.faceit import FaceitClient
+from bot.db.models_tortoise import Match, Player, Elo
+from bot.clients.models.faceit.match_stats import MatchStatistics
 import aiohttp
 
-from web.models.events import MatchFinished
+from bot.web.models.events import MatchFinished
 
 
 async def db_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int = 50):
@@ -19,12 +19,9 @@ async def db_fetch_data(pl_items: int = 50, mc_items: int = 50, elo_items: int =
 
 async def db_match_finished(match: MatchFinished, statistics: MatchStatistics):
     print("started tortoise match finished save")
-    async with aiohttp.ClientSession(headers=faceit_headers) as session:
+    async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
         for match_round in statistics.rounds:
-            await Match.get_or_create(
-                id=match_round.match_id,
-                date=match.timestamp
-            )
+            await Match.get_or_create(id=match_round.match_id, date=match.timestamp)
             for team in match_round.teams:
                 for player in team.players:
                     await Player.get_or_create(id=player.player_id)
