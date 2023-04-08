@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 119
+extend-select = ["I", "F", "E"]
+
+[tool.black]
+line-length = 119
+target-version = ['py311']
+
+[tool.mypy]
+ignore_missing_imports = true
