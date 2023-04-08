@@ -1,20 +1,24 @@
 import asyncio
 from asyncio import Task
 from io import BytesIO
-from typing import Literal, Any
+from typing import Any, Literal
 
 import aiohttp
-from PIL import Image, ImageDraw, ImageFont
 from aiohttp import ClientSession
+from PIL import Image, ImageDraw, ImageFont
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
-from bot.clients.models.faceit.match_stats import Round
+from bot.clients.models.faceit.match_stats import MatchStatistics, Round
 from bot.clients.models.faceit.player_details import PlayerDetails
 from bot.clients.models.faceit.player_history import MatchHistory
-from bot.image_collectors.models.last_stat import GameStatLast, GameStatLastStorage, FullPlayerStat
-from bot.utils.enums import available_maps, colors, ColorTuple
 from bot.image_collectors import TEMPLATE_PATH
+from bot.image_collectors.models.last_stat import (
+    FullPlayerStat,
+    GameStatLast,
+    GameStatLastStorage,
+)
+from bot.utils.enums import ColorTuple, available_maps, colors
 
 
 class CompareImCol:
@@ -58,6 +62,7 @@ class CompareImCol:
             if isinstance(amount, int):
                 return amount
             return int(amount) if amount.isdigit() and 5 <= int(amount) <= 100 else 20
+        return 20
 
     async def collect_image(self) -> Image:
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
@@ -124,13 +129,15 @@ class CompareImCol:
         for match_history in self.player_stat[nickname].player_history.items:
             task2 = asyncio.create_task(FaceitClient.match_stats(session, match_history.match_id))
             tasks.append(task2)
-        results: list[MatchStatistics] = await asyncio.gather(*tasks)  # type: ignore
+        results: list[MatchStatistics] = await asyncio.gather(*tasks)
         for idx, match_stats in enumerate(results):
             if not match_stats:
                 continue
             for match_round in match_stats.rounds[::-1]:
                 game = self.compile_game(
-                    match_round, self.player_stat[nickname].player_history.items[idx], nickname
+                    match_round,
+                    self.player_stat[nickname].player_history.items[idx],
+                    nickname,
                 )
                 games.append(game)
         return GameStatLastStorage(games=games)
@@ -155,7 +162,7 @@ class CompareImCol:
 
     @staticmethod
     def compare_stats(
-            value: tuple, category: Literal["1f", "2f", "%", "reverse", "total"]
+        value: tuple, category: Literal["1f", "2f", "%", "reverse", "total"]
     ) -> list[ColorTuple, ColorTuple]:
         white = colors.WHITE
         green = colors.GREEN
@@ -198,15 +205,31 @@ class CompareImCol:
         return values_dict[category][value.index(max(value))][rating_s]
 
     def _draw_stat(
-            self, canvas: ImageDraw, left_line: str, right_line: str,
-            color_left: ColorTuple, color_right: ColorTuple, idx: int) -> None:
+        self,
+        canvas: ImageDraw,
+        left_line: str,
+        right_line: str,
+        color_left: ColorTuple,
+        color_right: ColorTuple,
+        idx: int,
+    ) -> None:
         left_stat_x = 410
         right_stat_x = 550
         start_y = 220
         step = 30
         w, h = canvas.textsize(left_line, font=self.font)
-        canvas.text((left_stat_x - w, start_y + step * idx), left_line, font=self.font, fill=color_left)
-        canvas.text((right_stat_x, start_y + step * idx), right_line, font=self.font, fill=color_right)
+        canvas.text(
+            (left_stat_x - w, start_y + step * idx),
+            left_line,
+            font=self.font,
+            fill=color_left,
+        )
+        canvas.text(
+            (right_stat_x, start_y + step * idx),
+            right_line,
+            font=self.font,
+            fill=color_right,
+        )
 
     def get_player_background(self, nickname: str, output_width: int = 480, output_height: int = 540) -> Image:
         background = self.player_stat[nickname].background
@@ -225,8 +248,8 @@ class CompareImCol:
         return background
 
     def _draw_mid_text(self, canvas: ImageDraw) -> None:
-        w, h = canvas.textsize(f"ELO", font=self.font)
-        canvas.text(((960 - w) / 2, 220), f"ELO", font=self.font)
+        w, h = canvas.textsize("ELO", font=self.font)
+        canvas.text(((960 - w) / 2, 220), "ELO", font=self.font)
         w, h = canvas.textsize("avgK", font=self.font)
         canvas.text(((960 - w) / 2, 250), "avgK", font=self.font)
         w, h = canvas.textsize("avgD", font=self.font)
@@ -237,14 +260,14 @@ class CompareImCol:
         canvas.text(((960 - w) / 2, 340), "K/R", font=self.font)
         w, h = canvas.textsize("HS", font=self.font)
         canvas.text(((960 - w) / 2, 370), "HS", font=self.font)
-        w, h = canvas.textsize(f"W/L", font=self.font)
-        canvas.text(((960 - w) / 2, 400), f"W/L", font=self.font)
+        w, h = canvas.textsize("W/L", font=self.font)
+        canvas.text(((960 - w) / 2, 400), "W/L", font=self.font)
         w, h = canvas.textsize("4K", font=self.font)
         canvas.text(((960 - w) / 2, 430), "4K", font=self.font)
         w, h = canvas.textsize("5K", font=self.font)
         canvas.text(((960 - w) / 2, 460), "5K", font=self.font)
-        w, h = canvas.textsize(f"MVP", font=self.font)
-        canvas.text(((960 - w) / 2, 490), f"MVP", font=self.font)
+        w, h = canvas.textsize("MVP", font=self.font)
+        canvas.text(((960 - w) / 2, 490), "MVP", font=self.font)
 
     def _draw_background(self) -> None:
         for idx, nickname in enumerate(self.compared_nicknames):
@@ -261,17 +284,25 @@ class CompareImCol:
         for idx, nickname in enumerate(self.compared_nicknames):
             w, h = canvas.textsize(self.player_stat[nickname].player_details.nickname, font=self.font_name)
             pos = (810 - w, 20) if idx else (160, 20)
-            canvas.text(pos, self.player_stat[nickname].player_details.nickname, font=self.font_name)
+            canvas.text(
+                pos,
+                self.player_stat[nickname].player_details.nickname,
+                font=self.font_name,
+            )
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
         for idx, nickname in enumerate(self.compared_nicknames):
-            region_str = f"{self.player_stat[nickname].player_details.games.csgo.region}: " \
-                         f"{self.player_stat[nickname].player_region_stats.position}"
+            region_str = (
+                f"{self.player_stat[nickname].player_details.games.csgo.region}: "
+                f"{self.player_stat[nickname].player_region_stats.position}"
+            )
             w, h = canvas.textsize(region_str, font=self.font)
             canvas.text((160, 70) if idx == 0 else (810 - w, 70), region_str, font=self.font)
 
-            country_str = f"{self.player_stat[nickname].player_details.country}: " \
-                          f"{self.player_stat[nickname].player_country_stats.position}"
+            country_str = (
+                f"{self.player_stat[nickname].player_details.country}: "
+                f"{self.player_stat[nickname].player_country_stats.position}"
+            )
             w, h = canvas.textsize(country_str, font=self.font)
             canvas.text((160, 100) if idx == 0 else (810 - w, 100), country_str, font=self.font)
 
@@ -279,57 +310,90 @@ class CompareImCol:
         w, h = canvas.textsize(f"{self.amount} {self.output_type}", font=self.font)
         canvas.text(((960 - w) / 2, 100), f"{self.amount} {self.output_type}", font=self.font)
 
-    def _draw_compare_stats(self, canvas: ImageDraw, player1_stats: GameStatLastStorage,
-                            player2_stats: GameStatLastStorage) -> None:
+    def _draw_compare_stats(
+        self,
+        canvas: ImageDraw,
+        player1_stats: GameStatLastStorage,
+        player2_stats: GameStatLastStorage,
+    ) -> None:
         ds: dict[str, dict[str, Any]] = {
             "elo": {
-                "value": (self.player_stat[self.nickname1].player_details.games.csgo.faceit_elo,
-                          self.player_stat[self.nickname2].player_details.games.csgo.faceit_elo),
+                "value": (
+                    self.player_stat[self.nickname1].player_details.games.csgo.faceit_elo,
+                    self.player_stat[self.nickname2].player_details.games.csgo.faceit_elo,
+                ),
                 "type": "total",
                 "format": "{value}",
             },
             "kills": {
-                "value": (player1_stats.mean_kills(self.amount), player2_stats.mean_kills(self.amount)),
+                "value": (
+                    player1_stats.mean_kills(self.amount),
+                    player2_stats.mean_kills(self.amount),
+                ),
                 "type": "1f",
                 "format": "{value:.1f}",
             },
             "deaths": {
-                "value": (player1_stats.mean_deaths(self.amount), player2_stats.mean_deaths(self.amount)),
+                "value": (
+                    player1_stats.mean_deaths(self.amount),
+                    player2_stats.mean_deaths(self.amount),
+                ),
                 "type": "reverse",
                 "format": "{value}",
             },
             "kd": {
-                "value": (player1_stats.mean_kd(self.amount), player2_stats.mean_kd(self.amount)),
+                "value": (
+                    player1_stats.mean_kd(self.amount),
+                    player2_stats.mean_kd(self.amount),
+                ),
                 "type": "2f",
                 "format": "{value:.2f}",
             },
             "kr": {
-                "value": (player1_stats.mean_kr(self.amount), player2_stats.mean_kr(self.amount)),
+                "value": (
+                    player1_stats.mean_kr(self.amount),
+                    player2_stats.mean_kr(self.amount),
+                ),
                 "type": "2f",
                 "format": "{value:.2f}",
             },
             "hs": {
-                "value": (player1_stats.mean_hs(self.amount), player2_stats.mean_hs(self.amount)),
+                "value": (
+                    player1_stats.mean_hs(self.amount),
+                    player2_stats.mean_hs(self.amount),
+                ),
                 "type": "%",
                 "format": "{value}%",
             },
             "winrate": {
-                "value": (player1_stats.total_winrate(self.amount), player2_stats.total_winrate(self.amount)),
+                "value": (
+                    player1_stats.total_winrate(self.amount),
+                    player2_stats.total_winrate(self.amount),
+                ),
                 "type": "%",
                 "format": "{value}%",
             },
             "quadro": {
-                "value": (player1_stats.total_quadro(self.amount), player2_stats.total_quadro(self.amount)),
+                "value": (
+                    player1_stats.total_quadro(self.amount),
+                    player2_stats.total_quadro(self.amount),
+                ),
                 "type": "total",
                 "format": "{value}",
             },
             "ace": {
-                "value": (player1_stats.total_ace(self.amount), player2_stats.total_ace(self.amount)),
+                "value": (
+                    player1_stats.total_ace(self.amount),
+                    player2_stats.total_ace(self.amount),
+                ),
                 "type": "total",
                 "format": "{value}",
             },
             "mvp": {
-                "value": (player1_stats.mean_mvp(self.amount), player2_stats.mean_mvp(self.amount)),
+                "value": (
+                    player1_stats.mean_mvp(self.amount),
+                    player2_stats.mean_mvp(self.amount),
+                ),
                 "type": "1f",
                 "format": "{value:.1f}",
             },
@@ -340,22 +404,30 @@ class CompareImCol:
             color_left, color_right = self.compare_stats(ds[stat_str]["value"], ds[stat_str]["type"])
             self._draw_stat(canvas, left_line, right_line, color_left, color_right, idx)
 
-    def _draw_map_stats(self, canvas: ImageDraw, player1_stats: GameStatLastStorage,
-                        player2_stats: GameStatLastStorage) -> None:
+    def _draw_map_stats(
+        self,
+        canvas: ImageDraw,
+        player1_stats: GameStatLastStorage,
+        player2_stats: GameStatLastStorage,
+    ) -> None:
         map_w, map_h = 90, 50
         map_y_start = 140
         left_stat_x = 110
         right_stat_x = 850
 
         for idx, available_map in enumerate(available_maps):
-            w, l, p = player1_stats.map_stats(available_map)
-            left_line = f"{w} - {l} | {p}%"
-            w, l, p = player2_stats.map_stats(available_map)
-            right_line = f"{w} - {l} | {p}%"
+            won, lost, percentage = player1_stats.map_stats(available_map)
+            left_line = f"{won} - {lost} | {percentage}%"
+            won, lost, percentage = player2_stats.map_stats(available_map)
+            right_line = f"{won} - {lost} | {percentage}%"
 
             canvas.text((left_stat_x, map_h * idx + map_y_start + 10), left_line, font=self.font)
             w, h = canvas.textsize(right_line, font=self.font)
-            canvas.text((right_stat_x - w, map_h * idx + map_y_start + 10), right_line, font=self.font)
+            canvas.text(
+                (right_stat_x - w, map_h * idx + map_y_start + 10),
+                right_line,
+                font=self.font,
+            )
 
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/{available_map}.jpg")
             current_map = current_map.resize((map_w, map_h))
@@ -374,7 +446,8 @@ class CompareImCol:
         self._draw_compare_stats(canvas, player1_stats, player2_stats)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     async def main():
         imgcmp = CompareImCol("-MORZY", "Ayudesee", amount=10)
         img = await imgcmp.collect_image()

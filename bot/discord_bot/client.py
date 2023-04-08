@@ -5,23 +5,20 @@ from typing import Any
 import aiohttp
 import discord
 from discord import Intents, RawReactionActionEvent
+from loguru import logger
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
-from bot.web.models.base import Player
-# from database import db_match_finished
-from bot.discord_bot._exceptions import StartMessageNotFoundException
-from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.clients.models.faceit.match_stats import MatchStatistics
-from loguru import logger
 
+# from database import db_match_finished
+from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors.compare_imcol import CompareImCol
 from bot.image_collectors.last_stat_imcol import LastStatsImCol
 from bot.image_collectors.match_finished import MatchFinishedImCol
-
 from bot.utils.enums import subscribers
-
-from bot.web.models.events import MatchReady, MatchFinished, MatchAborted
+from bot.web.models.base import Player
+from bot.web.models.events import MatchAborted, MatchFinished, MatchReady
 
 
 @logger.catch()
@@ -45,10 +42,14 @@ def get_match_finished_message_color(statistics: MatchStatistics):
 def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
     color = get_match_finished_message_color(statistics)
 
-    nicknames_1 = [f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-                   for player in statistics.rounds[0].teams[0].players]
-    nicknames_2 = [f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-                   for player in statistics.rounds[0].teams[1].players]
+    nicknames_1 = [
+        f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+        for player in statistics.rounds[0].teams[0].players
+    ]
+    nicknames_2 = [
+        f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+        for player in statistics.rounds[0].teams[1].players
+    ]
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
 
@@ -65,26 +66,29 @@ async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
 
 @logger.catch()
 def form_ready_embed_message(
-        match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
+    match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
     my_color = 9936031
     description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
     embed_msg = discord.Embed(title="Match Ready", type="rich", description=description, color=my_color)
-    embed_msg.add_field(name=match.payload.teams[0].name,
-                        value=nick_elo_1.get_discord_nicknames(),
-                        inline=True)
+    embed_msg.add_field(
+        name=match.payload.teams[0].name,
+        value=nick_elo_1.get_discord_nicknames(),
+        inline=True,
+    )
     embed_msg.add_field(name="ELO", value=nick_elo_1.get_discord_elos(), inline=True)
     embed_msg.add_field(name="\u200b", value="\u200b")
-    embed_msg.add_field(name=match.payload.teams[1].name,
-                        value=nick_elo_2.get_discord_nicknames(),
-                        inline=True)
+    embed_msg.add_field(
+        name=match.payload.teams[1].name,
+        value=nick_elo_2.get_discord_nicknames(),
+        inline=True,
+    )
     embed_msg.add_field(name="ELO", value=nick_elo_2.get_discord_elos(), inline=True)
     embed_msg.add_field(name="\u200b", value="\u200b")
     return embed_msg
 
 
 class DiscordClient(discord.Client):
-
     def __init__(self, faceit_channel_id: int, intents: Intents, **options: Any):
         super().__init__(intents=intents, options=options)
         self.faceit_channel_id: int = faceit_channel_id
@@ -108,8 +112,14 @@ class DiscordClient(discord.Client):
     @staticmethod
     @logger.catch()
     def is_contains_media(message: discord.Message):
-        return any(("http://" in message.content, message.attachments,
-                    "https://" in message.content, message.embeds))
+        return any(
+            (
+                "http://" in message.content,
+                message.attachments,
+                "https://" in message.content,
+                message.embeds,
+            )
+        )
 
     @staticmethod
     @logger.catch()
@@ -177,11 +187,7 @@ class DiscordClient(discord.Client):
         )
         if upvotes < downvotes - 2:
             await message.delete()
-            logger.info(
-                f'Message "{message.content}" '
-                f"deleted with {upvotes} Upvotes, "
-                f"{downvotes} Downvotes\n"
-            )
+            logger.info(f'Message "{message.content}" ' f"deleted with {upvotes} Upvotes, " f"{downvotes} Downvotes\n")
 
     @logger.catch
     async def post_faceit_message_ready(self, match: MatchReady) -> None:
@@ -233,7 +239,7 @@ class DiscordClient(discord.Client):
         for message in messages:
             if not message.embeds:
                 continue
-            if not (match_id in message.embeds[0].description):
+            if match_id not in message.embeds[0].description:
                 continue
 
             # get nicknames from URL-embed discord format [nickname](URL)

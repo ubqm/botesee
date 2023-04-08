@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     DISCORD_TOKEN: str
     STEAM_TOKEN: str
     FACEIT_TOKEN: str
-    FACEIT_HEADERS: str | None
+    FACEIT_HEADERS: dict[str, str] | None
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST: str
@@ -17,12 +17,15 @@ class Settings(BaseSettings):
     RABBIT_PASSWORD: str
 
     class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
 conf = Settings()
-conf.FACEIT_HEADERS = {"accept": "application/json", "Authorization": f"Bearer {conf.FACEIT_TOKEN}"}
+conf.FACEIT_HEADERS = {
+    "accept": "application/json",
+    "Authorization": f"Bearer {conf.FACEIT_TOKEN}",
+}
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(conf)

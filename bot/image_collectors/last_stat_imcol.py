@@ -1,21 +1,25 @@
 import asyncio
+import calendar
 from asyncio import Task
 from io import BytesIO
 
 import aiohttp
-from PIL import Image, ImageFont, ImageDraw
-import calendar
-
 from aiohttp import ClientSession
+from PIL import Image, ImageDraw, ImageFont
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
-from bot.clients.models.faceit.match_stats import Round, MatchStatistics
+from bot.clients.models.faceit.match_stats import MatchStatistics, Round
 from bot.clients.models.faceit.player_history import MatchHistory
 from bot.clients.steam import SteamClient
-from bot.image_collectors.models.last_stat import GameStatLast, SteamStatLast, GameStatLastStorage, FullPlayerStat
-from bot.utils.enums import colors
 from bot.image_collectors import TEMPLATE_PATH
+from bot.image_collectors.models.last_stat import (
+    FullPlayerStat,
+    GameStatLast,
+    GameStatLastStorage,
+    SteamStatLast,
+)
+from bot.utils.enums import colors
 
 
 class LastStatsImCol:
@@ -50,7 +54,8 @@ class LastStatsImCol:
                     continue
                 for match_round in match_stats.rounds:
                     game = self.compile_game(
-                        match_round, self.player_stat[self.nickname].player_history.items[idx]
+                        match_round,
+                        self.player_stat[self.nickname].player_history.items[idx],
                     )
                     games.append(game)
 
@@ -60,7 +65,11 @@ class LastStatsImCol:
 
     async def _draw_image(self, games: GameStatLastStorage) -> None:
         draw_image_bg = ImageDraw.Draw(self.image)
-        draw_image_bg.text((160, 20), self.player_stat[self.nickname].player_details.nickname, font=self.font_name)
+        draw_image_bg.text(
+            (160, 20),
+            self.player_stat[self.nickname].player_details.nickname,
+            font=self.font_name,
+        )
 
         self._draw_avatar()
         self._draw_steam_stats(draw_image_bg)
@@ -188,14 +197,18 @@ class LastStatsImCol:
         canvas.text((10, 240), steam_stats.percentage_played, font=self.font)
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
-        canvas.text((270, 70),
-                    f"{self.player_stat[self.nickname].player_details.games.csgo.region}: "
-                    f"{self.player_stat[self.nickname].player_region_stats.position}",
-                    font=self.font)
-        canvas.text((270, 100),
-                    f"{self.player_stat[self.nickname].player_details.country}: "
-                    f"{self.player_stat[self.nickname].player_country_stats.position}",
-                    font=self.font)
+        canvas.text(
+            (270, 70),
+            f"{self.player_stat[self.nickname].player_details.games.csgo.region}: "
+            f"{self.player_stat[self.nickname].player_region_stats.position}",
+            font=self.font,
+        )
+        canvas.text(
+            (270, 100),
+            f"{self.player_stat[self.nickname].player_details.country}: "
+            f"{self.player_stat[self.nickname].player_country_stats.position}",
+            font=self.font,
+        )
 
     def _draw_faceit_elo(self, canvas: ImageDraw) -> None:
         faceit_lvl = self.player_stat[self.nickname].player_details.games.csgo.skill_level
@@ -261,9 +274,11 @@ class LastStatsImCol:
         self.image.paste(self.image_avatar, (10, 10))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     async def main():
         last_imcol = LastStatsImCol("-NAPAD")
         imgs = await last_imcol.collect_image()
         imgs[0].show()
+
     asyncio.run(main())

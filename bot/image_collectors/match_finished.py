@@ -1,21 +1,20 @@
 import asyncio
 from asyncio import Task
 from io import BytesIO
-from typing import Literal
+from typing import Final, Literal
 
 import aiohttp
-from PIL import Image, ImageDraw, ImageFont
-from aiohttp import ClientSession
-
 import web.models.base
+from aiohttp import ClientSession
+from PIL import Image, ImageDraw, ImageFont
+
 from bot import conf
 from bot.clients.faceit import FaceitClient
-from bot.clients.models.faceit.match_stats import MatchStatistics, Round, Player
+from bot.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
-from bot.tests.conftest import match_finished
+from bot.image_collectors import TEMPLATE_PATH
 from bot.utils.enums import available_maps, colors
 from bot.web.models.events import MatchFinished
-from bot.image_collectors import TEMPLATE_PATH
 
 
 class MatchFinishedImCol:
@@ -23,31 +22,20 @@ class MatchFinishedImCol:
     font_file = "Outfit-Bold.ttf"
     font_file_mainscore = "Outfit-ExtraBold.ttf"
     fonts = {
-        "mainscore": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50
-        ),
-        "avatar": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
-        ),
-        "player_score": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32
-        ),
-        "player_stats": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
-        ),
-        "halftime": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
-        ),
+        "mainscore": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50),
+        "avatar": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18),
+        "player_score": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32),
+        "player_stats": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22),
+        "halftime": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22),
     }
-    image_dark_avatar_bot = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png"
-    )
-    image_dark_avatar_top = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
-    )
+    image_dark_avatar_bot = Image.open(f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png")
+    image_dark_avatar_top = Image.open(f"{TEMPLATE_PATH}/background_features/for_avatar_top.png")
 
     def __init__(
-            self, match: MatchFinished, statistics: MatchStatistics, nick_elo: NickEloStorage
+        self,
+        match: MatchFinished,
+        statistics: MatchStatistics,
+        nick_elo: NickEloStorage,
     ):
         self.match = match
         self.statistics = statistics
@@ -76,16 +64,18 @@ class MatchFinishedImCol:
         tasks: list[Task] = []
         for idx_team, team in enumerate(round_.teams):
             for idx_player, player in enumerate(team.players):
-                task = asyncio.create_task(
-                    self._draw_player(session, canvas, player, idx_team, idx_player)
-                )
+                task = asyncio.create_task(self._draw_player(session, canvas, player, idx_team, idx_player))
                 tasks.append(task)
         await asyncio.gather(*tasks)
         return canvas
 
     async def _draw_player(
-            self, session: ClientSession, canvas: Image,
-            player: Player, idx_team: int, idx_player: int
+        self,
+        session: ClientSession,
+        canvas: Image,
+        player: Player,
+        idx_team: int,
+        idx_player: int,
     ) -> Image:
         canvas = await self._draw_player_avatar(session, canvas, player, idx_team, idx_player)
         await self._draw_player_stats(player, canvas, idx_team, idx_player)
@@ -103,21 +93,25 @@ class MatchFinishedImCol:
             return colors.WHITE
 
     def _draw_player_stat(
-            self, stat: Literal["kad", "mvp", "kr", "kd"], player: Player,
-            canvas: Image, idx_team: int, idx_player: int, kd_color: tuple[int, int, int, int]
+        self,
+        stat: Literal["kad", "mvp", "kr", "kd"],
+        player: Player,
+        canvas: Image,
+        idx_team: int,
+        idx_player: int,
+        kd_color: tuple[int, int, int, int],
     ):
         image_draw = ImageDraw.Draw(canvas)
-        stat_dict = {"kad": (f"{player.player_stats.kills}/"
-                             f"{player.player_stats.assists}/"
-                             f"{player.player_stats.deaths}"),
-                     "mvp": f"MVP: {player.player_stats.mvps}",
-                     "kr": f"K/R: {player.player_stats.kr_ratio}",
-                     "kd": f"K/D: {player.player_stats.kd_ratio}",
-                     }
+        stat_dict = {
+            "kad": f"{player.player_stats.kills}/" f"{player.player_stats.assists}/" f"{player.player_stats.deaths}",
+            "mvp": f"MVP: {player.player_stats.mvps}",
+            "kr": f"K/R: {player.player_stats.kr_ratio}",
+            "kd": f"K/D: {player.player_stats.kd_ratio}",
+        }
         text = stat_dict[stat]
         w, h = image_draw.textsize(
             text,
-            font=self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"]
+            font=self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"],
         )
         stat_pos_dict = {
             "kad": (130 + (162 - w) / 2 + idx_player * 162, 155 + 195 * idx_team),
@@ -132,11 +126,14 @@ class MatchFinishedImCol:
             fill=kd_color if stat == "kd" else colors.WHITE,
         )
 
-    async def _draw_player_stats(
-            self, player: Player, canvas: Image, idx_team: int, idx_player: int
-    ) -> None:
+    async def _draw_player_stats(self, player: Player, canvas: Image, idx_team: int, idx_player: int) -> None:
         kd_color = self._get_kd_color(player)
-        for stat in ("kad", "mvp", "kr", "kd"):
+        kad: Final[str] = "kad"
+        mvp: Final[str] = "mvp"
+        kr: Final[str] = "kr"
+        kd: Final[str] = "kd"
+        vals = (kad, mvp, kr, kd)
+        for stat in vals:
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
 
     async def _download_player_avatar(self, session: ClientSession, req_player: web.models.base.Player) -> Image:
@@ -153,8 +150,12 @@ class MatchFinishedImCol:
         return unknown_avatar
 
     async def _draw_player_avatar(
-            self, session: ClientSession, canvas: Image,
-            player: Player, idx_team: int, idx_player: int
+        self,
+        session: ClientSession,
+        canvas: Image,
+        player: Player,
+        idx_team: int,
+        idx_player: int,
     ) -> Image:
         draw_image = ImageDraw.Draw(canvas)
         player_elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname)
@@ -193,19 +194,19 @@ class MatchFinishedImCol:
                     # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
                     draw_image_avatar.text((26, 107), str(player_elo), font=self.fonts["avatar"])
 
-                w, h = draw_image.textsize(
-                    req_player.nickname, font=self.fonts["avatar"]
-                )
+                w, h = draw_image.textsize(req_player.nickname, font=self.fonts["avatar"])
                 if w > 130:
-                    draw_image_avatar.text((0, 107 - idx_team * 107),
-                                           req_player.nickname,
-                                           font=self.fonts["avatar"],
-                                           )
+                    draw_image_avatar.text(
+                        (0, 107 - idx_team * 107),
+                        req_player.nickname,
+                        font=self.fonts["avatar"],
+                    )
                 else:
-                    draw_image_avatar.text(((130 - w) / 2, 107 - idx_team * 107),
-                                           req_player.nickname,
-                                           font=self.fonts["avatar"],
-                                           )
+                    draw_image_avatar.text(
+                        ((130 - w) / 2, 107 - idx_team * 107),
+                        req_player.nickname,
+                        font=self.fonts["avatar"],
+                    )
                 canvas.paste(image_avatar, (146 + idx_player * 162, 20 + 370 * idx_team))
         return canvas
 
@@ -223,8 +224,7 @@ class MatchFinishedImCol:
     async def _draw_halftime_score(self, round_: Round, canvas: Image) -> None:
         draw_image = ImageDraw.Draw(canvas)
         for idx_team, team in enumerate(round_.teams):
-            halftimes = (f"{team.team_stats.first_half_score}—"
-                         f"{team.team_stats.second_half_score}")
+            halftimes = f"{team.team_stats.first_half_score}—" f"{team.team_stats.second_half_score}"
             if round_.has_overtime():
                 halftimes += f"—{team.team_stats.overtime_score}"
             w, h = draw_image.textsize(halftimes, font=self.fonts["halftime"])
@@ -274,69 +274,162 @@ class MatchFinishedImCol:
         return image_map
 
 
-if __name__ == '__main__':
-    def match_finished():
-        finished = {'transaction_id': '47c8ade3-db36-4c0a-8471-7c340e9d7ac8', 'event': 'match_status_finished',
-                    'event_id': '6db8bfa8-0bbc-4a19-88b1-ea93ae8e3005',
-                    'third_party_id': 'ad42c90b-45a9-49b6-8ab0-9c8662330543',
-                    'app_id': '4ef06a92-08ba-425e-bf12-c49c17d5ec7e', 'timestamp': '2022-01-10T20:29:35Z',
-                    'retry_count': 0, 'version': 1,
-                    'payload': {'id': '1-37a40c85-82ae-436d-9f90-fb7db5484033', 'organizer_id': 'faceit',
-                                'region': 'EU', 'game': 'csgo', 'version': 43,
-                                'entity': {'id': 'a3c75828-7f0f-4940-adb9-994b4b389070', 'name': 'CS:GO 5v5 PREMIUM',
-                                           'type': 'matchmaking'}, 'teams': [
-                            {'id': '8d5ead5d-b1b6-458d-93d0-1a0548d2de3f', 'name': 'team_CJ-2k', 'type': '',
-                             'avatar': 'https://distribution.faceit-cdn.net/images/3911c173-368e-4dbd-8b1f-b0d19ade695a.jpeg',
-                             'leader_id': '8d5ead5d-b1b6-458d-93d0-1a0548d2de3f', 'co_leader_id': '', 'roster': [
-                                {'id': '278790a2-1f08-4350-bd96-427f7dcc8722', 'nickname': '-NAPAD',
-                                 'avatar': 'https://assets.faceit-cdn.net/avatars/278790a2-1f08-4350-bd96-427f7dcc8722_1583523957971.jpg',
-                                 'game_id': '76561198061461007', 'game_name': '-NAPAD`11 #ACIDHOUZE',
-                                 'game_skill_level': 10, 'membership': '', 'anticheat_required': True},
-                                {'id': 'd0b7218c-a540-423f-960e-f6e9a8b3b10a', 'nickname': '-EcoCobra-',
-                                 'avatar': 'https://assets.faceit-cdn.net/avatars/d0b7218c-a540-423f-960e-f6e9a8b3b10a_1633631507859.jpg',
-                                 'game_id': '76561198391731293', 'game_name': 'yowai mo', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '6dc2d3a1-8653-4ce6-8a2c-cb30122361e8', 'nickname': 'S1non--',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/72491042-bdd6-4fc5-a8ba-e7fea300ac88.jpeg',
-                                 'game_id': '76561198251305342', 'game_name': 'S1non', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '131b67d6-3e3a-4a79-a4bc-7d73ea404c8e', 'nickname': 'Deokishisu',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/110c80b9-1f38-4426-9429-d6edeaa150c1.jpeg',
-                                 'game_id': '76561199174381757', 'game_name': 'xGOD', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '8d5ead5d-b1b6-458d-93d0-1a0548d2de3f', 'nickname': 'CJ-2k',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/3911c173-368e-4dbd-8b1f-b0d19ade695a.jpeg',
-                                 'game_id': '76561199006885634', 'game_name': 'asd', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True}], 'substitutions': 0,
-                             'substitutes': None},
-                            {'id': 'f8580374-5c09-43bc-bef2-463f1fde9aff', 'name': 'team_sinnopsyy', 'type': '',
-                             'avatar': 'https://distribution.faceit-cdn.net/images/62a8416a-7cba-44b9-bab6-c5430f992eb9.jpeg',
-                             'leader_id': 'f8580374-5c09-43bc-bef2-463f1fde9aff', 'co_leader_id': '', 'roster': [
-                                {'id': 'f8580374-5c09-43bc-bef2-463f1fde9aff', 'nickname': 'sinnopsyy',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/62a8416a-7cba-44b9-bab6-c5430f992eb9.jpeg',
-                                 'game_id': '76561198165327895', 'game_name': 'sinnopsy=D', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '440c0bf9-028a-4234-932c-3cb53e285851', 'nickname': 'katNine',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/c44d20cc-b2aa-4129-a9d4-5bbeb382d42e.jpeg',
-                                 'game_id': '76561198025532625', 'game_name': 'k', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '1b4e291a-c1c9-48c1-8738-5fda9a109151', 'nickname': 'Coopah-iwnl-',
-                                 'avatar': 'https://assets.faceit-cdn.net/avatars/1b4e291a-c1c9-48c1-8738-5fda9a109151_1626554809867.jpg',
-                                 'game_id': '76561198137616643', 'game_name': 'I only frag when im on drugs❤',
-                                 'game_skill_level': 10, 'membership': '', 'anticheat_required': True},
-                                {'id': 'e284326a-04c2-41b2-8e1b-851e9b5f9761', 'nickname': '-ReGnZ-',
-                                 'avatar': 'https://assets.faceit-cdn.net/avatars/e284326a-04c2-41b2-8e1b-851e9b5f9761_1550964104764.jpg',
-                                 'game_id': '76561198070260050', 'game_name': 'ReGnZ', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True},
-                                {'id': '0b21055e-a2a6-4a4e-a1b8-3691352ce8f5', 'nickname': 'faqazy',
-                                 'avatar': 'https://distribution.faceit-cdn.net/images/49e275b8-c2e7-419b-a0dc-389dc21d7166.jpeg',
-                                 'game_id': '76561198799957222', 'game_name': '᠌ ᠌ ᠌᠌ ᠌ ᠌ ᠌ ᠌', 'game_skill_level': 10,
-                                 'membership': '', 'anticheat_required': True}], 'substitutions': 0,
-                             'substitutes': None}], 'created_at': '2022-01-10T19:46:45Z',
-                                'updated_at': '2022-01-10T20:29:35Z', 'started_at': '2022-01-10T19:51:43Z',
-                                'finished_at': '2022-01-10T20:29:35Z'}}
-        return MatchFinished(**finished)
+if __name__ == "__main__":
 
+    def match_finished_():
+        finished = {
+            "transaction_id": "47c8ade3-db36-4c0a-8471-7c340e9d7ac8",
+            "event": "match_status_finished",
+            "event_id": "6db8bfa8-0bbc-4a19-88b1-ea93ae8e3005",
+            "third_party_id": "ad42c90b-45a9-49b6-8ab0-9c8662330543",
+            "app_id": "4ef06a92-08ba-425e-bf12-c49c17d5ec7e",
+            "timestamp": "2022-01-10T20:29:35Z",
+            "retry_count": 0,
+            "version": 1,
+            "payload": {
+                "id": "1-37a40c85-82ae-436d-9f90-fb7db5484033",
+                "organizer_id": "faceit",
+                "region": "EU",
+                "game": "csgo",
+                "version": 43,
+                "entity": {
+                    "id": "a3c75828-7f0f-4940-adb9-994b4b389070",
+                    "name": "CS:GO 5v5 PREMIUM",
+                    "type": "matchmaking",
+                },
+                "teams": [
+                    {
+                        "id": "8d5ead5d-b1b6-458d-93d0-1a0548d2de3f",
+                        "name": "team_CJ-2k",
+                        "type": "",
+                        "avatar": "https://distribution.faceit-cdn.net/images/3911c173-368e-4dbd-8b1f-b0d19ade695a.jpeg",
+                        "leader_id": "8d5ead5d-b1b6-458d-93d0-1a0548d2de3f",
+                        "co_leader_id": "",
+                        "roster": [
+                            {
+                                "id": "278790a2-1f08-4350-bd96-427f7dcc8722",
+                                "nickname": "-NAPAD",
+                                "avatar": "https://assets.faceit-cdn.net/avatars/278790a2-1f08-4350-bd96-427f7dcc8722_1583523957971.jpg",
+                                "game_id": "76561198061461007",
+                                "game_name": "-NAPAD`11 #ACIDHOUZE",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "d0b7218c-a540-423f-960e-f6e9a8b3b10a",
+                                "nickname": "-EcoCobra-",
+                                "avatar": "https://assets.faceit-cdn.net/avatars/d0b7218c-a540-423f-960e-f6e9a8b3b10a_1633631507859.jpg",
+                                "game_id": "76561198391731293",
+                                "game_name": "yowai mo",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "6dc2d3a1-8653-4ce6-8a2c-cb30122361e8",
+                                "nickname": "S1non--",
+                                "avatar": "https://distribution.faceit-cdn.net/images/72491042-bdd6-4fc5-a8ba-e7fea300ac88.jpeg",
+                                "game_id": "76561198251305342",
+                                "game_name": "S1non",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "131b67d6-3e3a-4a79-a4bc-7d73ea404c8e",
+                                "nickname": "Deokishisu",
+                                "avatar": "https://distribution.faceit-cdn.net/images/110c80b9-1f38-4426-9429-d6edeaa150c1.jpeg",
+                                "game_id": "76561199174381757",
+                                "game_name": "xGOD",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "8d5ead5d-b1b6-458d-93d0-1a0548d2de3f",
+                                "nickname": "CJ-2k",
+                                "avatar": "https://distribution.faceit-cdn.net/images/3911c173-368e-4dbd-8b1f-b0d19ade695a.jpeg",
+                                "game_id": "76561199006885634",
+                                "game_name": "asd",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                        ],
+                        "substitutions": 0,
+                        "substitutes": None,
+                    },
+                    {
+                        "id": "f8580374-5c09-43bc-bef2-463f1fde9aff",
+                        "name": "team_sinnopsyy",
+                        "type": "",
+                        "avatar": "https://distribution.faceit-cdn.net/images/62a8416a-7cba-44b9-bab6-c5430f992eb9.jpeg",
+                        "leader_id": "f8580374-5c09-43bc-bef2-463f1fde9aff",
+                        "co_leader_id": "",
+                        "roster": [
+                            {
+                                "id": "f8580374-5c09-43bc-bef2-463f1fde9aff",
+                                "nickname": "sinnopsyy",
+                                "avatar": "https://distribution.faceit-cdn.net/images/62a8416a-7cba-44b9-bab6-c5430f992eb9.jpeg",
+                                "game_id": "76561198165327895",
+                                "game_name": "sinnopsy=D",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "440c0bf9-028a-4234-932c-3cb53e285851",
+                                "nickname": "katNine",
+                                "avatar": "https://distribution.faceit-cdn.net/images/c44d20cc-b2aa-4129-a9d4-5bbeb382d42e.jpeg",
+                                "game_id": "76561198025532625",
+                                "game_name": "k",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "1b4e291a-c1c9-48c1-8738-5fda9a109151",
+                                "nickname": "Coopah-iwnl-",
+                                "avatar": "https://assets.faceit-cdn.net/avatars/1b4e291a-c1c9-48c1-8738-5fda9a109151_1626554809867.jpg",
+                                "game_id": "76561198137616643",
+                                "game_name": "I only frag when im on drugs❤",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "e284326a-04c2-41b2-8e1b-851e9b5f9761",
+                                "nickname": "-ReGnZ-",
+                                "avatar": "https://assets.faceit-cdn.net/avatars/e284326a-04c2-41b2-8e1b-851e9b5f9761_1550964104764.jpg",
+                                "game_id": "76561198070260050",
+                                "game_name": "ReGnZ",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                            {
+                                "id": "0b21055e-a2a6-4a4e-a1b8-3691352ce8f5",
+                                "nickname": "faqazy",
+                                "avatar": "https://distribution.faceit-cdn.net/images/49e275b8-c2e7-419b-a0dc-389dc21d7166.jpeg",
+                                "game_id": "76561198799957222",
+                                "game_name": "᠌ ᠌ ᠌᠌ ᠌ ᠌ ᠌ ᠌",
+                                "game_skill_level": 10,
+                                "membership": "",
+                                "anticheat_required": True,
+                            },
+                        ],
+                        "substitutions": 0,
+                        "substitutes": None,
+                    },
+                ],
+                "created_at": "2022-01-10T19:46:45Z",
+                "updated_at": "2022-01-10T20:29:35Z",
+                "started_at": "2022-01-10T19:51:43Z",
+                "finished_at": "2022-01-10T20:29:35Z",
+            },
+        }
+        return MatchFinished(**finished)
 
     async def main():
         # im = Image.new(mode="RGBA", size=(960, 540), color="white")
@@ -345,15 +438,16 @@ if __name__ == '__main__':
         #     dark_middle = Image.open("{TEMPLATE_PATH}/background_features/dark-middle2.png")
         #     im.paste(dark_middle, (0, 0), dark_middle)
         # im.show()
-        mf = match_finished()
+        mf = match_finished_()
         print(f"{mf = }")
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             statistics = await FaceitClient.match_stats(session, mf.payload.id)
         mf_imcol = MatchFinishedImCol(
-            mf, statistics, NickEloStorage(players=[PlayerStorage(nickname="Test", elo=1)])
+            mf,
+            statistics,
+            NickEloStorage(players=[PlayerStorage(nickname="Test", elo=1)]),
         )
         images_list = await mf_imcol.collect_images()
         images_list[0].show()
-
 
     asyncio.run(main())

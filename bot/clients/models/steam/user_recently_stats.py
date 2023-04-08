@@ -17,9 +17,12 @@ class RecentStatistics(BaseModel):
     games: list[GameStat] | None
 
     def __getitem__(self, appid: int) -> GameStat | None:
+        if not self.games:
+            return None
         for stat in self.games:
             if stat.appid == appid:
                 return stat
+        return None
 
 
 class RecentStatisticsResponse(BaseModel):

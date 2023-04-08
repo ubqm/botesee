@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, Literal
+from typing import Literal, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl

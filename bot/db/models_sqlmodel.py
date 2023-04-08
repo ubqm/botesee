@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import SQLModel, Field, Relationship, create_engine, Session, select
+from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
 
 class Elo(SQLModel, table=True):
@@ -40,7 +40,7 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with Session(engine) as session:
         players = [Player() for _ in range(9)]
         stmt = select(Match).where(Match.id == "652ce312-00be-448e-b5d4-25595acfabc5")

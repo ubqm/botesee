@@ -83,7 +83,7 @@ class GameStatLastStorage(BaseModel):
         return total_deaths / total_games
 
     def mean_kd(self, game_num: int = 10) -> float:
-        total_kd = 0
+        total_kd = 0.0
         total_games = 0
         for game in self.games:
             total_kd += game.kd_ratio
@@ -94,7 +94,7 @@ class GameStatLastStorage(BaseModel):
         return total_kd / total_games
 
     def mean_kr(self, game_num: int = 10) -> float:
-        total_kr = 0
+        total_kr = 0.0
         total_games = 0
         for game in self.games:
             total_kr += game.kr_ratio
@@ -136,7 +136,7 @@ class GameStatLastStorage(BaseModel):
             if total_games == game_num:
                 break
         return total_ace
-    
+
     def mean_mvp(self, game_num: int = 10) -> float:
         total_mvp = 0
         total_games = 0
@@ -147,7 +147,7 @@ class GameStatLastStorage(BaseModel):
             if total_games == game_num:
                 break
         return total_mvp / total_games
-    
+
     def total_winrate(self, game_num: int = 10) -> int:
         games_won = 0
         total_games = 0

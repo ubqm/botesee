@@ -2,12 +2,11 @@ import asyncio
 import json
 
 import aio_pika
-from aiormq import ChannelNotFoundEntity
+from loguru import logger
 from pydantic import parse_obj_as
 
 from bot.discord_bot.client import DiscordClient
 from bot.web.models.events import WebhookMatch
-from loguru import logger
 
 
 class RabbitClient:
@@ -19,8 +18,10 @@ class RabbitClient:
 
     async def publish(self, message: str, routing_key: str = "matches") -> None:
         connection = await aio_pika.connect_robust(
-            host=self.host, port=self.port,
-            login=self.user, password=self.password,
+            host=self.host,
+            port=self.port,
+            login=self.user,
+            password=self.password,
         )
 
         async with connection:
@@ -45,16 +46,16 @@ class RabbitWorker:
         logger.debug(f"PROCESS {match = }")
         match match.event:
             case "match_status_ready" | "match_status_configuring":
-                logger.debug(f"match_status_ready")
+                logger.debug("match_status_ready")
                 await self.discord.post_faceit_message_ready(match)
             case "match_status_cancelled":
-                logger.debug(f"match_status_cancelled")
+                logger.debug("match_status_cancelled")
                 await self.discord.post_faceit_message_aborted(match)
             case "match_status_aborted":
-                logger.debug(f"match_status_aborted")
+                logger.debug("match_status_aborted")
                 await self.discord.post_faceit_message_aborted(match)
             case "match_status_finished":
-                logger.debug(f"match_status_finished")
+                logger.debug("match_status_finished")
                 await self.discord.post_faceit_message_finished(match)
 
     async def consume(self, queue_name: str = "matches"):
@@ -65,8 +66,10 @@ class RabbitWorker:
             logger.info(f"Waiting for discord bot to startup. Total sleep: {sleep_time}")
             await asyncio.sleep(1)
         connection = await aio_pika.connect_robust(
-            host=self.host, port=self.port,
-            login=self.user, password=self.password,
+            host=self.host,
+            port=self.port,
+            login=self.user,
+            password=self.password,
         )
 
         async with connection:
@@ -75,7 +78,7 @@ class RabbitWorker:
 
             async with queue.iterator() as queue_iter:
                 async for message in queue_iter:
-                    message: aio_pika.IncomingMessage
+                    message: aio_pika.IncomingMessage  # type: ignore
                     match = parse_obj_as(WebhookMatch, json.loads(message.body.decode()))
                     try:
                         await self._process_match(match)
@@ -83,5 +86,3 @@ class RabbitWorker:
                         logger.error(ex)
                     else:
                         await message.ack()
-
-

@@ -1,4 +1,5 @@
 from uuid import UUID
+
 from pydantic import BaseModel, Field
 
 
@@ -59,15 +60,15 @@ class Round(BaseModel):
     round_stats: RoundStats
     teams: list[Team]
 
-    def has_overtime(self):
-        return self.teams[0].team_stats.overtime_score or \
-               self.teams[1].team_stats.overtime_score
+    def has_overtime(self) -> bool:
+        return any((self.teams[0].team_stats.overtime_score, self.teams[1].team_stats.overtime_score))
 
-    def get_player_stats(self, player_id: UUID) -> PlayerStats:
+    def get_player_stats(self, player_id: UUID) -> PlayerStats | None:
         for team in self.teams:
             for player in team.players:
                 if player.player_id == player_id:
                     return player.player_stats
+        return None
 
 
 class MatchStatistics(BaseModel):
