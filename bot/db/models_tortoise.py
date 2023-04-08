@@ -1,11 +1,11 @@
-from tortoise.models import Model
 from tortoise import fields
+from tortoise.models import Model
 
 
 class Player(Model):
     id = fields.CharField(max_length=255, pk=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.id
 
     class Meta:
@@ -16,7 +16,7 @@ class Match(Model):
     id = fields.CharField(max_length=255, pk=True)
     date = fields.DatetimeField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.id} at {self.date}"
 
     class Meta:
@@ -25,8 +25,8 @@ class Match(Model):
 
 class Elo(Model):
     id = fields.IntField(pk=True)
-    match = fields.ForeignKeyField('models.Match', on_delete="CASCADE")
-    player = fields.ForeignKeyField('models.Player', on_delete="CASCADE")
+    match = fields.ForeignKeyField("models.Match", on_delete="CASCADE")
+    player = fields.ForeignKeyField("models.Player", on_delete="CASCADE")
     elo = fields.IntField()
 
     def __str__(self):

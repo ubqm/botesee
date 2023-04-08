@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, HttpUrl, Extra
+from pydantic import BaseModel, Extra, HttpUrl
 
 
 class Platforms(BaseModel):

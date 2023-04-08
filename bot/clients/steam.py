@@ -28,7 +28,8 @@ class SteamClient:
             return RecentStatisticsResponse(**res)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     async def main():
         async with aiohttp.ClientSession() as session:
             # res = await SteamClient.user_app_stat(session, "76561198030140352")

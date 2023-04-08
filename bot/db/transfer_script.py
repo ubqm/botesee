@@ -1,8 +1,9 @@
-from bot.db.init import init
-from tortoise import run_async
 import csv
 
-from db.models_tortoise import Player, Match, Elo
+from db.models_tortoise import Elo, Match, Player
+from tortoise import run_async
+
+from bot.db.init import init
 
 
 def transfer_matches():
@@ -24,13 +25,11 @@ def transfer_elos():
 
 
 async def get_player_by_id(pid: str):
-    player = await Player.get(
-        id=pid
-    )
+    player = await Player.get(id=pid)
     return player
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_async(init())
     old_matches = transfer_matches()
     old_players = transfer_players()
@@ -44,11 +43,7 @@ if __name__ == '__main__':
         )
     print("matches transfer ended")
     for player in old_players:
-        run_async(
-            Player.create(
-                id=player[1]
-            )
-        )
+        run_async(Player.create(id=player[1]))
     print("players transfer ended")
     for elo in old_elos:  # [player_id, match_id, elo]  e.g. [1, 57, 3567]
         # print(elo)
@@ -70,11 +65,5 @@ if __name__ == '__main__':
                 # print(f"{actual_pid = }")
                 break
         # print(f"{actual_pid = }, {actual_mid = }")
-        run_async(
-            Elo.create(
-                player_id=actual_pid,
-                match_id=actual_mid,
-                elo=elo[2]
-            )
-        )
+        run_async(Elo.create(player_id=actual_pid, match_id=actual_mid, elo=elo[2]))
         print(f"created {elo}")

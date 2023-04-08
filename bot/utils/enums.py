@@ -41,7 +41,7 @@ class AvailableMaps(BaseModel):
     def __contains__(self, item: str) -> bool:
         return item in self.__dict__.values()
 
-    def __iter__(self) -> Generator:
+    def __iter__(self) -> Generator[str, None, None]:
         """Iterate over actual values of instance ('de_ancient', 'de_dust2', ...)"""
         return (it[1] for it in super().__iter__())
 

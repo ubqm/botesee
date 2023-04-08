@@ -1,11 +1,10 @@
+import aiohttp
 from tortoise import Tortoise
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
-from bot.db.models_tortoise import Match, Player, Elo
 from bot.clients.models.faceit.match_stats import MatchStatistics
-import aiohttp
-
+from bot.db.models_tortoise import Elo, Match, Player
 from bot.web.models.events import MatchFinished
 
 
@@ -29,6 +28,6 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics):
                     await Elo.create(
                         match_id=match_round.match_id,
                         player_id=player.player_id,
-                        elo=player_details.games.csgo.faceit_elo
+                        elo=player_details.games.csgo.faceit_elo,
                     )
     await Tortoise.close_connections()

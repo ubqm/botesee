@@ -21,5 +21,5 @@ class PlayerStatistics(BaseModel):
 class UserAppStatistics(BaseModel):
     playerstats: PlayerStatistics | None
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.playerstats)

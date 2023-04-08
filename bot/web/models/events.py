@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Annotated, Union, Literal
+from typing import Annotated, Literal, Union
 
 from pydantic import Field
 
-from bot.web.models.base import BasePayload, BaseMatch
+from bot.web.models.base import BaseMatch, BasePayload, EventEnum
 
 
 class PayloadCancelled(BasePayload):
@@ -17,23 +17,25 @@ class PayloadFinished(BasePayload):
 
 class MatchAborted(BaseMatch):
     payload: PayloadCancelled
-    event: Literal["match_status_aborted"]
+    event: Literal[EventEnum.ABORTED]
 
 
 class MatchCancelled(BaseMatch):
-    event: Literal["match_status_cancelled"]
+    event: Literal[EventEnum.CANCELLED]
     payload: PayloadCancelled
 
 
 class MatchFinished(BaseMatch):
-    event: Literal["match_status_finished"]
+    event: Literal[EventEnum.FINISHED]
     payload: PayloadFinished
 
 
 class MatchReady(BaseMatch):
-    event: Literal["match_status_ready", "match_status_configuring"]
+    event: Literal[EventEnum.READY, EventEnum.CONFIGURING]
     payload: BasePayload
 
 
-WebhookMatch = Annotated[Union[MatchAborted, MatchCancelled, MatchFinished, MatchReady],
-                         Field(discriminator="event")]
+WebhookMatch = Annotated[
+    Union[MatchAborted, MatchCancelled, MatchFinished, MatchReady],
+    Field(discriminator="event"),
+]
