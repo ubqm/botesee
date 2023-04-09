@@ -4,7 +4,6 @@ from io import BytesIO
 from typing import Final, Literal
 
 import aiohttp
-import web.models.base
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,6 +13,7 @@ from bot.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors import TEMPLATE_PATH
 from bot.utils.enums import available_maps, colors
+from bot.web.models.base import Player as webPlayer
 from bot.web.models.events import MatchFinished
 
 
@@ -136,7 +136,7 @@ class MatchFinishedImCol:
         for stat in vals:
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
 
-    async def _download_player_avatar(self, session: ClientSession, req_player: web.models.base.Player) -> Image:
+    async def _download_player_avatar(self, session: ClientSession, req_player: webPlayer) -> Image:
         avatar_size = (130, 130)
         unknown_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
         unknown_avatar = unknown_avatar.resize(avatar_size)
