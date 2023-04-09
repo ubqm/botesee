@@ -26,7 +26,7 @@ app.add_middleware(
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
     logger.error(f"{request}: {exc_str}")
     logger.error(f"entity = {exc.body}")
