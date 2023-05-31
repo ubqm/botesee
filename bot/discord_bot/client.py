@@ -4,6 +4,7 @@ from typing import Any
 
 import aiohttp
 import discord
+from db.script import db_match_finished
 from discord import Intents, RawReactionActionEvent
 from loguru import logger
 
@@ -209,7 +210,7 @@ class DiscordClient(discord.Client):
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             statistics = await FaceitClient.match_stats(session, match.payload.id)
 
-        # await db_match_finished(match, statistics)
+        await db_match_finished(match, statistics)
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)

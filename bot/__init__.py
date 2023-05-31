@@ -16,8 +16,12 @@ class Settings(BaseSettings):
     RABBIT_USER: str
     RABBIT_PASSWORD: str
 
+    @property
+    def db_string(self) -> str:
+        return f"postgres://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_NAME}/{self.DB_NAME}"
+
     class Config:
-        env_file = "../.env"
+        env_file = ".env"
         env_file_encoding = "utf-8"
 
 
