@@ -4,7 +4,7 @@ from typing import Any
 
 import aiohttp
 import discord
-from db.script import db_match_finished
+from bot.db.script import db_match_finished
 from discord import Intents, RawReactionActionEvent
 from loguru import logger
 
