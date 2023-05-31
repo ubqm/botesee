@@ -1,22 +1,58 @@
-version: "3.3"
-services:
-  tortoise_test:
-    build: .
-    container_name: "tortoise_test"
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      - bot_db
-    ports:
-      - "10000:5000"
-    command: ["python3", "main_script.py"]
+version: "3.8"
 
-#  tortoise_test_db:
-#    image: postgres:15.1
-#    container_name: "tortoise_test_db"
-#    restart: always
-#    env_file:
-#      - postgres.env
-#    ports:
-#      - "10001:5432"
+services:
+  postgres:
+    container_name: "postgres"
+    image: postgres:15.0
+    restart: always
+    user: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bot
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+
+  rabbit:
+    container_name: "rabbit"
+    build: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 3s
+      timeout: 60s
+      retries: 20
+
+  discord-bot:
+    container_name: "discord-bot"
+    build:
+      context: .
+      target: discord-bot
+    restart: always
+    depends_on:
+      rabbit:
+        condition: service_healthy
+
+  web:
+    container_name: "web"
+    build:
+      context: .
+      target: web
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: ./errors.log
+        target: /app/errors.log
+    depends_on:
+      postgres:
+        condition: service_healthy
