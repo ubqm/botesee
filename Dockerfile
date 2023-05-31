@@ -1,10 +1,23 @@
-FROM python:3.8.10
-RUN apt-get update && apt-get install -y python3 && apt-get install -y python3-pip
-RUN pip install pipenv
-COPY Pipfile .
-COPY Pipfile.lock .
-RUN pipenv install --system --deploy --ignore-pipfile
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
-COPY . /home/app
-WORKDIR /home/app
-EXPOSE 5000
+FROM python:3.11 AS base
+
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+COPY .env .env
+COPY bot /app/bot
+COPY .env /app/.env
+COPY .env /app/bot/.env
+COPY .env /app/bot/web/.env
+COPY .env /app/bot/discord_bot/.env
+
+WORKDIR bot
+
+FROM base AS discord-bot
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+WORKDIR /app
+CMD ["python3", "bot/discord_bot/main.py"]
+
+
+FROM base as web
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+WORKDIR /app
+CMD ["uvicorn", "bot.web.main:app", "--host", "0.0.0.0", "--port", "8080"]
