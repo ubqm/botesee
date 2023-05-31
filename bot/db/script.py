@@ -1,8 +1,8 @@
-from clients.faceit import FaceitClient
-from clients.models.faceit.match_stats import MatchStatistics
-from db.repositories.elo import EloRepository
-from db.repositories.match import MatchRepository
-from web.models.events import MatchFinished
+from bot.clients.faceit import FaceitClient
+from bot.clients.models.faceit.match_stats import MatchStatistics
+from bot.db.repositories.elo import EloRepository
+from bot.db.repositories.match import MatchRepository
+from bot.web.models.events import MatchFinished
 
 from bot.db import Session
 from bot.db.repositories.player import PlayerRepository
