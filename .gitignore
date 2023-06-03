@@ -8,4 +8,4 @@ test[^_]*.py
 .pytest_cache
 *.sqlite3
 /.venv/
-.env
+*.env

@@ -63,7 +63,7 @@ class RabbitWorker:
         sleep_time: int = 0
         while not self.discord.faceit_channel:
             sleep_time += 1
-            logger.info(f"Waiting for discord bot to startup. Total sleep: {sleep_time}")
+            logger.info(f"Waiting for discord bot to startup. Total sleep: {sleep_time} sec.")
             await asyncio.sleep(1)
         connection = await aio_pika.connect_robust(
             host=self.host,
