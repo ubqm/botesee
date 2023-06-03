@@ -112,7 +112,7 @@ class DiscordClient(discord.Client):
 
     @staticmethod
     @logger.catch()
-    def is_contains_media(message: discord.Message):
+    def is_contains_media(message: discord.Message) -> bool:
         return any(
             (
                 "http://" in message.content,
@@ -124,16 +124,16 @@ class DiscordClient(discord.Client):
 
     @staticmethod
     @logger.catch()
-    def is_stats_request(content: list):
+    def is_stats_request(content: list) -> bool:
         return bool(re.search("^[.]stats?$", content[0]) and len(content) == 2)
 
     @staticmethod
     @logger.catch()
-    def is_compare_request(content: list):
+    def is_compare_request(content: list) -> bool:
         return bool(re.search(r"^[.]compare$", content[0])) and len(content) == 5
 
     @logger.catch()
-    async def on_message(self, message):
+    async def on_message(self, message) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
         logger.info(f"New message from {message.author}: {message.content}")
@@ -142,7 +142,11 @@ class DiscordClient(discord.Client):
             if self.is_contains_media(message):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
-            elif self.is_stats_request(_content):
+
+            if not _content:
+                return
+
+            if self.is_stats_request(_content):
                 imgclst = LastStatsImCol(_content[1])
                 image = await imgclst.collect_image()
                 await self.faceit_channel.send(file=self.compile_binary_image(image))
@@ -152,13 +156,6 @@ class DiscordClient(discord.Client):
                 await self.faceit_channel.send(file=self.compile_binary_image(image))
             elif bool(re.search(r"^[.]$", _content[0])):
                 pass
-
-    # @logger.catch()
-    async def test(self, message: str = ""):
-        if not self.faceit_channel:
-            raise ConnectionError("Discord is not initialized yet")
-        faceit_channel = self.get_channel(self.faceit_channel_id)
-        await faceit_channel.send(f"TEST {message}")
 
     @logger.catch()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent) -> None:
