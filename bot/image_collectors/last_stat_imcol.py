@@ -6,7 +6,7 @@ from io import BytesIO
 import aiohttp
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
-
+from loguru import logger
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics, Round
@@ -20,7 +20,7 @@ from bot.image_collectors.models.last_stat import (
     SteamStatLast,
 )
 from bot.utils.enums import colors
-
+from bot.utils.enums import available_maps
 
 class LastStatsImCol:
     font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
@@ -115,8 +115,6 @@ class LastStatsImCol:
                 region=player_details.games.csgo.region,
                 country=player_details.country,
             )
-            await self._set_avatar(session)
-            await self._set_background(session)
 
         async with aiohttp.ClientSession() as session:
             steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
@@ -130,11 +128,17 @@ class LastStatsImCol:
             steam_app_stat=steam_app_stat,
             steam_recently_stat=steam_recently_stat,
         )
+        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
+            await self._set_avatar(session)
+            await self._set_background(session)
 
     async def _set_avatar(self, session: ClientSession) -> None:
         if self.player_stat[self.nickname].player_details.avatar:
             async with session.get(self.player_stat[self.nickname].player_details.avatar) as response:
-                self.image_avatar = Image.open(BytesIO(await response.read()))
+                if response.status == 200:
+                    self.image_avatar = Image.open(BytesIO(await response.read()))
+                else:
+                    self.image_avatar = Image.new("RGB", size=(130, 130), color="black")
             self.image_avatar = self.image_avatar.convert("RGB")
             self.image_avatar = self.image_avatar.resize((130, 130))
         else:
@@ -144,7 +148,10 @@ class LastStatsImCol:
     async def _set_background(self, session: ClientSession) -> None:
         if self.player_stat[self.nickname].player_details.cover_image:
             async with session.get(self.player_stat[self.nickname].player_details.cover_image) as response:
-                self.image = Image.open(BytesIO(await response.read()))
+                if response.status == 200:
+                    self.image = Image.open(BytesIO(await response.read()))
+                else:
+                    self.image_avatar = Image.new("RGB", size=(960, 540), color="black")
         else:
             self.image = Image.new(mode="RGBA", size=(960, 540), color="black")
         self._resize_background()
@@ -250,7 +257,11 @@ class LastStatsImCol:
 
     def _draw_game_map(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
         canvas.text((870, 50 * idx_game + 30), game.map_score, font=self.font)
-        current_map = Image.open(f"{TEMPLATE_PATH}/maps/{game.map_name}.jpg")
+        if game.map_name in available_maps:
+            current_map = Image.open(f"{TEMPLATE_PATH}/maps/{game.map_name}.jpg")
+        else:
+            current_map = Image.new(mode="RGBA", size=(90, 50), color="black")
+        
         current_map = current_map.resize((90, 50))
         self.image.paste(current_map, (770, 50 * idx_game + 24))
 
