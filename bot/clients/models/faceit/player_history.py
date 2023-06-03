@@ -19,7 +19,7 @@ class TeamHistory(BaseModel):
     avatar: str
     nickname: str
     players: list[PlayerInfo]
-    team_id: UUID
+    team_id: str = ""
     type: str
 
 
@@ -29,8 +29,8 @@ class TeamFactions(BaseModel):
 
 
 class Score(BaseModel):
-    faction1: bool
-    faction2: bool
+    faction1: bool | str | None
+    faction2: bool | str | None
 
 
 class ResultsHistory(BaseModel):
@@ -39,7 +39,7 @@ class ResultsHistory(BaseModel):
 
 
 class MatchHistory(BaseModel):
-    competition_id: UUID
+    competition_id: UUID | str | None
     competition_name: str
     competition_type: str
     faceit_url: HttpUrl
