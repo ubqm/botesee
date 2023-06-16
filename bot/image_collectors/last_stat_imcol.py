@@ -57,6 +57,8 @@ class LastStatsImCol:
                         match_round,
                         self.player_stat[self.nickname].player_history.items[idx],
                     )
+                    if not game:
+                        continue
                     games.append(game)
 
                     if len(games) >= 10:
@@ -82,8 +84,10 @@ class LastStatsImCol:
             if idx == 10:
                 break
 
-    def compile_game(self, match_round: Round, match_h: MatchHistory) -> GameStatLast:
+    def compile_game(self, match_round: Round, match_h: MatchHistory) -> GameStatLast | None:
         player_stats = match_round.get_player_stats(self.player_stat[self.nickname].player_details.player_id)
+        if not player_stats:
+            return None
         return GameStatLast(
             result=player_stats.result,
             kills=player_stats.kills,
@@ -288,8 +292,8 @@ class LastStatsImCol:
 if __name__ == "__main__":
 
     async def main():
-        last_imcol = LastStatsImCol("-NAPAD")
+        last_imcol = LastStatsImCol("FIERCE_ss")
         imgs = await last_imcol.collect_image()
-        imgs[0].show()
+        imgs.show()
 
     asyncio.run(main())
