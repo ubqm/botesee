@@ -23,3 +23,6 @@ class Match(Base):
 
     def __str__(self) -> str:
         return f"<Match {str(self.id)}>"
+
+    def __repr__(self) -> str:
+        return f"<Match {str(self.id)}, {self.date}>"
