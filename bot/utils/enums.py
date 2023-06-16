@@ -14,6 +14,7 @@ class SubscribedPlayers(BaseModel):
     DG: UUID = UUID("b8e5cd07-1b43-4203-9173-465fddcd391f")
     QZAC: UUID = UUID("4e7d1f6c-9045-4800-8eda-23c892dcd814")
     DANTIST: UUID = UUID("24785d80-7265-4f50-970e-1c02666ede56")
+    FIERCE: UUID = UUID("7f519c1e-64cd-43d0-83df-59c882c705d9")
 
     def __contains__(self, item: str | UUID) -> bool:
         if isinstance(item, str):
