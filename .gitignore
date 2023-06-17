@@ -9,3 +9,4 @@ test[^_]*.py
 *.sqlite3
 /.venv/
 *.env
+errors.log

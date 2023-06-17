@@ -11,7 +11,7 @@ from bot.web.models.events import (
     MatchAborted,
     MatchCancelled,
     MatchFinished,
-    MatchReady,
+    MatchReady, WebhookMatch,
 )
 
 logger.add("errors.log", level="ERROR", rotation="1 week")
@@ -44,31 +44,9 @@ async def health() -> OKResponse:
     return OKResponse()
 
 
-@app.post("/match_status_ready", tags=["FaceIT Webhooks"])
-async def respond_status_ready(
-    match: MatchReady,
-    background_tasks: BackgroundTasks,
-    rabbit: RabbitClient = Depends(get_rabbit),
-) -> OKResponse:
-    logger.info(f"{match.json()}")
-    background_tasks.add_task(rabbit.publish, message=match.json())
-    return OKResponse()
-
-
-@app.post("/match_status_finished", tags=["FaceIT Webhooks"])
-async def respond_status_finished(
-    match: MatchFinished,
-    background_tasks: BackgroundTasks,
-    rabbit: RabbitClient = Depends(get_rabbit),
-) -> OKResponse:
-    logger.info(f"{match.json()}")
-    background_tasks.add_task(rabbit.publish, message=match.json())
-    return OKResponse()
-
-
-@app.post("/match_status_aborted", tags=["FaceIT Webhooks"])
-async def respond_status_aborted(
-    match: MatchAborted | MatchCancelled,
+@app.post("/webhooks/faceit", tags=["Webhooks", "FaceIT"])
+async def faceit_webhook(
+    match: WebhookMatch,
     background_tasks: BackgroundTasks,
     rabbit: RabbitClient = Depends(get_rabbit),
 ) -> OKResponse:
