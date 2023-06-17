@@ -15,6 +15,16 @@ class SubscribedPlayers(BaseModel):
     QZAC: UUID = UUID("4e7d1f6c-9045-4800-8eda-23c892dcd814")
     DANTIST: UUID = UUID("24785d80-7265-4f50-970e-1c02666ede56")
     FIERCE: UUID = UUID("7f519c1e-64cd-43d0-83df-59c882c705d9")
+    PUTJJE: UUID = UUID("87dcb2d9-e667-49fc-9282-6826751bea3c")
+    KIND: UUID = UUID("d1a0fba9-7352-476c-be03-a7babd155f0e")
+    GORKIT: UUID = UUID("bb9472c5-4c0b-4f91-b6ff-4101d210bdbd")
+    MELKIY_WAY: UUID = UUID("beac63ad-e635-44ac-8be1-3a44767036e2")
+    H8VTK: UUID = UUID("8336f93d-92d3-47d5-86b7-cc8ece2fff4b")
+    VAAKC: UUID = UUID("05e08f8f-bee6-4bf4-8385-b290dd29d099")
+    ECO_COBRA: UUID = UUID("d0b7218c-a540-423f-960e-f6e9a8b3b10a")
+    G3R: UUID = UUID("e825ff16-b955-4fb8-8b11-c85f11136eca")
+    XMES: UUID = UUID("92ae3dc2-cf69-4636-aa66-a2fc595dd44f")
+    DETSKI_LEPIT: UUID = UUID("ca5af68f-024c-40b1-a0dc-df8f8c50984d")
 
     def __contains__(self, item: str | UUID) -> bool:
         if isinstance(item, str):
