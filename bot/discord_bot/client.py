@@ -1,3 +1,4 @@
+import asyncio
 import re
 from io import BytesIO
 from typing import Any
@@ -34,7 +35,8 @@ def get_match_finished_message_color(statistics: MatchStatistics):
         return gray
     if not any(teams_subscribers_found):
         return black
-    if teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win:
+    if (teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win) or \
+       (teams_subscribers_found[1] and statistics.rounds[0].teams[1].team_stats.team_win):
         return green
     return red
 
@@ -205,9 +207,13 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            statistics = await FaceitClient.match_stats(session, match.payload.id)
-
-        await db_match_finished(match, statistics)
+            retry_count = 1
+            while retry_count < 6:
+                statistics = await FaceitClient.match_stats(session, match.payload.id)
+                if statistics.rounds:
+                    break
+                retry_count += 1
+                await asyncio.sleep(retry_count ** 2)
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)
@@ -225,6 +231,8 @@ class DiscordClient(discord.Client):
         for image in image_list:
             embed_msg.set_image(url="attachment://image.png")
             await self.faceit_channel.send(embed=embed_msg, file=self.compile_binary_image(image))
+
+        await db_match_finished(match, statistics)
 
     @logger.catch
     async def post_faceit_message_aborted(self, match: MatchAborted):

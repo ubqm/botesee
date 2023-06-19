@@ -39,6 +39,7 @@ class OKResponse(BaseModel):
 
 
 @app.get("/", tags=["health"])
+@app.head("/", tags=["health"])
 @app.get("/health", tags=["health"])
 async def health() -> OKResponse:
     return OKResponse()
