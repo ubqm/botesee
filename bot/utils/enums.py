@@ -27,7 +27,7 @@ class SubscribedPlayers(BaseModel):
     DETSKI_LEPIT: UUID = UUID("ca5af68f-024c-40b1-a0dc-df8f8c50984d")
 
     def __contains__(self, item: str | UUID) -> bool:
-        if isinstance(item, str):
+        if type(item) is str:
             item = UUID(hex=item)
         return item in self.__dict__.values()
 
