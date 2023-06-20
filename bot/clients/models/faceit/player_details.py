@@ -39,7 +39,7 @@ class PlayerDetails(BaseModel):
     avatar: str
     country: str
     cover_image: str
-    platforms: Platforms
+    platforms: Platforms | None
     games: Games
     settings: Settings
     friends_ids: list[UUID] | None
