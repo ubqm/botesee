@@ -5,13 +5,13 @@ from typing import Any
 
 import aiohttp
 import discord
-from bot.db.script import db_match_finished
 from discord import Intents, RawReactionActionEvent
 from loguru import logger
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics
+from bot.db.script import db_match_finished
 
 # from database import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
@@ -35,8 +35,9 @@ def get_match_finished_message_color(statistics: MatchStatistics):
         return gray
     if not any(teams_subscribers_found):
         return black
-    if (teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win) or \
-       (teams_subscribers_found[1] and statistics.rounds[0].teams[1].team_stats.team_win):
+    if (teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win) or (
+        teams_subscribers_found[1] and statistics.rounds[0].teams[1].team_stats.team_win
+    ):
         return green
     return red
 
@@ -132,7 +133,7 @@ class DiscordClient(discord.Client):
     @staticmethod
     @logger.catch()
     def is_compare_request(content: list) -> bool:
-        return bool(re.search(r"^[.]compare$", content[0])) and len(content) == 5
+        return bool(re.search(r"^[.]compare$", content[0])) and (len(content) in (3, 5))
 
     @logger.catch()
     async def on_message(self, message) -> None:
@@ -210,10 +211,10 @@ class DiscordClient(discord.Client):
             retry_count = 1
             while retry_count < 6:
                 statistics = await FaceitClient.match_stats(session, match.payload.id)
-                if statistics.rounds:
+                if statistics and statistics.rounds:
                     break
                 retry_count += 1
-                await asyncio.sleep(retry_count ** 2)
+                await asyncio.sleep(retry_count**2)
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)

@@ -25,6 +25,7 @@ class SubscribedPlayers(BaseModel):
     G3R: UUID = UUID("e825ff16-b955-4fb8-8b11-c85f11136eca")
     XMES: UUID = UUID("92ae3dc2-cf69-4636-aa66-a2fc595dd44f")
     DETSKI_LEPIT: UUID = UUID("ca5af68f-024c-40b1-a0dc-df8f8c50984d")
+    VIKTOROVICH: UUID = UUID("195921be-11f6-4037-84d0-2899d01e8d7a")
 
     def __contains__(self, item: str | UUID) -> bool:
         if type(item) is str:
