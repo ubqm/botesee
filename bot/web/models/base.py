@@ -6,11 +6,11 @@ from pydantic import BaseModel
 
 
 class EventEnum(str, Enum):
-    ABORTED = "match_status_aborted"
-    CANCELLED = "match_status_cancelled"
-    FINISHED = "match_status_finished"
-    READY = "match_status_ready"
-    CONFIGURING = "match_status_configuring"
+    ABORTED: str = "match_status_aborted"
+    CANCELLED: str = "match_status_cancelled"
+    FINISHED: str = "match_status_finished"
+    READY: str = "match_status_ready"
+    CONFIGURING: str = "match_status_configuring"
 
 
 class Entity(BaseModel):

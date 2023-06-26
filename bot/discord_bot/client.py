@@ -72,7 +72,7 @@ async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
 def form_ready_embed_message(
     match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
-    my_color = 9936031
+    my_color = 9936031  # gray
     description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
     embed_msg = discord.Embed(title="Match Ready", type="rich", description=description, color=my_color)
     embed_msg.add_field(
@@ -197,10 +197,7 @@ class DiscordClient(discord.Client):
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             nick_elo_1 = await get_nicks_and_elo(session, match.payload.teams[0].roster)
             nick_elo_2 = await get_nicks_and_elo(session, match.payload.teams[1].roster)
-            logger.debug(nick_elo_1)
-            logger.debug(nick_elo_2)
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
-        logger.debug(f"{embed_msg = }")
         await self.faceit_channel.send(embed=embed_msg)
 
     @logger.catch
