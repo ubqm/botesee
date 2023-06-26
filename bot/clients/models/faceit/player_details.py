@@ -42,7 +42,7 @@ class PlayerDetails(BaseModel):
     platforms: Platforms | None
     games: Games
     settings: Settings
-    friends_ids: list[UUID] | None
+    friends_ids: list[UUID] | list[str] | None
     new_steam_id: str
     steam_id_64: str
     steam_nickname: str

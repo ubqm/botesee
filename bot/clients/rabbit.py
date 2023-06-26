@@ -6,6 +6,7 @@ from loguru import logger
 from pydantic import parse_obj_as
 
 from bot.discord_bot.client import DiscordClient
+from bot.web.models.base import EventEnum
 from bot.web.models.events import WebhookMatch
 
 
@@ -43,19 +44,12 @@ class RabbitWorker:
         self.discord = discord
 
     async def _process_match(self, match: WebhookMatch) -> None:
-        logger.debug(f"PROCESS {match = }")
         match match.event:
-            case "match_status_ready" | "match_status_configuring":
-                logger.debug("match_status_ready")
+            case EventEnum.READY | EventEnum.CONFIGURING:
                 await self.discord.post_faceit_message_ready(match)
-            case "match_status_cancelled":
-                logger.debug("match_status_cancelled")
+            case EventEnum.CANCELLED | EventEnum.ABORTED:
                 await self.discord.post_faceit_message_aborted(match)
-            case "match_status_aborted":
-                logger.debug("match_status_aborted")
-                await self.discord.post_faceit_message_aborted(match)
-            case "match_status_finished":
-                logger.debug("match_status_finished")
+            case EventEnum.FINISHED:
                 await self.discord.post_faceit_message_finished(match)
 
     async def consume(self, queue_name: str = "matches"):

@@ -7,12 +7,7 @@ from pydantic import BaseModel
 
 from bot.clients.rabbit import RabbitClient
 from bot.web.dependencies import get_rabbit
-from bot.web.models.events import (
-    MatchAborted,
-    MatchCancelled,
-    MatchFinished,
-    MatchReady, WebhookMatch,
-)
+from bot.web.models.events import WebhookMatch
 
 logger.add("errors.log", level="ERROR", rotation="1 week")
 app = FastAPI()
@@ -51,6 +46,6 @@ async def faceit_webhook(
     background_tasks: BackgroundTasks,
     rabbit: RabbitClient = Depends(get_rabbit),
 ) -> OKResponse:
-    logger.info(f"{match.json()}")
+    logger.info(f"{match}")
     background_tasks.add_task(rabbit.publish, message=match.json())
     return OKResponse()
