@@ -2,19 +2,19 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    DISCORD_TOKEN: str
-    STEAM_TOKEN: str
-    FACEIT_TOKEN: str
+    DISCORD_TOKEN: str = ""
+    STEAM_TOKEN: str = ""
+    FACEIT_TOKEN: str = ""
     FACEIT_HEADERS: dict[str, str] | None
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
-    RABBIT_HOST: str
-    RABBIT_PORT: int
-    RABBIT_USER: str
-    RABBIT_PASSWORD: str
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
+    DB_HOST: str = ""
+    DB_PORT: int = 5432
+    DB_NAME: str = ""
+    RABBIT_HOST: str = ""
+    RABBIT_PORT: int = 5672
+    RABBIT_USER: str = ""
+    RABBIT_PASSWORD: str = ""
 
     @property
     def db_string(self) -> str:
