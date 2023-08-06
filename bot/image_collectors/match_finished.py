@@ -83,7 +83,7 @@ class MatchFinishedImCol:
 
     @staticmethod
     def _get_kd_color(player: Player) -> tuple[int, int, int, int]:
-        if player.player_stats.kd_ratio > 1.3:
+        if player.player_stats.kd_ratio >= 1.3:
             return colors.GREEN
         elif player.player_stats.kd_ratio < 0.6:
             return colors.RED
