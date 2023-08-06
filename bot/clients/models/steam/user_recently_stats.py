@@ -3,13 +3,13 @@ from pydantic import BaseModel
 
 class GameStat(BaseModel):
     appid: int
-    name: str
+    name: str | None
     playtime_2weeks: int
     playtime_forever: int
-    img_icon_url: str
-    playtime_windows_forever: int
-    playtime_mac_forever: int
-    playtime_linux_forever: int
+    img_icon_url: str | None
+    playtime_windows_forever: int | None
+    playtime_mac_forever: int | None
+    playtime_linux_forever: int | None
 
 
 class RecentStatistics(BaseModel):
