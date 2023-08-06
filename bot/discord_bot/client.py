@@ -206,7 +206,7 @@ class DiscordClient(discord.Client):
             raise ConnectionError("Discord is not initialized yet")
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             retry_count = 1
-            while retry_count < 6:
+            while retry_count < 10:
                 statistics = await FaceitClient.match_stats(session, match.payload.id)
                 if statistics and statistics.rounds:
                     break
