@@ -125,7 +125,9 @@ class LastStatsImCol:
                 session,
                 player_details.steam_id_64 or player_details.games.csgo.game_player_id,
             )
-            steam_recently_stat = await SteamClient.user_rec_played_stat(session, player_details.steam_id_64)
+            steam_recently_stat = await SteamClient.user_rec_played_stat(
+                session, player_details.steam_id_64 or player_details.games.csgo.game_player_id
+            )
 
         self.player_stat[self.nickname] = FullPlayerStat(
             player_details=player_details,
