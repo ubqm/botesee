@@ -6,7 +6,7 @@ from io import BytesIO
 import aiohttp
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
-from loguru import logger
+
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics, Round
@@ -19,8 +19,8 @@ from bot.image_collectors.models.last_stat import (
     GameStatLastStorage,
     SteamStatLast,
 )
-from bot.utils.enums import colors
-from bot.utils.enums import available_maps
+from bot.utils.enums import available_maps, colors
+
 
 class LastStatsImCol:
     font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
@@ -121,7 +121,10 @@ class LastStatsImCol:
             )
 
         async with aiohttp.ClientSession() as session:
-            steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
+            steam_app_stat = await SteamClient.user_app_stat(
+                session,
+                player_details.steam_id_64 or player_details.games.csgo.game_player_id,
+            )
             steam_recently_stat = await SteamClient.user_rec_played_stat(session, player_details.steam_id_64)
 
         self.player_stat[self.nickname] = FullPlayerStat(
@@ -265,7 +268,7 @@ class LastStatsImCol:
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/{game.map_name}.jpg")
         else:
             current_map = Image.new(mode="RGBA", size=(90, 50), color="black")
-        
+
         current_map = current_map.resize((90, 50))
         self.image.paste(current_map, (770, 50 * idx_game + 24))
 
@@ -292,8 +295,13 @@ class LastStatsImCol:
 if __name__ == "__main__":
 
     async def main():
-        last_imcol = LastStatsImCol("FIERCE_ss")
-        imgs = await last_imcol.collect_image()
-        imgs.show()
+        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
+            player_details = await FaceitClient.player_details(session, "zagorskij99")
+            steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
+
+            print(steam_app_stat)
+        # last_imcol = LastStatsImCol("FIERCE_ss")
+        # imgs = await last_imcol.collect_image()
+        # imgs.show()
 
     asyncio.run(main())
