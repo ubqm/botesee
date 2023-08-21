@@ -417,17 +417,22 @@ class CompareImCol:
         right_stat_x = 850
 
         for idx, available_map in enumerate(available_maps):
-            won, lost, percentage = player1_stats.map_stats(available_map, self.amount)
-            left_line = f"{won} - {lost} | {percentage}%"
-            won, lost, percentage = player2_stats.map_stats(available_map, self.amount)
-            right_line = f"{won} - {lost} | {percentage}%"
+            p1_won, p1_lost, p1_percentage = player1_stats.map_stats(available_map, self.amount)
+            left_line = f"{p1_won} - {p1_lost} | {p1_percentage}%"
+            p2_won, p2_lost, p2_percentage = player2_stats.map_stats(available_map, self.amount)
+            right_line = f"{p2_won} - {p2_lost} | {p2_percentage}%"
 
-            canvas.text((left_stat_x, map_h * idx + map_y_start + 10), left_line, font=self.font)
+            p1_color = p2_color = colors.WHITE
+            if (p1_won or p1_lost) and (p2_won or p2_lost):
+                p1_color, p2_color = self.compare_stats((p1_percentage, p2_percentage), "%")
+
+            canvas.text((left_stat_x, map_h * idx + map_y_start + 10), left_line, font=self.font, fill=p1_color)
             w, h = canvas.textsize(right_line, font=self.font)
             canvas.text(
                 (right_stat_x - w, map_h * idx + map_y_start + 10),
                 right_line,
                 font=self.font,
+                fill=p2_color,
             )
 
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/{available_map}.jpg")
@@ -450,7 +455,7 @@ class CompareImCol:
 if __name__ == "__main__":
 
     async def main():
-        imgcmp = CompareImCol("-MORZY", "Ayudesee", amount=10)
+        imgcmp = CompareImCol("-MORZY", "-NAPAD", amount=20)
         img = await imgcmp.collect_image()
         img.show()
 
