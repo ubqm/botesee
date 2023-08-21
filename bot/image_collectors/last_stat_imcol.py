@@ -253,8 +253,11 @@ class LastStatsImCol:
         canvas.text((665, 50 * idx_game + 30), kad, font=self.font, fill=stat_color)
 
     def _draw_game_time(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
-        game_date = game.started_at.strftime("%d %b %H:%M")
-        canvas.text((490, 50 * idx_game + 30), game_date, font=self.font)
+        game_date = game.started_at.strftime("%d %b")
+        game_time = game.started_at.strftime("%H:%M")
+        w, h = canvas.textsize(game_time, font=self.font)
+        canvas.text((488, 50 * idx_game + 30), game_date, font=self.font)
+        canvas.text((648 - w, 50 * idx_game + 30), game_time, font=self.font)
 
     def _draw_game_background(self, game: GameStatLast, idx_game: int) -> None:
         if game.result:
