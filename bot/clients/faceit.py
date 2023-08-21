@@ -10,17 +10,18 @@ from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.clients.models.faceit.player_details import PlayerDetails
 from bot.clients.models.faceit.player_history import PlayerHistory
 from bot.clients.models.faceit.region_stats import RegionStatistics
+from bot.image_collectors._exceptions import BadAPICallException
 
 
 class FaceitClient:
     base_url = "https://open.faceit.com/data/v4"
 
     @classmethod
-    async def player_details(cls, session: ClientSession, nickname: str) -> PlayerDetails | None:
+    async def player_details(cls, session: ClientSession, nickname: str) -> PlayerDetails:
         api_url = f"{cls.base_url}/players?nickname={nickname}"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"player_details with {response.status}: {response.content}")
             res = await response.json()
             return PlayerDetails(**res)
 
@@ -30,12 +31,12 @@ class FaceitClient:
         return details.games.csgo.faceit_elo if details else 0
 
     @classmethod
-    async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails | None:
+    async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/players/{player_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"player_details_by_id with {response.status}: {response.content}")
             res = await response.json()
             return PlayerDetails(**res)
 
@@ -47,12 +48,12 @@ class FaceitClient:
         game: str = "csgo",
         offset: int = 0,
         limit: int = 20,
-    ) -> PlayerHistory | None:
+    ) -> PlayerHistory:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"player_history with {response.status}: {response.content}")
             res = await response.json()
             return PlayerHistory(**res)
 
@@ -61,7 +62,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/matches/{match_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"match_details with {response.status}: {response.content}")
             res = await response.json()
             return MatchDetails(**res)
 
@@ -70,7 +71,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/matches/{match_id}/stats"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"match_stats with {response.status}: {response.content}")
             res = await response.json()
             return MatchStatistics(**res)
 
@@ -81,14 +82,14 @@ class FaceitClient:
         player_id: UUID | str,
         region: str,
         country: str | None = None,
-    ) -> RegionStatistics | None:
+    ) -> RegionStatistics:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/rankings/games/csgo/regions/{region}/players/{player_id}?limit=2"
         if country:
             api_url += f"&country={country}"
         async with session.get(api_url) as response:
             if response.status != 200:
-                return None
+                raise BadAPICallException(f"region_stats with {response.status}: {response.content}")
             res = await response.json()
             return RegionStatistics(**res)
 
