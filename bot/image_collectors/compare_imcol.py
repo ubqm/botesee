@@ -363,7 +363,7 @@ class CompareImCol:
                     player2_stats.mean_hs(self.amount),
                 ),
                 "type": "%",
-                "format": "{value}%",
+                "format": "{value:.1f}%",
             },
             "winrate": {
                 "value": (
@@ -416,9 +416,9 @@ class CompareImCol:
         right_stat_x = 850
 
         for idx, available_map in enumerate(available_maps):
-            won, lost, percentage = player1_stats.map_stats(available_map)
+            won, lost, percentage = player1_stats.map_stats(available_map, self.amount)
             left_line = f"{won} - {lost} | {percentage}%"
-            won, lost, percentage = player2_stats.map_stats(available_map)
+            won, lost, percentage = player2_stats.map_stats(available_map, self.amount)
             right_line = f"{won} - {lost} | {percentage}%"
 
             canvas.text((left_stat_x, map_h * idx + map_y_start + 10), left_line, font=self.font)
