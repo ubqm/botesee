@@ -6,6 +6,7 @@ from typing import Any, Literal
 import aiohttp
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
+from PIL.ImageFont import FreeTypeFont
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
@@ -32,14 +33,14 @@ class CompareImCol:
         self.player_stat: dict[str, FullPlayerStat] = {}
         self.nickname1: str = nickname1
         self.nickname2: str = nickname2
-        self.compared_nicknames = (self.nickname1, self.nickname2)
+        self.compared_nicknames: tuple[str, str] = (self.nickname1, self.nickname2)
         self.output_type: str = self.validate_output_type(output_type)
         self.amount: int = self.validate_amount(amount)
-        self.image = Image.new("RGBA", size=(960, 540))
-        self.dark_bg = Image.new("RGB", size=(960, 540), color="black")
-        self.dark_middle = Image.open(f"{TEMPLATE_PATH}/background_features/dark-middle-compare.png")
-        self.font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
-        self.font_name = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36)
+        self.image: Image = Image.new("RGBA", size=(960, 540))
+        self.dark_bg: Image = Image.new("RGB", size=(960, 540), color="black")
+        self.dark_middle: Image = Image.open(f"{TEMPLATE_PATH}/background_features/dark-middle-compare.png")
+        self.font: FreeTypeFont = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
+        self.font_name: FreeTypeFont = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36)
 
     @staticmethod
     def validate_output_type(output_type: str) -> str:
@@ -129,7 +130,7 @@ class CompareImCol:
         for match_history in self.player_stat[nickname].player_history.items:
             task2 = asyncio.create_task(FaceitClient.match_stats(session, match_history.match_id))
             tasks.append(task2)
-        results: list[MatchStatistics] = await asyncio.gather(*tasks)
+        results: tuple[MatchStatistics, ...] = await asyncio.gather(*tasks, return_exceptions=True)
         for idx, match_stats in enumerate(results):
             if not match_stats:
                 continue
@@ -363,7 +364,7 @@ class CompareImCol:
                     player2_stats.mean_hs(self.amount),
                 ),
                 "type": "%",
-                "format": "{value}%",
+                "format": "{value:.1f}%",
             },
             "winrate": {
                 "value": (
@@ -416,9 +417,9 @@ class CompareImCol:
         right_stat_x = 850
 
         for idx, available_map in enumerate(available_maps):
-            won, lost, percentage = player1_stats.map_stats(available_map)
+            won, lost, percentage = player1_stats.map_stats(available_map, self.amount)
             left_line = f"{won} - {lost} | {percentage}%"
-            won, lost, percentage = player2_stats.map_stats(available_map)
+            won, lost, percentage = player2_stats.map_stats(available_map, self.amount)
             right_line = f"{won} - {lost} | {percentage}%"
 
             canvas.text((left_stat_x, map_h * idx + map_y_start + 10), left_line, font=self.font)
