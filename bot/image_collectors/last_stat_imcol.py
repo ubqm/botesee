@@ -1,5 +1,4 @@
 import asyncio
-import calendar
 from asyncio import Task
 from io import BytesIO
 
@@ -254,9 +253,8 @@ class LastStatsImCol:
         canvas.text((665, 50 * idx_game + 30), kad, font=self.font, fill=stat_color)
 
     def _draw_game_time(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
-        dd = game.started_at.strftime("%m/%d")
-        cc = calendar.month_name[int(dd.split("/")[0])][:3]
-        canvas.text((570, 50 * idx_game + 30), dd.split("/")[1] + " " + cc, font=self.font)
+        game_date = game.started_at.strftime("%d %b %H:%M")
+        canvas.text((490, 50 * idx_game + 30), game_date, font=self.font)
 
     def _draw_game_background(self, game: GameStatLast, idx_game: int) -> None:
         if game.result:
