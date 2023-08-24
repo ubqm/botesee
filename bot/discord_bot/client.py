@@ -15,6 +15,7 @@ from bot.db.script import db_match_finished
 
 # from database import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
+from bot.image_collectors._exceptions import BadAPICallException
 from bot.image_collectors.compare_imcol import CompareImCol
 from bot.image_collectors.last_stat_imcol import LastStatsImCol
 from bot.image_collectors.match_finished import MatchFinishedImCol
@@ -207,11 +208,14 @@ class DiscordClient(discord.Client):
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             retry_count = 1
             while retry_count < 10:
-                statistics = await FaceitClient.match_stats(session, match.payload.id)
-                if statistics and statistics.rounds:
+                try:
+                    statistics = await FaceitClient.match_stats(session, match.payload.id)
+                except BadAPICallException as e:
+                    logger.warning(e)
+                    retry_count += 1
+                    await asyncio.sleep(retry_count**2)
+                else:
                     break
-                retry_count += 1
-                await asyncio.sleep(retry_count**2)
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)
