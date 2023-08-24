@@ -46,6 +46,6 @@ async def faceit_webhook(
     background_tasks: BackgroundTasks,
     rabbit: RabbitClient = Depends(get_rabbit),
 ) -> OKResponse:
-    logger.info(f"{match}")
+    logger.info(f"{match.json()}")
     background_tasks.add_task(rabbit.publish, message=match.json())
     return OKResponse()
