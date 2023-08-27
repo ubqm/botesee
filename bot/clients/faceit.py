@@ -9,6 +9,7 @@ from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.clients.models.faceit.player_details import PlayerDetails
 from bot.clients.models.faceit.player_history import PlayerHistory
+from bot.clients.models.faceit.player_stats import PlayerGameStats
 from bot.clients.models.faceit.region_stats import RegionStatistics
 from bot.image_collectors._exceptions import BadAPICallException
 
@@ -56,6 +57,18 @@ class FaceitClient:
                 raise BadAPICallException(f"player_history with {response.status}: {response.content}")
             res = await response.json()
             return PlayerHistory(**res)
+
+    @classmethod
+    async def player_stats(
+        cls, session: ClientSession, player_id: UUID | str, game_id: str = "csgo"
+    ) -> PlayerGameStats:
+        player_id = str(player_id)
+        api_url = f"{cls.base_url}/players/{player_id}/stats/{game_id}"
+        async with session.get(api_url) as response:
+            if response.status != 200:
+                raise BadAPICallException(f"player_stats with {response.status}: {response.content}")
+            res = await response.json()
+            return PlayerGameStats(**res)
 
     @classmethod
     async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails | None:
