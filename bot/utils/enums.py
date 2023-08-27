@@ -27,6 +27,7 @@ class SubscribedPlayers(BaseModel):
     DETSKI_LEPIT: UUID = UUID("ca5af68f-024c-40b1-a0dc-df8f8c50984d")
     VIKTOROVICH: UUID = UUID("195921be-11f6-4037-84d0-2899d01e8d7a")
     TIA: UUID = UUID("47872fc7-5f59-49dd-a24a-440f1914a517")
+    LFS: UUID = UUID("602d617c-3ed2-4559-af0a-b326f36e6fde")
 
     def __contains__(self, item: str | UUID) -> bool:
         if type(item) is str:
