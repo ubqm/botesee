@@ -25,11 +25,28 @@ class PlayerDetailsFromMatch(BaseModel):
     anticheat_required: bool
 
 
+class FactionTeamSkillLevelRange(BaseModel):
+    min: int
+    max: int
+
+
+class FactionTeamSkillLevel(BaseModel):
+    average: int
+    range: FactionTeamSkillLevelRange
+
+
+class FactionTeamStats(BaseModel):
+    win_probabibility: float
+    skill_level: FactionTeamSkillLevel
+    rating: int
+
+
 class TeamDetails(BaseModel):
     faction_id: UUID
     leader: UUID
     avatar: str
     roster: list[PlayerDetailsFromMatch]
+    stats: FactionTeamStats | None
     substituted: bool
     name: str
     type: str
@@ -86,11 +103,11 @@ class MatchDetails(BaseModel):
     voting: Voting
     calculate_elo: bool
     configured_at: datetime
-    started_at: datetime
-    finished_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
     demo_url: list[str] | None
     chat_room_id: str
     best_of: int
-    results: Results
+    results: Results | None
     status: str
     faceit_url: HttpUrl
