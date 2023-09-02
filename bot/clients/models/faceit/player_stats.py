@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 
 class LifetimeStats(BaseModel):
-    total_matches = Field(alias="Matches", description="Total number of matches")
-    longest_win_streak = Field(alias="Longest Win Streak")
+    total_matches: int = Field(alias="Matches", description="Total number of matches")
+    longest_win_streak: int = Field(alias="Longest Win Streak")
     recent_results: list[bool] = Field(alias="Recent Results")
     avg_hs: int = Field(alias="Average Headshots %", description="From 0 to 100")
     avg_kd: float = Field(alias="Average K/D Ratio")
