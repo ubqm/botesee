@@ -2,7 +2,6 @@ import asyncio
 
 import discord
 
-#
 from bot.clients.rabbit import RabbitWorker
 from bot.discord_bot import conf
 from bot.discord_bot.client import DiscordClient
@@ -17,6 +16,7 @@ async def main():
         conf.RABBIT_USER,
         conf.RABBIT_PASSWORD,
         discord_bot,
+        asyncio.get_event_loop(),
     )
 
     await asyncio.gather(

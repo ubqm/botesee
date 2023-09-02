@@ -83,14 +83,24 @@ class MatchDetails(BaseModel):
     competition_type: str
     organizer_id: str
     teams: TeamsFaction
-    voting: Voting
+    voting: Voting | None
     calculate_elo: bool
-    configured_at: datetime
-    started_at: datetime
-    finished_at: datetime
+    configured_at: datetime | None
+    started_at: datetime | None
+    finished_at: datetime | None
     demo_url: list[str] | None
     chat_room_id: str
     best_of: int
-    results: Results
+    results: Results | None
     status: str
     faceit_url: HttpUrl
+
+    @property
+    def current_score(self) -> str:
+        if not self.results:
+            return "configuring"
+        if not self.results.score:
+            return "configuring"
+        if not self.results.score.faction1 or not self.results.score.faction2:
+            return "no results"
+        return f"{self.results.score.faction1} - {self.results.score.faction2}"
