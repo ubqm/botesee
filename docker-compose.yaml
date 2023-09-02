@@ -53,3 +53,13 @@ services:
       - type: bind
         source: ./errors.log
         target: /app/errors.log
+
+  celery:
+    container_name: "celery"
+    build:
+      context: .
+      target: celery
+    restart: always
+    depends_on:
+      rabbit:
+        condition: service_healthy
