@@ -21,3 +21,8 @@ FROM base as web
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 WORKDIR /app
 CMD ["uvicorn", "bot.web.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+FROM base as celery
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+WORKDIR /app
+CMD ["celery", "-A", "bot.celery.tasks.app", "worker", "-l", "INFO"]

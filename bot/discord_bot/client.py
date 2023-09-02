@@ -10,6 +10,7 @@ from loguru import logger
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
+from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db.script import db_match_finished
 
@@ -69,13 +70,13 @@ async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
     return NickEloStorage(players=players_storage)
 
 
-@logger.catch()
+@logger.catch
 def form_ready_embed_message(
     match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
     my_color = 9936031  # gray
     description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
-    embed_msg = discord.Embed(title="Match Ready", type="rich", description=description, color=my_color)
+    embed_msg = discord.Embed(title="Ongoing Match", type="rich", description=description, color=my_color)
     embed_msg.add_field(
         name=match.payload.teams[0].name,
         value=nick_elo_1.get_discord_nicknames(),
@@ -240,6 +241,7 @@ class DiscordClient(discord.Client):
     async def post_faceit_message_aborted(self, match: MatchAborted):
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
+    @logger.catch
     async def delete_message_by_faceit_match_id(self, match_id: str) -> NickEloStorage | None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
@@ -264,3 +266,24 @@ class DiscordClient(discord.Client):
             await message.delete()
             return NickEloStorage(players=st1 + st2)
         return None
+
+    @logger.catch
+    async def update_score_for_match(self, match_details: MatchDetails):
+        if not self.faceit_channel:
+            raise ConnectionError("Discord is not initialized yet")
+
+        async for message in self.faceit_channel.history(limit=40):
+            if not message.embeds:
+                continue
+            if match_details.match_id not in message.embeds[0].description:
+                continue
+
+            new_embed = message.embeds[0]
+            new_embed.title = f"Ongoing Match [{match_details.current_score}]"
+            new_embed.description = (
+                f"[{match_details.voting.map.pick[0]}]"
+                f"(https://www.faceit.com/en/csgo/room/{match_details.match_id}) - "
+                f"{match_details.voting.location.pick[0]}"
+            )
+            await message.edit(embeds=message.embeds)
+            break
