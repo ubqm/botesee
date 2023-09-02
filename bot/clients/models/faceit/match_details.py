@@ -25,11 +25,28 @@ class PlayerDetailsFromMatch(BaseModel):
     anticheat_required: bool
 
 
+class FactionTeamSkillLevelRange(BaseModel):
+    min: int
+    max: int
+
+
+class FactionTeamSkillLevel(BaseModel):
+    average: int
+    range: FactionTeamSkillLevelRange
+
+
+class FactionTeamStats(BaseModel):
+    win_probabibility: float
+    skill_level: FactionTeamSkillLevel
+    rating: int
+
+
 class TeamDetails(BaseModel):
     faction_id: UUID
     leader: UUID
     avatar: str
     roster: list[PlayerDetailsFromMatch]
+    stats: FactionTeamStats | None
     substituted: bool
     name: str
     type: str
