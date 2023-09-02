@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 import aiohttp
 from aiohttp import ClientSession
+from loguru import logger
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
@@ -14,6 +15,7 @@ from bot.clients.models.faceit.match_stats import MatchStatistics, Round
 from bot.clients.models.faceit.player_details import PlayerDetails
 from bot.clients.models.faceit.player_history import MatchHistory
 from bot.image_collectors import TEMPLATE_PATH
+from bot.image_collectors._exceptions import BadAPICallException
 from bot.image_collectors.models.last_stat import (
     FullPlayerStat,
     GameStatLast,
@@ -67,14 +69,17 @@ class CompareImCol:
 
     async def collect_image(self) -> Image:
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            player1_stats, player2_stats = await asyncio.gather(
-                self.collect_stat(session, self.nickname1),
-                self.collect_stat(session, self.nickname2),
-            )
-
-            if player1_stats and player2_stats:
-                self.draw_image(player1_stats, player2_stats)
-                return self.image
+            try:
+                player1_stats, player2_stats = await asyncio.gather(
+                    self.collect_stat(session, self.nickname1),
+                    self.collect_stat(session, self.nickname2),
+                )
+            except BadAPICallException as e:
+                logger.warning(e)
+            else:
+                if player1_stats and player2_stats:
+                    self.draw_image(player1_stats, player2_stats)
+                    return self.image
 
     async def _collect_user_info(self, session: ClientSession, nickname: str) -> None:
         player_details = await FaceitClient.player_details(session, nickname)
@@ -135,16 +140,21 @@ class CompareImCol:
             if not match_stats:
                 continue
             for match_round in match_stats.rounds[::-1]:
-                game = self.compile_game(
+                if game := self.compile_game(
                     match_round,
                     self.player_stat[nickname].player_history.items[idx],
                     nickname,
-                )
-                games.append(game)
+                ):
+                    games.append(game)
         return GameStatLastStorage(games=games)
 
-    def compile_game(self, match_round: Round, match_h: MatchHistory, nickname: str) -> GameStatLast:
+    def compile_game(self, match_round: Round, match_h: MatchHistory, nickname: str) -> GameStatLast | None:
         player_stats = match_round.get_player_stats(self.player_stat[nickname].player_details.player_id)
+
+        # if player wasn't in the match (leaver)
+        if not player_stats:
+            return None
+
         return GameStatLast(
             result=player_stats.result,
             kills=player_stats.kills,
@@ -340,7 +350,7 @@ class CompareImCol:
                     player2_stats.mean_deaths(self.amount),
                 ),
                 "type": "reverse",
-                "format": "{value}",
+                "format": "{value:.1f}",
             },
             "kd": {
                 "value": (

@@ -8,6 +8,7 @@ astroid==2.13.3
 async-timeout==4.0.2
 asyncpg==0.27.0
 attrs==22.2.0
+celery==5.3.1
 certifi==2022.12.7
 charset-normalizer==2.1.1
 click==8.1.3

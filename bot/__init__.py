@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     def db_string(self) -> str:
         return f"postgres://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_NAME}/{self.DB_NAME}"
 
+    @property
+    def rmq_string(self) -> str:
+        return f"amqp://{self.RABBIT_USER}:{self.RABBIT_PASSWORD}@{self.RABBIT_HOST}:{self.RABBIT_PORT}"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
