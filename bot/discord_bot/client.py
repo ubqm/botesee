@@ -5,7 +5,7 @@ from typing import Any
 
 import aiohttp
 import discord
-from discord import Intents, RawReactionActionEvent
+from discord import Intents, Member, RawReactionActionEvent, TextChannel
 from loguru import logger
 
 from bot import conf
@@ -143,7 +143,7 @@ class DiscordClient(discord.Client):
             raise ConnectionError("Discord is not initialized yet")
         logger.info(f"New message from {message.author}: {message.content}")
         _content: list = message.content.split()
-        if message.author.id != self.user.id:  # 825393722186924112
+        if self.user and message.author.id != self.user.id:  # 825393722186924112
             if self.is_contains_media(message):
                 await message.add_reaction("👍")
                 await message.add_reaction("👎")
@@ -177,12 +177,22 @@ class DiscordClient(discord.Client):
             return
 
         channel = discord.Client.get_channel(self, payload.channel_id)
+        if not channel:
+            return
+
+        if not isinstance(channel, TextChannel):
+            return
+
         message = await channel.fetch_message(payload.message_id)
         for reaction in message.reactions:
             if reaction.emoji == "👍":
-                upvotes = len([user async for user in reaction.users() if len(user.roles) > 1])
+                upvotes = len(
+                    [user async for user in reaction.users() if isinstance(user, Member) and len(user.roles) > 1]
+                )
             elif reaction.emoji == "👎":
-                downvotes = len([user async for user in reaction.users() if len(user.roles) > 1])
+                downvotes = len(
+                    [user async for user in reaction.users() if isinstance(user, Member) and len(user.roles) > 1]
+                )
 
         logger.info(
             f"[{upvotes}/{downvotes}] {payload.emoji} {payload.event_type} by {payload.member} | "
@@ -217,6 +227,9 @@ class DiscordClient(discord.Client):
                     await asyncio.sleep(retry_count**2)
                 else:
                     break
+                raise Exception(f"could not get statistics from Finished match {match.payload.id}")
+
+        await db_match_finished(match, statistics)
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)
@@ -228,14 +241,14 @@ class DiscordClient(discord.Client):
             url=f"https://www.faceit.com/en/csgo/room/{match.payload.id}",
         )
         nick_elo = await self.delete_message_by_faceit_match_id(match.payload.id)
+        if not nick_elo:
+            return
 
         img_collector = MatchFinishedImCol(match, statistics, nick_elo)
         image_list = await img_collector.collect_images()
         for image in image_list:
             embed_msg.set_image(url="attachment://image.png")
             await self.faceit_channel.send(embed=embed_msg, file=self.compile_binary_image(image))
-
-        await db_match_finished(match, statistics)
 
     @logger.catch
     async def post_faceit_message_aborted(self, match: MatchAborted):
@@ -245,22 +258,24 @@ class DiscordClient(discord.Client):
     async def delete_message_by_faceit_match_id(self, match_id: str) -> NickEloStorage | None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
-        messages = [message async for message in self.faceit_channel.history(limit=20)]
-        for message in messages:
+
+        async for message in self.faceit_channel.history(limit=40):  # type: discord.Message
             if not message.embeds:
                 continue
-            if match_id not in message.embeds[0].description:
-                continue
+
+            if message_description := message.embeds[0].description:
+                if match_id not in message_description:
+                    continue
 
             # get nicknames from URL-embed discord format [nickname](URL)
-            nick1 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[0].value)
-            elo1 = message.embeds[0].fields[1].value.split("\n")
-            elo1 = [int(item) for item in elo1]
+            nick1 = re.findall(r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[0].value))
+            elo1_temp = str(message.embeds[0].fields[1].value).split("\n")  # type: list[str]
+            elo1 = [int(item) for item in elo1_temp]  # type: list[int]
             st1 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick1, elo1)]
 
-            nick2 = re.findall(r"\[(?P<nickname>.*?)]", message.embeds[0].fields[3].value)
-            elo2 = message.embeds[0].fields[4].value.split("\n")
-            elo2 = [int(item) for item in elo2]
+            nick2 = re.findall(r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[3].value))
+            elo2_temp = str(message.embeds[0].fields[4].value).split("\n")  # type: list[str]
+            elo2 = [int(item) for item in elo2_temp]  # type: list[int]
             st2 = [PlayerStorage(nickname=nickname, elo=elo) for nickname, elo in zip(nick2, elo2)]
 
             await message.delete()
@@ -268,22 +283,23 @@ class DiscordClient(discord.Client):
         return None
 
     @logger.catch
-    async def update_score_for_match(self, match_details: MatchDetails):
+    async def update_score_for_match(self, match_details: MatchDetails) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
         async for message in self.faceit_channel.history(limit=40):
             if not message.embeds:
                 continue
-            if match_details.match_id not in message.embeds[0].description:
+            if match_details.match_id not in str(message.embeds[0].description):
                 continue
 
             new_embed = message.embeds[0]
             new_embed.title = f"Ongoing Match [{match_details.current_score}]"
-            new_embed.description = (
-                f"[{match_details.voting.map.pick[0]}]"
-                f"(https://www.faceit.com/en/csgo/room/{match_details.match_id}) - "
-                f"{match_details.voting.location.pick[0]}"
-            )
+            if match_details.voting:
+                new_embed.description = (
+                    f"[{match_details.voting.map.pick[0]}]"
+                    f"(https://www.faceit.com/en/csgo/room/{match_details.match_id}) - "
+                    f"{match_details.voting.location.pick[0]}"
+                )
             await message.edit(embeds=message.embeds)
             break

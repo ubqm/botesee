@@ -1,13 +1,13 @@
 import aiohttp
+
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics
+from bot.db import Session
 from bot.db.repositories.elo import EloRepository
 from bot.db.repositories.match import MatchRepository
-from bot.web.models.events import MatchFinished
-
-from bot.db import Session
 from bot.db.repositories.player import PlayerRepository
+from bot.web.models.events import MatchFinished
 
 match_repo = MatchRepository()
 elo_repo = EloRepository()

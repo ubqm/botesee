@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from PIL.Image import Image
+from PIL import Image
+from PIL.Image import Image as ImageClass
 from pydantic import BaseModel
 
 from bot.clients.models.faceit.player_details import PlayerDetails
@@ -180,13 +181,13 @@ class PlayerStatLast(BaseModel):
 
 class FullPlayerStat(BaseModel):
     player_details: PlayerDetails
-    player_history: PlayerHistory | None = None
-    player_region_stats: RegionStatistics | None = None
-    player_country_stats: RegionStatistics | None = None
+    player_history: PlayerHistory
+    player_region_stats: RegionStatistics
+    player_country_stats: RegionStatistics
     steam_app_stat: UserAppStatistics | None = None
     steam_recently_stat: RecentStatisticsResponse | None = None
-    avatar: Image | None = None
-    background: Image | None = None
+    avatar: ImageClass | None = None
+    background: ImageClass = Image.new(mode="RGBA", size=(960, 540), color="black")
 
     class Config:
         arbitrary_types_allowed = True

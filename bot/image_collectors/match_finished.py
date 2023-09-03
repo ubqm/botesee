@@ -1,18 +1,20 @@
 import asyncio
 from asyncio import Task
 from io import BytesIO
-from typing import Final, Literal
+from typing import Literal
 
 import aiohttp
 from aiohttp import ClientSession
-from PIL import Image, ImageDraw, ImageFont
+from PIL.Image import Image
+from PIL.ImageDraw import ImageDraw
+from PIL.ImageFont import ImageFont
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors import TEMPLATE_PATH
-from bot.utils.enums import available_maps, colors
+from bot.utils.enums import ColorTuple, available_maps
 from bot.web.models.base import Player as webPlayer
 from bot.web.models.events import MatchFinished
 
@@ -82,15 +84,15 @@ class MatchFinishedImCol:
         return canvas
 
     @staticmethod
-    def _get_kd_color(player: Player) -> tuple[int, int, int, int]:
+    def _get_kd_color(player: Player) -> ColorTuple:
         if player.player_stats.kd_ratio >= 1.3:
-            return colors.GREEN
+            return ColorTuple.GREEN
         elif player.player_stats.kd_ratio < 0.6:
-            return colors.RED
+            return ColorTuple.RED
         elif 0.8 > player.player_stats.kd_ratio >= 0.6:
-            return colors.ORANGE
+            return ColorTuple.ORANGE
         else:
-            return colors.WHITE
+            return ColorTuple.WHITE
 
     def _draw_player_stat(
         self,
@@ -99,7 +101,7 @@ class MatchFinishedImCol:
         canvas: Image,
         idx_team: int,
         idx_player: int,
-        kd_color: tuple[int, int, int, int],
+        kd_color: ColorTuple,
     ):
         image_draw = ImageDraw.Draw(canvas)
         stat_dict = {
@@ -123,16 +125,16 @@ class MatchFinishedImCol:
             stat_pos_dict[stat],
             text,
             font=self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"],
-            fill=kd_color if stat == "kd" else colors.WHITE,
+            fill=kd_color if stat == "kd" else ColorTuple.WHITE,
         )
 
     async def _draw_player_stats(self, player: Player, canvas: Image, idx_team: int, idx_player: int) -> None:
         kd_color = self._get_kd_color(player)
-        kad: Final[str] = "kad"
-        mvp: Final[str] = "mvp"
-        kr: Final[str] = "kr"
-        kd: Final[str] = "kd"
-        vals = (kad, mvp, kr, kd)
+        kad: Literal["kad"] = "kad"
+        mvp: Literal["mvp"] = "mvp"
+        kr: Literal["kr"] = "kr"
+        kd: Literal["kd"] = "kd"
+        vals: tuple[Literal["kad", "mvp", "kr", "kd"], ...] = (kad, mvp, kr, kd)
         for stat in vals:
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
 
@@ -266,7 +268,7 @@ class MatchFinishedImCol:
         return image_topcolor, image_botcolor
 
     async def _get_background(self, round_: Round) -> Image:
-        if round_.round_stats.map not in available_maps:
+        if round_.round_stats.map not in available_maps.values:
             return Image.open(f"{TEMPLATE_PATH}/maps/black.jpg")
 
         image_map = Image.open(f"{TEMPLATE_PATH}/maps/{round_.round_stats.map}.jpg")

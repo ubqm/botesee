@@ -73,11 +73,11 @@ class RabbitWorker:
     async def _process_match(self, match: WebhookMatch) -> None:
         match match.event:
             case EventEnum.READY | EventEnum.CONFIGURING:
-                await self.discord.post_faceit_message_ready(match)
+                await self.discord.post_faceit_message_ready(match)  # type: ignore
             case EventEnum.CANCELLED | EventEnum.ABORTED:
-                await self.discord.post_faceit_message_aborted(match)
+                await self.discord.post_faceit_message_aborted(match)  # type: ignore
             case EventEnum.FINISHED:
-                await self.discord.post_faceit_message_finished(match)
+                await self.discord.post_faceit_message_finished(match)  # type: ignore
 
     async def _update_score(self, match_details: MatchDetails):
         await self.discord.update_score_for_match(match_details=match_details)
@@ -91,7 +91,7 @@ class RabbitWorker:
 
     async def consume(self):
         await self._wait_discord_startup()
-        async with self.channel_pool.acquire() as channel:  # type: aio_pika.Channel
+        async with self.channel_pool.acquire() as channel:  # type: aio_pika.abc.AbstractChannel
             await asyncio.gather(
                 self._consume_match_queue(channel, "matches"),
                 self._consume_score_queue(channel, "update_score"),
@@ -102,9 +102,8 @@ class RabbitWorker:
         queue = await channel.declare_queue(queue_name, durable=True)
 
         async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-                message: aio_pika.IncomingMessage
-                match = parse_obj_as(WebhookMatch, json.loads(message.body.decode()))
+            async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
+                match: WebhookMatch = parse_obj_as(WebhookMatch, json.loads(message.body.decode()))  # type: ignore
                 try:
                     await self._process_match(match)
                 except Exception as ex:
@@ -117,8 +116,7 @@ class RabbitWorker:
         queue = await channel.declare_queue(queue_name, durable=True)
 
         async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-                message: aio_pika.IncomingMessage
+            async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
                 match_details = parse_obj_as(MatchDetails, json.loads(message.body.decode()))
                 try:
                     await self._update_score(match_details)

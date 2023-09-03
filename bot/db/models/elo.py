@@ -7,7 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from bot.db.models.base import Base
 
 if TYPE_CHECKING:
-    from bot.db.models import Match, Player
+    from bot.db.models.match import Match
+    from bot.db.models.player import Player
 
 
 class Elo(Base):

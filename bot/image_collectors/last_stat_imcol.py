@@ -18,7 +18,7 @@ from bot.image_collectors.models.last_stat import (
     GameStatLastStorage,
     SteamStatLast,
 )
-from bot.utils.enums import available_maps, colors
+from bot.utils.enums import ColorTuple, available_maps
 
 
 class LastStatsImCol:
@@ -180,7 +180,9 @@ class LastStatsImCol:
             self.image.resize((960, 540))
 
     def _get_steam_stats_text(self) -> SteamStatLast:
-        csgo_stats = self.player_stat[self.nickname].steam_recently_stat.get_csgo()
+        if not self.player_stat[self.nickname].steam_recently_stat:
+            raise Exception(f"Steam recent stats not found for {self.nickname} {self.player_stat[self.nickname]}")
+        csgo_stats = self.player_stat[self.nickname].steam_recently_stat.get_csgo()  # type: ignore
         playtime_2weeks = "Last 2 weeks: Unknown"
         playtime_forever = "Summary in CSGO: Unknown"
         percentage_played = "Activity: Unknown"
@@ -191,7 +193,9 @@ class LastStatsImCol:
             playtime_forever = f"Summary in CSGO: {int(csgo_playtime_hours)} hrs"
 
             if self.player_stat[self.nickname].steam_app_stat:
-                csgo_playtime = self.player_stat[self.nickname].steam_app_stat.playerstats.stats[2].value / 60 / 60
+                csgo_playtime = (
+                    self.player_stat[self.nickname].steam_app_stat.playerstats.stats[2].value / 60 / 60  # type: ignore
+                )
                 csgo_time_played_hrs = f"Played in CSGO: {int(csgo_playtime)} hrs"
                 percentage_played = f"Activity: {csgo_playtime / csgo_playtime_hours * 100:.1f}%"
             else:
@@ -237,15 +241,15 @@ class LastStatsImCol:
         )
 
     @staticmethod
-    def _get_player_game_stat_color(kd_ratio: float) -> tuple[int, int, int, int]:
+    def _get_player_game_stat_color(kd_ratio: float) -> ColorTuple:
         if kd_ratio >= 1.3:
-            return colors.GREEN
+            return ColorTuple.GREEN
         elif kd_ratio < 0.6:
-            return colors.RED
+            return ColorTuple.RED
         elif 0.8 > kd_ratio >= 0.6:
-            return colors.ORANGE
+            return ColorTuple.ORANGE
         else:
-            return colors.WHITE
+            return ColorTuple.WHITE
 
     def _draw_game_kd(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
         stat_color = self._get_player_game_stat_color(game.kd_ratio)
@@ -267,7 +271,7 @@ class LastStatsImCol:
 
     def _draw_game_map(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
         canvas.text((870, 50 * idx_game + 30), game.map_score, font=self.font)
-        if game.map_name in available_maps:
+        if game.map_name in available_maps.values:
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/{game.map_name}.jpg")
         else:
             current_map = Image.new(mode="RGBA", size=(90, 50), color="black")
@@ -298,13 +302,13 @@ class LastStatsImCol:
 if __name__ == "__main__":
 
     async def main():
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            player_details = await FaceitClient.player_details(session, "zagorskij99")
-            steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
+        # async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
+        # player_details = await FaceitClient.player_details(session, "Ayudesee")
+        # steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
 
-            print(steam_app_stat)
-        # last_imcol = LastStatsImCol("FIERCE_ss")
-        # imgs = await last_imcol.collect_image()
-        # imgs.show()
+        # print(steam_app_stat)
+        last_imcol = LastStatsImCol("FIERCE_ss")
+        imgs = await last_imcol.collect_image()
+        imgs.show()
 
     asyncio.run(main())
