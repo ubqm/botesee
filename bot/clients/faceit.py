@@ -71,7 +71,7 @@ class FaceitClient:
             return PlayerGameStats(**res)
 
     @classmethod
-    async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails | None:
+    async def match_details(cls, session: ClientSession, match_id: str) -> MatchDetails:
         api_url = f"{cls.base_url}/matches/{match_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
@@ -80,7 +80,7 @@ class FaceitClient:
             return MatchDetails(**res)
 
     @classmethod
-    async def match_stats(cls, session: ClientSession, match_id: str) -> MatchStatistics | None:
+    async def match_stats(cls, session: ClientSession, match_id: str) -> MatchStatistics:
         api_url = f"{cls.base_url}/matches/{match_id}/stats"
         async with session.get(api_url) as response:
             if response.status != 200:

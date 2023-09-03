@@ -21,7 +21,7 @@ from bot.image_collectors.models.last_stat import (
     GameStatLast,
     GameStatLastStorage,
 )
-from bot.utils.enums import ColorTuple, available_maps, colors
+from bot.utils.enums import ColorTuple, available_maps
 
 
 class CompareImCol:
@@ -174,36 +174,36 @@ class CompareImCol:
     @staticmethod
     def compare_stats(
         value: tuple, category: Literal["1f", "2f", "%", "reverse", "total"]
-    ) -> list[ColorTuple, ColorTuple]:
-        white = colors.WHITE
-        green = colors.GREEN
-        red = colors.RED
+    ) -> tuple[ColorTuple, ColorTuple]:
+        white = ColorTuple.WHITE
+        green = ColorTuple.GREEN
+        red = ColorTuple.RED
 
         values_dict = {
             "1f": {
-                0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
-                1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]},
+                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
+                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
             },
             "2f": {
-                0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
-                1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]},
+                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
+                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
             },
             "%": {
-                0: {"1.4": [green, red], "1.2": [green, white], "1": [white, white]},
-                1: {"1.4": [red, green], "1.2": [white, green], "1": [white, white]},
+                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
+                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
             },
             "reverse": {
-                0: {"1.4": [red, green], "1.2": [green, white], "1": [white, white]},
-                1: {"1.4": [green, red], "1.2": [white, green], "1": [white, white]},
+                0: {"1.4": (red, green), "1.2": (green, white), "1": (white, white)},
+                1: {"1.4": (green, red), "1.2": (white, green), "1": (white, white)},
             },
             "total": {
-                0: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]},
-                1: {"1.4": [white, white], "1.2": [white, white], "1": [white, white]},
+                0: {"1.4": (white, white), "1.2": (white, white), "1": (white, white)},
+                1: {"1.4": (white, white), "1.2": (white, white), "1": (white, white)},
             },
         }
 
         if not isinstance(value, tuple) or len(value) != 2:
-            return [white, white]
+            return (white, white)
         if value[0] == value[1] == 0:
             return values_dict[category][value.index(max(value))]["1"]
         rating = (max(value) / min(value)) if min(value) != 0 else 100
@@ -426,13 +426,13 @@ class CompareImCol:
         left_stat_x = 110
         right_stat_x = 850
 
-        for idx, available_map in enumerate(available_maps):
+        for idx, available_map in enumerate(available_maps.values):
             p1_won, p1_lost, p1_percentage = player1_stats.map_stats(available_map, self.amount)
             left_line = f"{p1_won} - {p1_lost} | {p1_percentage}%"
             p2_won, p2_lost, p2_percentage = player2_stats.map_stats(available_map, self.amount)
             right_line = f"{p2_won} - {p2_lost} | {p2_percentage}%"
 
-            p1_color = p2_color = colors.WHITE
+            p1_color = p2_color = ColorTuple.WHITE
             if (p1_won or p1_lost) and (p2_won or p2_lost):
                 p1_color, p2_color = self.compare_stats((p1_percentage, p2_percentage), "%")
 
@@ -465,7 +465,7 @@ class CompareImCol:
 if __name__ == "__main__":
 
     async def main():
-        imgcmp = CompareImCol("-MORZY", "-NAPAD", amount=20)
+        imgcmp = CompareImCol("-MORZY", "Ayudesee", amount=20)
         img = await imgcmp.collect_image()
         img.show()
 

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Generator
 from uuid import UUID
 
@@ -30,12 +31,12 @@ class SubscribedPlayers(BaseModel):
     LFS: UUID = UUID("602d617c-3ed2-4559-af0a-b326f36e6fde")
 
     def __contains__(self, item: str | UUID) -> bool:
-        if type(item) is str:
+        if isinstance(item, str):
             item = UUID(hex=item)
         return item in self.__dict__.values()
 
 
-class ColorTuple(BaseModel):
+class ColorTuple(tuple, Enum):
     WHITE: tuple[int, int, int, int] = (255, 255, 255, 255)
     GREEN: tuple[int, int, int, int] = (0, 190, 0, 255)
     ORANGE: tuple[int, int, int, int] = (255, 165, 0, 255)
@@ -55,11 +56,11 @@ class AvailableMaps(BaseModel):
     def __contains__(self, item: str) -> bool:
         return item in self.__dict__.values()
 
-    def __iter__(self) -> Generator[str, None, None]:
+    @property
+    def values(self) -> Generator[str, None, None]:
         """Iterate over actual values of instance ('de_ancient', 'de_dust2', ...)"""
         return (it[1] for it in super().__iter__())
 
 
 subscribers = SubscribedPlayers()
-colors = ColorTuple()
 available_maps = AvailableMaps()

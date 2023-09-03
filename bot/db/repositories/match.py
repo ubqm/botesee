@@ -13,7 +13,7 @@ class MatchRepository:
     ) -> Match:
         stmt = select(Match).where(Match.id == str(match_uuid))
 
-        match: Match = session.session.scalars(stmt).one_or_none()
+        match: Match | None = session.session.scalars(stmt).one_or_none()
         if not match:
             match = Match(id=str(match_uuid), date=date)
             session.session.add(match)

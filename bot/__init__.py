@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     DISCORD_TOKEN: str = ""
     STEAM_TOKEN: str = ""
     FACEIT_TOKEN: str = ""
-    FACEIT_HEADERS: dict[str, str] | None
+    FACEIT_HEADERS: dict[str, str] | None = None
     DB_USER: str = ""
     DB_PASSWORD: str = ""
     DB_HOST: str = ""

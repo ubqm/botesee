@@ -24,7 +24,7 @@ class NickEloStorage(BaseModel):
     def list_elos(self) -> list[int]:
         return [player.elo for player in self.players]
 
-    def __getitem__(self, nickname: str) -> PlayerStorage | None:
+    def __getitem__(self, nickname: str) -> PlayerStorage:
         for player in self.players:
             if player.nickname == nickname:
                 return player
