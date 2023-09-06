@@ -5,9 +5,7 @@ from typing import Literal
 
 import aiohttp
 from aiohttp import ClientSession
-from PIL.Image import Image
-from PIL.ImageDraw import ImageDraw
-from PIL.ImageFont import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 from bot import conf
 from bot.clients.faceit import FaceitClient

@@ -5,8 +5,8 @@ from pydantic import BaseModel, HttpUrl
 
 
 class Score(BaseModel):
-    faction1: int
-    faction2: int
+    faction1: int | None
+    faction2: int | None
 
 
 class Results(BaseModel):
@@ -36,8 +36,8 @@ class FactionTeamSkillLevel(BaseModel):
 
 
 class FactionTeamStats(BaseModel):
-    win_probabibility: float
-    skill_level: FactionTeamSkillLevel
+    win_probabibility: float | None
+    skill_level: FactionTeamSkillLevel | None
     rating: int
 
 
