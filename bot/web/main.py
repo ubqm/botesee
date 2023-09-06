@@ -1,10 +1,11 @@
-from fastapi import BackgroundTasks, Depends, FastAPI, Request, status
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
 
+from bot import conf
 from bot.celery.tasks import match_score_update
 from bot.clients.models.rabbit.queues import QueueName
 from bot.clients.rabbit import RabbitClient
@@ -32,6 +33,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
+async def faceit_webhook_auth(token: str = Header(None, alias="Webhook-Authorization")) -> str:
+    if token != conf.FACEIT_WEBHOOK_AUTH:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authorization required")
+    return token
+
+
 class OKResponse(BaseModel):
     status: str = "ok"
 
@@ -46,6 +53,7 @@ async def health() -> OKResponse:
 @app.get("/celery", tags=["Celery"])
 async def celery(
     match_id: str,
+    token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     match_score_update.delay(match_id)
     return OKResponse()
