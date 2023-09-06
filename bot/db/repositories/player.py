@@ -1,17 +1,18 @@
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import SessionTransaction
+from sqlalchemy import Result, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db import Player
 
 
 class PlayerRepository:
-    def get_or_create(self, session: SessionTransaction, player_uuid: str | UUID) -> Player:
+    async def get_or_create(self, session: AsyncSession, player_uuid: str | UUID) -> Player:
         stmt = select(Player).where(Player.id == str(player_uuid))
 
-        player: Player | None = session.session.scalars(stmt).one_or_none()
+        result: Result = await session.execute(stmt)
+        player: Player | None = result.scalar_one_or_none()
         if not player:
             player = Player(id=str(player_uuid))
-            session.session.add(player)
+            session.add(player)
         return player

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Union
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl
@@ -35,7 +35,7 @@ class Score(BaseModel):
 
 class ResultsHistory(BaseModel):
     score: Score
-    winner: Union[Literal["faction1", "faction2"]]
+    winner: Literal["faction1", "faction2"]
 
 
 class MatchHistory(BaseModel):

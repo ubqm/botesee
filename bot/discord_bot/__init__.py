@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     RABBIT_USER: str = ""
     RABBIT_PASSWORD: str = ""
 
+    @property
+    def pg_string(self) -> str:
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

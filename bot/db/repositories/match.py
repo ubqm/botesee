@@ -1,20 +1,21 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.orm import SessionTransaction
+from sqlalchemy import Result, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db import Match
 
 
 class MatchRepository:
-    def get_or_create(
-        self, session: SessionTransaction, match_uuid: str | UUID, date: datetime | None = None
+    async def get_or_create(
+        self, session: AsyncSession, match_uuid: str | UUID, date: datetime | None = None
     ) -> Match:
         stmt = select(Match).where(Match.id == str(match_uuid))
 
-        match: Match | None = session.session.scalars(stmt).one_or_none()
+        result: Result = await session.execute(stmt)
+        match: Match | None = result.scalar_one_or_none()
         if not match:
             match = Match(id=str(match_uuid), date=date)
-            session.session.add(match)
+            session.add(match)
         return match
