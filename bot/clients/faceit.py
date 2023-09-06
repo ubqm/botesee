@@ -3,6 +3,7 @@ from uuid import UUID
 
 import aiohttp
 from aiohttp import ClientSession
+from loguru import logger
 
 from bot import conf
 from bot.clients.models.faceit.match_details import MatchDetails
@@ -24,6 +25,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/players?nickname={nickname}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"player_details APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"player_details with {response.status}: {response.content}")
             res = await response.json()
             return PlayerDetails(**res)
@@ -39,6 +41,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/players/{player_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"player_details_by_id APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"player_details_by_id with {response.status}: {response.content}")
             res = await response.json()
             return PlayerDetails(**res)
@@ -56,6 +59,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/players/{player_id}/history?game={game}&offset={offset}&limit={limit}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"player_history APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"player_history with {response.status}: {response.content}")
             res = await response.json()
             return PlayerHistory(**res)
@@ -68,6 +72,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/players/{player_id}/stats/{game_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"player_stats APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"player_stats with {response.status}: {response.content}")
             res = await response.json()
             return PlayerGameStats(**res)
@@ -94,6 +99,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/matches/{match_id}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"match_details APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"match_details with {response.status}: {response.content}")
             res = await response.json()
             return MatchDetails(**res)
@@ -103,6 +109,7 @@ class FaceitClient:
         api_url = f"{cls.base_url}/matches/{match_id}/stats"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"match_stats APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"match_stats with {response.status}: {response.content}")
             res = await response.json()
             return MatchStatistics(**res)
@@ -121,6 +128,7 @@ class FaceitClient:
             api_url += f"&country={country}"
         async with session.get(api_url) as response:
             if response.status != 200:
+                logger.error(f"region_stats APICall Error {response.status}: {response.content}")
                 raise BadAPICallException(f"region_stats with {response.status}: {response.content}")
             res = await response.json()
             return RegionStatistics(**res)

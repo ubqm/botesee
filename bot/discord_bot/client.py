@@ -222,10 +222,11 @@ class DiscordClient(discord.Client):
                 except BadAPICallException as e:
                     logger.warning(e)
                     retry_count += 1
+                    if retry_count == 10:
+                        raise Exception(f"could not get statistics from Finished match {match.payload.id}")
                     await asyncio.sleep(retry_count**2)
                 else:
                     break
-                raise Exception(f"could not get statistics from Finished match {match.payload.id}")
 
         await db_match_finished(match, statistics)
 
@@ -266,6 +267,9 @@ class DiscordClient(discord.Client):
                     continue
 
             # get nicknames from URL-embed discord format [nickname](URL)
+            if not message.embeds or not message.embeds[0].fields:
+                return
+
             nick1 = re.findall(r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[0].value))
             elo1_temp = str(message.embeds[0].fields[1].value).split("\n")  # type: list[str]
             elo1 = [int(item) for item in elo1_temp]  # type: list[int]
