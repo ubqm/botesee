@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     STEAM_TOKEN: str = ""
     FACEIT_TOKEN: str = ""
     FACEIT_HEADERS: dict[str, str] | None = None
+    FACEIT_WEBHOOK_AUTH: str = ""
     DB_USER: str = ""
     DB_PASSWORD: str = ""
     DB_HOST: str = ""
@@ -18,7 +19,7 @@ class Settings(BaseSettings):
 
     @property
     def db_string(self) -> str:
-        return f"postgres://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_NAME}/{self.DB_NAME}"
+        return f"postgres+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_NAME}/{self.DB_NAME}"
 
     @property
     def rmq_string(self) -> str:
