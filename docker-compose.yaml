@@ -4,7 +4,7 @@ services:
   postgres:
     container_name: "postgres"
     image: postgres:15.0
-    restart: always
+    restart: on-failure
     user: postgres
     ports:
       - "5432:5432"
@@ -21,12 +21,12 @@ services:
   rabbit:
     container_name: "rabbit"
     build: rabbitmq
-    restart: always
+    restart: on-failure
     ports:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: rabbitmq-diagnostics check_port_listener 5672
       interval: 3s
       timeout: 60s
       retries: 20
@@ -36,7 +36,7 @@ services:
     build:
       context: .
       target: discord-bot
-    restart: always
+    restart: on-failure
     depends_on:
       rabbit:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       target: web
-    restart: always
+    restart: on-failure
     ports:
       - "5000:8080"
     volumes:
@@ -59,7 +59,7 @@ services:
     build:
       context: .
       target: celery
-    restart: always
+    restart: on-failure
     depends_on:
       rabbit:
         condition: service_healthy
