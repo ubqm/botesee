@@ -10,3 +10,7 @@ test[^_]*.py
 /.venv/
 *.env
 errors.log
+.mypy_cache
+.ruff_cache
+.vscode
+venv

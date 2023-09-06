@@ -13,8 +13,6 @@ from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db.script import db_match_finished
-
-# from database import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors._exceptions import BadAPICallException
 from bot.image_collectors.compare_imcol import CompareImCol
@@ -26,7 +24,7 @@ from bot.web.models.events import MatchAborted, MatchFinished, MatchReady
 
 
 @logger.catch()
-def get_match_finished_message_color(statistics: MatchStatistics):
+def get_match_finished_message_color(statistics: MatchStatistics) -> int:
     black, green, red, gray = 1, 2067276, 10038562, 9936031
     teams_subscribers_found = [False, False]  # Team1 and Team2 boolean
     for idx_team, team in enumerate(statistics.rounds[0].teams):
