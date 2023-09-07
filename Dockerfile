@@ -20,7 +20,7 @@ CMD ["python3", "bot/discord_bot/main.py"]
 FROM base as web
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 WORKDIR /app
-CMD ["uvicorn", "bot.web.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "bot.web.main:app", "--host", "0.0.0.0", "--port", "5000"]
 
 FROM base as celery
 ENV PYTHONPATH "${PYTHONPATH}:/app"
