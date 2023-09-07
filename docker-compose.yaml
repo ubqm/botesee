@@ -40,6 +40,7 @@ services:
     depends_on:
       rabbit:
         condition: service_healthy
+    tty: true
 
   web:
     container_name: "web"
@@ -53,6 +54,7 @@ services:
       - type: bind
         source: ./errors.log
         target: /app/errors.log
+    tty: true
 
   celery:
     container_name: "celery"
@@ -63,3 +65,4 @@ services:
     depends_on:
       rabbit:
         condition: service_healthy
+    tty: true
