@@ -268,7 +268,7 @@ class DiscordClient(discord.Client):
 
             # get nicknames from URL-embed discord format [nickname](URL)
             if not message.embeds or not message.embeds[0].fields:
-                return
+                return None
 
             nick1 = re.findall(r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[0].value))
             elo1_temp = str(message.embeds[0].fields[1].value).split("\n")  # type: list[str]
