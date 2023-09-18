@@ -24,6 +24,7 @@ class Game(BaseModel):
 class Games(BaseModel):
     csgo: Game
     valorant: Game | None
+    cs2: Game | None
 
     class Config:
         extra = Extra.allow

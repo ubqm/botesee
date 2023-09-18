@@ -14,7 +14,6 @@ from bot.clients.models.faceit.player_stats import PlayerGameStats
 from bot.clients.models.faceit.player_stats_collection import PlayerStatsCollection
 from bot.clients.models.faceit.region_stats import RegionStatistics
 from bot.image_collectors._exceptions import BadAPICallException
-from bot.utils.enums import subscribers
 
 
 class FaceitClient:
@@ -31,9 +30,18 @@ class FaceitClient:
             return PlayerDetails(**res)
 
     @classmethod
-    async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str) -> int:
+    async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str, game: str = "csgo") -> int:
         details = await cls.player_details(session, nickname)
-        return details.games.csgo.faceit_elo if details else 0
+        if not details:
+            return 0
+
+        match game:
+            case "csgo":
+                return details.games.csgo.faceit_elo
+            case "cs2":
+                return details.games.cs2.faceit_elo if details.games.cs2 else 0
+            case _:
+                return 0
 
     @classmethod
     async def player_details_by_id(cls, session, player_id: UUID | str) -> PlayerDetails:
@@ -140,12 +148,14 @@ if __name__ == "__main__":
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
             # res = await FaceitClient.match_stats(session, "1-c900d437-eff7-4536-9a32-f01c5cf7580c")
             # res = await FaceitClient.player_details_by_id(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"))
-            # res = await FaceitClient.player_details(session, "-NAPAD")
+            # res = await FaceitClient.player_details(session, "Ayudesee")
+            res = await FaceitClient.get_player_elo_by_nickname(session, "T1A-", "cs2")
             # res = await FaceitClient.player_history(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"), limit=2)
             # res = await FaceitClient.match_details(session, "1-f0ad4c71-7fce-432b-8ca0-5261d85be686")
             # res = await FaceitClient.region_stats(session, UUID("278790a2-1f08-4350-bd96-427f7dcc8722"), region="EU")
 
-            res = await FaceitClient.player_stats_game(session, subscribers.AYUDESEE)
+            # res = await FaceitClient.player_stats_game(session, subscribers.AYUDESEE)
+
             print(res)
 
     asyncio.run(main())
