@@ -158,7 +158,7 @@ class MatchFinishedImCol:
         idx_player: int,
     ) -> Image:
         draw_image = ImageDraw.Draw(canvas)
-        player_elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname)
+        player_elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname, self.match.payload.game)
         elo_diff = await self.calculate_elo_change(player, player_elo)
 
         for idx_req_player, req_player in enumerate(self.match.payload.teams[idx_team].roster):

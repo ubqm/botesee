@@ -53,7 +53,6 @@ async def health() -> OKResponse:
 @app.get("/celery", tags=["Celery"])
 async def celery(
     match_id: str,
-    token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     match_score_update.delay(match_id)
     return OKResponse()
@@ -64,6 +63,7 @@ async def faceit_webhook(
     match: WebhookMatch,
     background_tasks: BackgroundTasks,
     rabbit: RabbitClient = Depends(get_rabbit),
+    token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     logger.info(f"{match.json()}")
     background_tasks.add_task(rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES)
