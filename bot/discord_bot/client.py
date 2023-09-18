@@ -60,10 +60,10 @@ def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
     return str_nick_1 + "\n" + str_nick_2, color
 
 
-async def get_nicks_and_elo(session, roster: list[Player]) -> NickEloStorage:
+async def get_nicks_and_elo(session, roster: list[Player], game: str = "csgo") -> NickEloStorage:
     players_storage: list[PlayerStorage] = []
     for player in roster:
-        elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname)
+        elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname, game)
         players_storage.append(PlayerStorage(nickname=player.nickname, elo=elo))
     return NickEloStorage(players=players_storage)
 
@@ -74,7 +74,9 @@ def form_ready_embed_message(
 ) -> discord.Embed:
     my_color = 9936031  # gray
     description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
-    embed_msg = discord.Embed(title="Ongoing Match", type="rich", description=description, color=my_color)
+    embed_msg = discord.Embed(
+        title=f"[{match.payload.game}] Ongoing Match", type="rich", description=description, color=my_color
+    )
     embed_msg.add_field(
         name=match.payload.teams[0].name,
         value=nick_elo_1.get_discord_nicknames(),
@@ -205,8 +207,8 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            nick_elo_1 = await get_nicks_and_elo(session, match.payload.teams[0].roster)
-            nick_elo_2 = await get_nicks_and_elo(session, match.payload.teams[1].roster)
+            nick_elo_1 = await get_nicks_and_elo(session, match.payload.teams[0].roster, game=match.payload.game)
+            nick_elo_2 = await get_nicks_and_elo(session, match.payload.teams[1].roster, game=match.payload.game)
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
         await self.faceit_channel.send(embed=embed_msg)
 
@@ -235,7 +237,7 @@ class DiscordClient(discord.Client):
         embed_msg = discord.Embed(
             description=str_nick,
             type="rich",
-            title=f"{statistics.rounds[0].round_stats.map}",
+            title=f"{statistics.rounds[0].round_stats.map} [{match.payload.game}]",
             color=my_color,
             url=f"https://www.faceit.com/en/csgo/room/{match.payload.id}",
         )
@@ -250,7 +252,7 @@ class DiscordClient(discord.Client):
             await self.faceit_channel.send(embed=embed_msg, file=self.compile_binary_image(image))
 
     @logger.catch
-    async def post_faceit_message_aborted(self, match: MatchAborted):
+    async def post_faceit_message_aborted(self, match: MatchAborted) -> None:
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
     @logger.catch
@@ -296,7 +298,7 @@ class DiscordClient(discord.Client):
                 continue
 
             new_embed = message.embeds[0]
-            new_embed.title = f"Ongoing Match [{match_details.current_score}]"
+            new_embed.title = f"[{match_details.game}] Ongoing Match [{match_details.current_score}]"
             if match_details.voting:
                 new_embed.description = (
                     f"[{match_details.voting.map.pick[0]}]"
