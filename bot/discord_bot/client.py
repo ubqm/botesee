@@ -5,7 +5,7 @@ from typing import Any
 
 import aiohttp
 import discord
-from discord import Intents, Member, RawReactionActionEvent, TextChannel
+from discord import Intents, Interaction, Member, RawReactionActionEvent, TextChannel, app_commands
 from loguru import logger
 
 from bot import conf
@@ -101,8 +101,11 @@ class DiscordClient(discord.Client):
         self.faceit_channel: discord.TextChannel | None = None
 
     async def on_ready(self):
+        await self.wait_until_ready()
         for guild in self.guilds:
             logger.info(f"Logged in as {self.user}, {guild.name=}, {guild.id=}")
+        await tree.sync()
+        logger.info("Commands synced")
         self.faceit_channel = self.get_channel(self.faceit_channel_id)
 
     @staticmethod
@@ -151,14 +154,6 @@ class DiscordClient(discord.Client):
             if not _content:
                 return
 
-            if self.is_stats_request(_content):
-                imgclst = LastStatsImCol(_content[1])
-                image = await imgclst.collect_image()
-                await self.faceit_channel.send(file=self.compile_binary_image(image))
-            elif self.is_compare_request(_content):
-                imgcmpr = CompareImCol(*_content[1:])
-                image = await imgcmpr.collect_image()
-                await self.faceit_channel.send(file=self.compile_binary_image(image))
             elif bool(re.search(r"^[.]$", _content[0])):
                 pass
 
@@ -300,10 +295,38 @@ class DiscordClient(discord.Client):
             new_embed = message.embeds[0]
             new_embed.title = f"[{match_details.game}] Ongoing Match [{match_details.current_score}]"
             if match_details.voting:
+                location = match_details.voting.location
                 new_embed.description = (
                     f"[{match_details.voting.map.pick[0]}]"
-                    f"(https://www.faceit.com/en/csgo/room/{match_details.match_id}) - "
-                    f"{match_details.voting.location.pick[0]}"
+                    f"(https://www.faceit.com/en/csgo/room/{match_details.match_id})"
+                    f"{' - ' + location.pick[0] if location else ''}"
                 )
             await message.edit(embeds=message.embeds)
             break
+
+
+discord_client = DiscordClient(faceit_channel_id=828940900033626113, intents=discord.Intents.all())
+tree = app_commands.CommandTree(discord_client)
+
+
+@logger.catch
+@tree.command(name="stats", description="Show last 10 matches stats from a player")
+async def stats(ctx: Interaction, player: str) -> None:
+    await ctx.response.send_message("Retrieving stats...", ephemeral=True, delete_after=5.0)
+    imgclst = LastStatsImCol(player)
+    image = await imgclst.collect_image()
+    await discord_client.faceit_channel.send(file=discord_client.compile_binary_image(image))
+
+
+@logger.catch
+@tree.command(name="compare", description="Compare 2 players")
+async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -> None:
+    await ctx.response.send_message("Retrieving stats...", ephemeral=True, delete_after=5.0)
+    imgcmpr = CompareImCol(
+        nickname1=player_1,
+        nickname2=player_2,
+        amount=amount,
+        output_type="games",
+    )
+    image = await imgcmpr.collect_image()
+    await discord_client.faceit_channel.send(file=discord_client.compile_binary_image(image))

@@ -88,7 +88,7 @@ class LocationVoting(BaseModel):
 class Voting(BaseModel):
     map: MapVoting
     voted_entity_types: list[str]
-    location: LocationVoting
+    location: LocationVoting | None = None
 
 
 class MatchDetails(BaseModel):
