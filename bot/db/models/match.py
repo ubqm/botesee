@@ -18,6 +18,7 @@ class Match(Base):
     date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.now(tz=UTC), server_default=func.now()
     )
+    game: Mapped[str] = mapped_column(String(length=64), default="csgo", server_default="csgo")
 
     elos: Mapped[list["Elo"]] = relationship("Elo", back_populates="match")
     players: Mapped[list["Player"]] = relationship("Player", secondary="elos", back_populates="matches", viewonly=True)

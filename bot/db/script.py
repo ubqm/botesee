@@ -22,7 +22,9 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
                     async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
                         player_details = await FaceitClient.player_details_by_id(session, player.player_id)
                     db_player = await player_repo.get_or_create(sa_session, player.player_id)
-                    db_match = await match_repo.get_or_create(sa_session, match_stat.match_id, date=match.timestamp)
+                    db_match = await match_repo.get_or_create(
+                        sa_session, match_stat.match_id, date=match.timestamp, game=match.payload.game
+                    )
                     await elo_repo.create(
                         sa_session, player=db_player, match=db_match, elo=player_details.games.csgo.faceit_elo
                     )
