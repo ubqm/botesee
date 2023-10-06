@@ -20,7 +20,10 @@ CMD ["python3", "bot/discord_bot/main.py"]
 FROM base as web
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 WORKDIR /app
-CMD ["uvicorn", "bot.web.main:app", "--host", "0.0.0.0", "--port", "5000"]
+COPY web.sh web.sh
+COPY alembic.ini alembic.ini
+RUN chmod +x web.sh
+ENTRYPOINT ["/app/web.sh"]
 
 FROM base as celery
 ENV PYTHONPATH "${PYTHONPATH}:/app"
