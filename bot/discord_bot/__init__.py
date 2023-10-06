@@ -1,7 +1,15 @@
+from enum import StrEnum
+
 from pydantic import BaseSettings
 
 
+class EnvType(StrEnum):
+    DEV: str = "dev"
+    PROD: str = "prod"
+
+
 class Settings(BaseSettings):
+    ENV: EnvType
     DISCORD_TOKEN: str = ""
     STEAM_TOKEN: str = ""
     FACEIT_TOKEN: str = ""
