@@ -7,7 +7,6 @@ from bot.discord_bot.discord_factory import discord_factory
 
 async def main():
     discord_client = discord_factory(conf.ENV)
-    print("TEST JENKINS")
     rabbit = RabbitWorker(
         conf.RABBIT_HOST,
         conf.RABBIT_PORT,
