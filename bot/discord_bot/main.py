@@ -6,6 +6,7 @@ from bot.discord_bot.client import discord_client
 
 
 async def main():
+    print("TEST JENKINS")
     rabbit = RabbitWorker(
         conf.RABBIT_HOST,
         conf.RABBIT_PORT,
