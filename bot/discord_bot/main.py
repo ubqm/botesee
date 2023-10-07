@@ -2,10 +2,11 @@ import asyncio
 
 from bot.clients.rabbit import RabbitWorker
 from bot.discord_bot import conf
-from bot.discord_bot.client import discord_client
+from bot.discord_bot.discord_factory import discord_factory
 
 
 async def main():
+    discord_client = discord_factory(conf.ENV)
     print("TEST JENKINS")
     rabbit = RabbitWorker(
         conf.RABBIT_HOST,
