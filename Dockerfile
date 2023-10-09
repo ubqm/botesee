@@ -5,7 +5,7 @@ RUN pip3 install -r requirements.txt
 COPY bot /bot
 ENV PYTHONPATH "${PYTHONPATH}:/"
 WORKDIR /
-COPY .env .env
+#COPY .env .env
 
 FROM base AS discord-bot
 
