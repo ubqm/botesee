@@ -1,8 +1,8 @@
 import discord
+from loguru import logger
 
 from bot.discord_bot import EnvType
 from bot.discord_bot.client import DiscordClient, discord_client
-from loguru import logger
 
 
 class MockedDiscordClient(DiscordClient):
