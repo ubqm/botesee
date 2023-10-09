@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from aiohttp_client_cache import RedisBackend
 from pydantic import BaseSettings
 
 
@@ -16,6 +19,8 @@ class Settings(BaseSettings):
     RABBIT_PORT: int = 5672
     RABBIT_USER: str = ""
     RABBIT_PASSWORD: str = ""
+    REDIS_HOST: str = ""
+    REDIS_PORT: int = 6379
 
     @property
     def db_string(self) -> str:
@@ -25,8 +30,12 @@ class Settings(BaseSettings):
     def rmq_string(self) -> str:
         return f"amqp://{self.RABBIT_USER}:{self.RABBIT_PASSWORD}@{self.RABBIT_HOST}:{self.RABBIT_PORT}"
 
+    @property
+    def redis_string(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+
     class Config:
-        env_file = ".env"
+        env_file = "../.env"
         env_file_encoding = "utf-8"
 
 
@@ -35,6 +44,12 @@ conf.FACEIT_HEADERS = {
     "accept": "application/json",
     "Authorization": f"Bearer {conf.FACEIT_TOKEN}",
 }
+
+redis_cache = RedisBackend(
+    cache_name="aiohttp-cache",
+    address=conf.redis_string,
+    expire_after=timedelta(days=30)
+)
 
 if __name__ == "__main__":
     print(conf)

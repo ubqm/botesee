@@ -2,12 +2,16 @@ version: "3.8"
 
 services:
   postgres:
-    container_name: "postgres"
+    container_name: botesee_postgres
     image: postgres:15.0
     restart: on-failure
     user: postgres
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 1s
@@ -15,7 +19,7 @@ services:
       retries: 60
 
   rabbit:
-    container_name: "rabbit"
+    container_name: botesee_rabbit
     image: rabbitmq:3.11.8-management
     restart: on-failure
     ports:
@@ -28,7 +32,7 @@ services:
       retries: 20
 
   discord-bot:
-    container_name: "discord-bot"
+    container_name: botesee_discord
     build:
       context: .
       target: discord-bot
@@ -36,10 +40,12 @@ services:
     depends_on:
       rabbit:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     tty: true
 
   web:
-    container_name: "web"
+    container_name: botesee_web
     build:
       context: .
       target: web
@@ -50,10 +56,13 @@ services:
       - type: bind
         source: ./errors.log
         target: /app/errors.log
+      - type: bind
+        source: ./bot
+        target: /bot
     tty: true
 
   celery:
-    container_name: "celery"
+    container_name: botesee_celery
     build:
       context: .
       target: celery
@@ -65,10 +74,21 @@ services:
 
   flower:
     image: mher/flower
-    container_name: "flower"
+    container_name: botesee_flower
     command: celery flower --persistent=True
     environment:
       - CELERY_BROKER_URL=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}
       - FLOWER_PORT=5555
     ports:
     - "5555:5555"
+    depends_on:
+      rabbit:
+        condition: service_healthy
+
+  redis:
+    image: redis:7.2.1
+    container_name: botesee_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
