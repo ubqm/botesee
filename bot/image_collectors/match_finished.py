@@ -5,9 +5,10 @@ from typing import Literal
 
 import aiohttp
 from aiohttp import ClientSession
+from aiohttp_client_cache import CachedSession
 from PIL import Image, ImageDraw, ImageFont
 
-from bot import conf
+from bot import conf, redis_cache
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
@@ -136,18 +137,23 @@ class MatchFinishedImCol:
         for stat in vals:
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
 
-    async def _download_player_avatar(self, session: ClientSession, req_player: webPlayer) -> Image:
+    async def _download_player_avatar(self, req_player: webPlayer) -> Image:
         avatar_size = (130, 130)
         unknown_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
         unknown_avatar = unknown_avatar.resize(avatar_size)
-        if req_player.avatar:
-            async with session.get(req_player.avatar) as response:
-                if response.status == 200:
-                    actual_avatar = Image.open(BytesIO(await response.read()))
-                    actual_avatar = actual_avatar.convert("RGB")
-                    actual_avatar = actual_avatar.resize(avatar_size)
-                    return actual_avatar
-        return unknown_avatar
+        if not req_player.avatar:
+            return unknown_avatar
+
+        async with CachedSession(cache=redis_cache) as session:
+            response = await session.get(req_player.avatar)
+
+        if response.status != 200:
+            return unknown_avatar
+
+        actual_avatar = Image.open(BytesIO(await response.read()))
+        actual_avatar = actual_avatar.convert("RGB")
+        actual_avatar = actual_avatar.resize(avatar_size)
+        return actual_avatar
 
     async def _draw_player_avatar(
         self,
@@ -163,7 +169,7 @@ class MatchFinishedImCol:
 
         for idx_req_player, req_player in enumerate(self.match.payload.teams[idx_team].roster):
             if player.nickname == req_player.nickname:
-                image_avatar = await self._download_player_avatar(session, req_player)
+                image_avatar = await self._download_player_avatar(req_player)
                 draw_image_avatar = ImageDraw.Draw(image_avatar)
                 faceitlvl = req_player.game_skill_level
 
