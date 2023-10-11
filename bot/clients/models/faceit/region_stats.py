@@ -13,7 +13,7 @@ class PlayerRegionStat(BaseModel):
 
 
 class RegionStatistics(BaseModel):
-    position: str
+    position: int
     items: list[PlayerRegionStat]
     start: str
     end: str
