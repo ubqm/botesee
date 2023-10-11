@@ -1,1 +1,1 @@
-TEMPLATE_PATH = "bot/templates"
+TEMPLATE_PATH = "bot/image_collectors/templates"

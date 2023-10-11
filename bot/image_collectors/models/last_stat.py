@@ -165,7 +165,7 @@ class SteamStatLast(BaseModel):
     playtime_2weeks: str
     playtime_forever: str
     percentage_played: str
-    csgo_time_played_hrs: str
+    cs2_time_played_hrs: str
 
 
 class PlayerStatLast(BaseModel):

@@ -1,10 +1,17 @@
 from datetime import timedelta
+from enum import StrEnum
 
 from aiohttp_client_cache import RedisBackend
 from pydantic import BaseSettings
 
 
+class EnvType(StrEnum):
+    DEV: str = "dev"
+    PROD: str = "prod"
+
+
 class Settings(BaseSettings):
+    ENV: EnvType
     DISCORD_TOKEN: str = ""
     STEAM_TOKEN: str = ""
     FACEIT_TOKEN: str = ""
@@ -45,11 +52,4 @@ conf.FACEIT_HEADERS = {
     "Authorization": f"Bearer {conf.FACEIT_TOKEN}",
 }
 
-redis_cache = RedisBackend(
-    cache_name="aiohttp-cache",
-    address=conf.redis_string,
-    expire_after=timedelta(days=30)
-)
-
-if __name__ == "__main__":
-    print(conf)
+redis_cache = RedisBackend(cache_name="aiohttp-cache", address=conf.redis_string, expire_after=timedelta(days=30))
