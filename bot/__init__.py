@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     @property
     def db_string(self) -> str:
-        return f"postgres+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @property
     def rmq_string(self) -> str:
