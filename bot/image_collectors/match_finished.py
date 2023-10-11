@@ -273,9 +273,9 @@ class MatchFinishedImCol:
 
     async def _get_background(self, round_: Round) -> Image:
         if round_.round_stats.map not in available_maps.values:
-            return Image.open(f"{TEMPLATE_PATH}/maps/black.jpg")
+            return Image.open(f"{TEMPLATE_PATH}/maps/black.png")
 
-        image_map = Image.open(f"{TEMPLATE_PATH}/maps/{round_.round_stats.map}.jpg")
+        image_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{round_.round_stats.map}.jpg")
         image_map = image_map.resize((960, 540))
         return image_map
 

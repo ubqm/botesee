@@ -111,22 +111,22 @@ class LastStatsImCol:
             player_region_stats = await FaceitClient.region_stats(
                 session=session,
                 player_id=player_details.player_id,
-                region=player_details.games.csgo.region,
+                region=player_details.games.cs2.region,
             )
             player_country_stats = await FaceitClient.region_stats(
                 session=session,
                 player_id=player_details.player_id,
-                region=player_details.games.csgo.region,
+                region=player_details.games.cs2.region,
                 country=player_details.country,
             )
 
         async with aiohttp.ClientSession() as session:
             steam_app_stat = await SteamClient.user_app_stat(
                 session,
-                player_details.steam_id_64 or player_details.games.csgo.game_player_id,
+                player_details.steam_id_64 or player_details.games.cs2.game_player_id,
             )
             steam_recently_stat = await SteamClient.user_rec_played_stat(
-                session, player_details.steam_id_64 or player_details.games.csgo.game_player_id
+                session, player_details.steam_id_64 or player_details.games.cs2.game_player_id
             )
 
         self.player_stat[self.nickname] = FullPlayerStat(
@@ -183,43 +183,43 @@ class LastStatsImCol:
     def _get_steam_stats_text(self) -> SteamStatLast:
         if not self.player_stat[self.nickname].steam_recently_stat:
             raise Exception(f"Steam recent stats not found for {self.nickname} {self.player_stat[self.nickname]}")
-        csgo_stats = self.player_stat[self.nickname].steam_recently_stat.get_csgo()  # type: ignore
+        cs2_stats = self.player_stat[self.nickname].steam_recently_stat.get_cs()  # type: ignore
         playtime_2weeks = "Last 2 weeks: Unknown"
-        playtime_forever = "Summary in CSGO: Unknown"
+        playtime_forever = "Summary in CS2: Unknown"
         percentage_played = "Activity: Unknown"
-        csgo_time_played_hrs = "Played in CSGO: Unknown"
-        if csgo_stats:
-            csgo_playtime_hours = csgo_stats.playtime_forever / 60
-            playtime_2weeks = f"Last 2 weeks: {int(csgo_stats.playtime_2weeks / 60)} hrs"
-            playtime_forever = f"Summary in CSGO: {int(csgo_playtime_hours)} hrs"
+        cs2_time_played_hrs = "Played in CS2: Unknown"
+        if cs2_stats:
+            cs2_playtime_hours = cs2_stats.playtime_forever / 60
+            playtime_2weeks = f"Last 2 weeks: {int(cs2_stats.playtime_2weeks / 60)} hrs"
+            playtime_forever = f"Summary in CS2: {int(cs2_playtime_hours)} hrs"
 
             if self.player_stat[self.nickname].steam_app_stat:
-                csgo_playtime = (
+                cs2_playtime = (
                     self.player_stat[self.nickname].steam_app_stat.playerstats.stats[2].value / 60 / 60  # type: ignore
                 )
-                csgo_time_played_hrs = f"Played in CSGO: {int(csgo_playtime)} hrs"
-                percentage_played = f"Activity: {csgo_playtime / csgo_playtime_hours * 100:.1f}%"
+                cs2_time_played_hrs = f"Played in CS2: {int(cs2_playtime)} hrs"
+                percentage_played = f"Activity: {cs2_playtime / cs2_playtime_hours * 100:.1f}%"
             else:
-                csgo_time_played_hrs = "Played in CSGO: Unknown"
+                cs2_time_played_hrs = "Played in CS2: Unknown"
                 percentage_played = "Activity: Unknown"
         return SteamStatLast(
             playtime_2weeks=playtime_2weeks,
             playtime_forever=playtime_forever,
             percentage_played=percentage_played,
-            csgo_time_played_hrs=csgo_time_played_hrs,
+            cs2_time_played_hrs=cs2_time_played_hrs,
         )
 
     def _draw_steam_stats(self, canvas: ImageDraw) -> None:
         steam_stats = self._get_steam_stats_text()
         canvas.text((10, 150), steam_stats.playtime_2weeks, font=self.font)
-        canvas.text((10, 180), steam_stats.csgo_time_played_hrs, font=self.font)
+        canvas.text((10, 180), steam_stats.cs2_time_played_hrs, font=self.font)
         canvas.text((10, 210), steam_stats.playtime_forever, font=self.font)
         canvas.text((10, 240), steam_stats.percentage_played, font=self.font)
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
         canvas.text(
             (270, 70),
-            f"{self.player_stat[self.nickname].player_details.games.csgo.region}: "
+            f"{self.player_stat[self.nickname].player_details.games.cs2.region}: "
             f"{self.player_stat[self.nickname].player_region_stats.position}",
             font=self.font,
         )
@@ -231,13 +231,13 @@ class LastStatsImCol:
         )
 
     def _draw_faceit_elo(self, canvas: ImageDraw) -> None:
-        faceit_lvl = self.player_stat[self.nickname].player_details.games.csgo.skill_level
+        faceit_lvl = self.player_stat[self.nickname].player_details.games.cs2.skill_level
         image_lvl = Image.open(f"{TEMPLATE_PATH}/faceit_icons/faceit{faceit_lvl}.png").convert("RGBA")
         image_lvl = image_lvl.resize((24, 24))
         self.image.paste(image_lvl, (155, 74), image_lvl)
         canvas.text(
             (184, 70),
-            str(self.player_stat[self.nickname].player_details.games.csgo.faceit_elo),
+            str(self.player_stat[self.nickname].player_details.games.cs2.faceit_elo),
             font=self.font,
         )
 
@@ -274,7 +274,7 @@ class LastStatsImCol:
     def _draw_game_map(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
         canvas.text((870, 50 * idx_game + 30), game.map_score, font=self.font)
         if game.map_name in available_maps.values:
-            current_map = Image.open(f"{TEMPLATE_PATH}/maps/{game.map_name}.jpg")
+            current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{game.map_name}.jpg")
         else:
             current_map = Image.new(mode="RGBA", size=(90, 50), color="black")
 
@@ -309,7 +309,7 @@ if __name__ == "__main__":
         # steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
 
         # print(steam_app_stat)
-        last_imcol = LastStatsImCol("FIERCE_ss")
+        last_imcol = LastStatsImCol("-NAPAD")
         imgs = await last_imcol.collect_image()
         imgs.show()
 

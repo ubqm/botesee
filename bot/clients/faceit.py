@@ -14,6 +14,7 @@ from bot.clients.models.faceit.player_stats import PlayerGameStats
 from bot.clients.models.faceit.player_stats_collection import PlayerStatsCollection
 from bot.clients.models.faceit.region_stats import RegionStatistics
 from bot.image_collectors._exceptions import BadAPICallException
+from bot.utils.enums import subscribers
 
 
 class FaceitClient:
@@ -30,7 +31,7 @@ class FaceitClient:
             return PlayerDetails(**res)
 
     @classmethod
-    async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str, game: str = "csgo") -> int:
+    async def get_player_elo_by_nickname(cls, session: ClientSession, nickname: str, game: str = "cs2") -> int:
         details = await cls.player_details(session, nickname)
         if not details:
             return 0
@@ -59,7 +60,7 @@ class FaceitClient:
         cls,
         session: ClientSession,
         player_id: UUID | str,
-        game: str = "csgo",
+        game: str = "cs2",
         offset: int = 0,
         limit: int = 20,
     ) -> PlayerHistory:
@@ -74,7 +75,7 @@ class FaceitClient:
 
     @classmethod
     async def player_stats(
-        cls, session: ClientSession, player_id: UUID | str, game_id: str = "csgo"
+        cls, session: ClientSession, player_id: UUID | str, game_id: str = "cs2"
     ) -> PlayerGameStats:
         player_id = str(player_id)
         api_url = f"{cls.base_url}/players/{player_id}/stats/{game_id}"
@@ -90,7 +91,7 @@ class FaceitClient:
         cls,
         session: ClientSession,
         player_id: UUID | str,
-        game_id: str = "csgo",
+        game_id: str = "cs2",
         page_size: int = 10,
         page: int = 1,
     ) -> PlayerStatsCollection:
@@ -129,9 +130,10 @@ class FaceitClient:
         player_id: UUID | str,
         region: str,
         country: str | None = None,
+        game: str = "cs2",
     ) -> RegionStatistics:
         player_id = str(player_id)
-        api_url = f"{cls.base_url}/rankings/games/csgo/regions/{region}/players/{player_id}?limit=2"
+        api_url = f"{cls.base_url}/rankings/games/{game}/regions/{region}/players/{player_id}?limit=2"
         if country:
             api_url += f"&country={country}"
         async with session.get(api_url) as response:
@@ -149,8 +151,9 @@ if __name__ == "__main__":
             # res = await FaceitClient.match_stats(session, "1-c900d437-eff7-4536-9a32-f01c5cf7580c")
             # res = await FaceitClient.player_details_by_id(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"))
             # res = await FaceitClient.player_details(session, "Ayudesee")
-            res = await FaceitClient.get_player_elo_by_nickname(session, "T1A-", "cs2")
+            # res = await FaceitClient.get_player_elo_by_nickname(session, "T1A-", "cs2")
             # res = await FaceitClient.player_history(session, UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543"), limit=2)
+            res = await FaceitClient.player_history(session, subscribers.TIA, limit=2)
             # res = await FaceitClient.match_details(session, "1-f0ad4c71-7fce-432b-8ca0-5261d85be686")
             # res = await FaceitClient.region_stats(session, UUID("278790a2-1f08-4350-bd96-427f7dcc8722"), region="EU")
 

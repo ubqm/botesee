@@ -28,7 +28,7 @@ class RecentStatistics(BaseModel):
 class RecentStatisticsResponse(BaseModel):
     response: RecentStatistics | None
 
-    def get_csgo(self) -> GameStat | None:
+    def get_cs(self) -> GameStat | None:
         if not self.response:
             return None
         if not self.response.games:

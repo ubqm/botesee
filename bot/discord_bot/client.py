@@ -60,7 +60,7 @@ def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
     return str_nick_1 + "\n" + str_nick_2, color
 
 
-async def get_nicks_and_elo(session, roster: list[Player], game: str = "csgo") -> NickEloStorage:
+async def get_nicks_and_elo(session, roster: list[Player], game: str = "cs2") -> NickEloStorage:
     players_storage: list[PlayerStorage] = []
     for player in roster:
         elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname, game)
@@ -73,7 +73,7 @@ def form_ready_embed_message(
     match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
     my_color = 9936031  # gray
-    description = f"[{match.payload.id}](https://www.faceit.com/en/csgo/room/{match.payload.id})"
+    description = f"[{match.payload.id}](https://www.faceit.com/en/cs2/room/{match.payload.id})"
     embed_msg = discord.Embed(
         title=f"[{match.payload.game}] Ongoing Match", type="rich", description=description, color=my_color
     )
@@ -234,7 +234,7 @@ class DiscordClient(discord.Client):
             type="rich",
             title=f"{statistics.rounds[0].round_stats.map} [{match.payload.game}]",
             color=my_color,
-            url=f"https://www.faceit.com/en/csgo/room/{match.payload.id}",
+            url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
         )
         nick_elo = await self.delete_message_by_faceit_match_id(match.payload.id)
         if not nick_elo:
@@ -298,7 +298,7 @@ class DiscordClient(discord.Client):
                 location = match_details.voting.location
                 new_embed.description = (
                     f"[{match_details.voting.map.pick[0]}]"
-                    f"(https://www.faceit.com/en/csgo/room/{match_details.match_id})"
+                    f"(https://www.faceit.com/en/cs2/room/{match_details.match_id})"
                     f"{' - ' + location.pick[0] if location else ''}"
                 )
             await message.edit(embeds=message.embeds)

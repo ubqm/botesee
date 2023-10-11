@@ -89,12 +89,12 @@ class CompareImCol:
         player_region_stats = await FaceitClient.region_stats(
             session=session,
             player_id=player_details.player_id,
-            region=player_details.games.csgo.region,
+            region=player_details.games.cs2.region,
         )
         player_country_stats = await FaceitClient.region_stats(
             session=session,
             player_id=player_details.player_id,
-            region=player_details.games.csgo.region,
+            region=player_details.games.cs2.region,
             country=player_details.country,
         )
         avatar = await self._set_avatar(session, player_details)
@@ -304,7 +304,7 @@ class CompareImCol:
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
         for idx, nickname in enumerate(self.compared_nicknames):
             region_str = (
-                f"{self.player_stat[nickname].player_details.games.csgo.region}: "
+                f"{self.player_stat[nickname].player_details.games.cs2.region}: "
                 f"{self.player_stat[nickname].player_region_stats.position}"
             )
             w, h = canvas.textsize(region_str, font=self.font)
@@ -330,8 +330,8 @@ class CompareImCol:
         ds: dict[str, dict[str, Any]] = {
             "elo": {
                 "value": (
-                    self.player_stat[self.nickname1].player_details.games.csgo.faceit_elo,
-                    self.player_stat[self.nickname2].player_details.games.csgo.faceit_elo,
+                    self.player_stat[self.nickname1].player_details.games.cs2.faceit_elo,
+                    self.player_stat[self.nickname2].player_details.games.cs2.faceit_elo,
                 ),
                 "type": "total",
                 "format": "{value}",
@@ -445,7 +445,7 @@ class CompareImCol:
                 fill=p2_color,
             )
 
-            current_map = Image.open(f"{TEMPLATE_PATH}/maps/{available_map}.jpg")
+            current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{available_map}.jpg")
             current_map = current_map.resize((map_w, map_h))
             self.image.paste(current_map, (10, map_h * idx + map_y_start))
             self.image.paste(current_map, (860, map_h * idx + map_y_start))
@@ -465,7 +465,7 @@ class CompareImCol:
 if __name__ == "__main__":
 
     async def main():
-        imgcmp = CompareImCol("-MORZY", "Ayudesee", amount=20)
+        imgcmp = CompareImCol("-NAPAD", "T1A-", amount=10)
         img = await imgcmp.collect_image()
         img.show()
 
