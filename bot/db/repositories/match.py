@@ -9,7 +9,11 @@ from bot.db import Match
 
 class MatchRepository:
     async def get_or_create(
-        self, session: AsyncSession, match_uuid: str | UUID, date: datetime | None = None, game: str = "csgo"
+        self,
+        session: AsyncSession,
+        match_uuid: str | UUID,
+        date: datetime | None = None,
+        game: str = "cs2",
     ) -> Match:
         stmt = select(Match).where(Match.id == str(match_uuid))
 
