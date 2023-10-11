@@ -220,13 +220,13 @@ class LastStatsImCol:
         canvas.text(
             (270, 70),
             f"{self.player_stat[self.nickname].player_details.games.cs2.region}: "
-            f"{self.player_stat[self.nickname].player_region_stats.position}",
+            f"{self.player_stat[self.nickname].player_region_stats.position:,}".replace(",", "."),
             font=self.font,
         )
         canvas.text(
             (270, 100),
             f"{self.player_stat[self.nickname].player_details.country}: "
-            f"{self.player_stat[self.nickname].player_country_stats.position}",
+            f"{self.player_stat[self.nickname].player_country_stats.position:,}".replace(",", "."),
             font=self.font,
         )
 

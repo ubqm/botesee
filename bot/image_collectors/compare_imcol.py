@@ -305,14 +305,14 @@ class CompareImCol:
         for idx, nickname in enumerate(self.compared_nicknames):
             region_str = (
                 f"{self.player_stat[nickname].player_details.games.cs2.region}: "
-                f"{self.player_stat[nickname].player_region_stats.position}"
+                f"{self.player_stat[nickname].player_region_stats.position:,}".replace(",", ".")
             )
             w, h = canvas.textsize(region_str, font=self.font)
             canvas.text((160, 70) if idx == 0 else (810 - w, 70), region_str, font=self.font)
 
             country_str = (
                 f"{self.player_stat[nickname].player_details.country}: "
-                f"{self.player_stat[nickname].player_country_stats.position}"
+                f"{self.player_stat[nickname].player_country_stats.position:,}".replace(",", ".")
             )
             w, h = canvas.textsize(country_str, font=self.font)
             canvas.text((160, 100) if idx == 0 else (810 - w, 100), country_str, font=self.font)
