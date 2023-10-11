@@ -3,7 +3,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from bot import conf
 
-engine = create_async_engine(conf.pg_string)
+engine = create_async_engine(conf.db_string)
 Session = async_sessionmaker(engine)
 
 
