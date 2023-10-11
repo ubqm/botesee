@@ -1,7 +1,7 @@
 import asyncio
 
+from bot import conf
 from bot.clients.rabbit import RabbitWorker
-from bot.discord_bot import conf
 from bot.discord_bot.discord_factory import discord_factory
 
 
