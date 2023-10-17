@@ -11,10 +11,10 @@ from bot.clients.models.rabbit.queues import QueueName
 from bot.clients.rabbit import RabbitClient
 
 app = Celery(broker=conf.rmq_string)
-rabbit = RabbitClient(conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD)
 
 
 async def _score_update(match_id: str) -> None:
+    rabbit = RabbitClient(conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD)
     while True:
         await asyncio.sleep(20)
         async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:

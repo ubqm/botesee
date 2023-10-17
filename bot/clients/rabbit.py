@@ -26,7 +26,6 @@ class RabbitClient:
         self.channel_pool: Pool = Pool(self._get_channel, max_size=2, loop=self.loop)
 
     async def _get_connection(self) -> AbstractRobustConnection:
-        logger.info("Established connection with RabbitMQ")
         return await aio_pika.connect_robust(
             host=self.host,
             port=self.port,
@@ -40,12 +39,10 @@ class RabbitClient:
 
     async def publish(self, message: str, routing_key: QueueName = QueueName.MATCHES) -> None:
         async with self.channel_pool.acquire() as channel:
-            logger.info("Acquired connection from RabbitMQ Pool")
             await channel.default_exchange.publish(
                 aio_pika.Message(body=message.encode()),
                 routing_key=routing_key,
             )
-        logger.info("Released connection from RabbitMQ Pool")
 
 
 class RabbitWorker:
@@ -62,7 +59,6 @@ class RabbitWorker:
         self.channel_pool: Pool = Pool(self._get_channel, max_size=2, loop=loop)
 
     async def _get_connection(self) -> AbstractRobustConnection:
-        logger.info("Established connection with RabbitMQ")
         return await aio_pika.connect_robust(
             host=self.host,
             port=self.port,
@@ -96,12 +92,10 @@ class RabbitWorker:
     async def consume(self):
         await self._wait_discord_startup()
         async with self.channel_pool.acquire() as channel:  # type: aio_pika.abc.AbstractChannel
-            logger.info("Acquired connection from RabbitMQ Pool")
             await asyncio.gather(
                 self._consume_match_queue(channel, "matches"),
                 self._consume_score_queue(channel, "update_score"),
             )
-        logger.info("Released connection from RabbitMQ Pool")
 
     async def _consume_match_queue(self, channel: aio_pika.Channel, queue_name: str = "matches"):
         logger.info(f"Start consuming from RABBIT. {queue_name = }")
@@ -113,8 +107,7 @@ class RabbitWorker:
                 try:
                     await self._process_match(match)
                 except Exception as ex:
-                    logger.error(f"_consume_match_queue {ex}, {ex.args}")
-                    raise ex
+                    logger.error(ex)
                 else:
                     await message.ack()
 
@@ -128,7 +121,7 @@ class RabbitWorker:
                 try:
                     await self._update_score(match_details)
                 except Exception as ex:
-                    logger.error(f"_consume_score_queue {ex}, {ex.args}")
+                    logger.error(f"{ex}, {ex.args}")
                     raise ex
                 else:
                     await message.ack()
