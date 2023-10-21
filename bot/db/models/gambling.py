@@ -5,9 +5,9 @@ from uuid import UUID
 
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ENUM as DB_ENUM
+from sqlalchemy.dialects.postgresql import UUID as DB_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DECIMAL
-from sqlalchemy.types import UUID as DB_UUID
 
 from bot.db.models.base import Base
 
