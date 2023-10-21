@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Sequence
 
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,17 +18,18 @@ class GamblingRepository:
             match_id=match_id,
         )
         bet_coef_t1 = BetCoefficient(
-            bet_match_id=bet_match.id,
+            bet_match=bet_match,
             bet_type=BetType.T1_WIN,
             coefficient=Decimal(2.0),
         )
         bet_coef_t2 = BetCoefficient(
-            bet_match_id=bet_match.id,
+            bet_match=bet_match,
             bet_type=BetType.T2_WIN,
             coefficient=Decimal(2.0),
         )
         session.add_all((bet_match, bet_coef_t1, bet_coef_t2))
         await session.commit()
+        logger.info(f"BEFORE select {bet_match = }")
         bet_match = await self.get_bet_match(session, match_id)
         return bet_match
 
