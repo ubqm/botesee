@@ -3,7 +3,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import ForeignKey, Integer, String, text
 from sqlalchemy.dialects.postgresql import ENUM as DB_ENUM
 from sqlalchemy.dialects.postgresql import UUID as DB_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -44,7 +44,9 @@ class BetMatch(Base):
 class BetEvent(Base):
     __tablename__ = "bet_events"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(
+        DB_UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()")
+    )
     state: Mapped[BetState] = mapped_column(DB_ENUM(BetState), default=BetState.OPEN)
     reason: Mapped[str] = mapped_column(String(length=128), nullable=True)
     bet_type: Mapped[BetType] = mapped_column(DB_ENUM(BetType))
@@ -60,7 +62,9 @@ class BetEvent(Base):
 class BetTransactions(Base):
     __tablename__ = "bet_transactions"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(
+        DB_UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()")
+    )
     event: Mapped[TransactionEvent] = mapped_column(DB_ENUM(TransactionEvent), nullable=False)
     member_id: Mapped[int] = mapped_column(Integer, nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -70,7 +74,9 @@ class BetTransactions(Base):
 class BetCoefficient(Base):
     __tablename__ = "bet_coefficients"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(
+        DB_UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()")
+    )
     bet_match_id: Mapped[str] = mapped_column(ForeignKey("bet_matches.id"))
     bet_type: Mapped[BetType] = mapped_column(DB_ENUM(BetType), nullable=False)
     coefficient: Mapped[Decimal] = mapped_column(DECIMAL(5, 2, asdecimal=True))
