@@ -8,6 +8,7 @@ from bot.db.models.base import Base
 
 if TYPE_CHECKING:
     from bot.db.models.elo import Elo
+    from bot.db.models.gambling import BetMatch
     from bot.db.models.player import Player
 
 
@@ -22,6 +23,7 @@ class Match(Base):
 
     elos: Mapped[list["Elo"]] = relationship("Elo", back_populates="match")
     players: Mapped[list["Player"]] = relationship("Player", secondary="elos", back_populates="matches", viewonly=True)
+    bet_match: Mapped["BetMatch"] = relationship("BetMatch", back_populates="match")
 
     def __str__(self) -> str:
         return f"<Match {str(self.id)}>"

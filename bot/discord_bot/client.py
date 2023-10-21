@@ -1,17 +1,20 @@
 import asyncio
 import re
 from io import BytesIO
-from typing import Any
+from typing import Any, Sequence
 
 import aiohttp
 import discord
-from discord import Intents, Interaction, Member, RawReactionActionEvent, TextChannel, app_commands
+from discord import Color, Intents, Interaction, Member, RawReactionActionEvent, TextChannel, app_commands
 from loguru import logger
 
 from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
+from bot.db import Session
+from bot.db.models.gambling import BetCoefficient, BetMatch
+from bot.db.repositories.gambling import gambling_repo
 from bot.db.script import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors._exceptions import BadAPICallException
@@ -207,6 +210,25 @@ class DiscordClient(discord.Client):
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
         await self.faceit_channel.send(embed=embed_msg)
 
+        async with Session() as session:
+            bet_match = await gambling_repo.new_match(session=session, match_id=match.payload.id)
+            coefs: Sequence[BetCoefficient] = await gambling_repo.get_match_coefficients(
+                session=session, match_id=match.payload.id
+            )
+        await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
+
+    async def gambling_message(self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]) -> None:
+        title = ""
+        for coef in coefs:
+            title += f"{coef.bet_type} - {coef.coefficient}\n"
+
+        embed_msg = discord.Embed(
+            description=f"Bets for match [m{bet_match.id}] {match.payload.id}",
+            title=title,
+            color=1752220,  # Aqua #1ABC9C
+        )
+        await self.faceit_channel.send(embed=embed_msg)
+
     @logger.catch
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
         if not self.faceit_channel:
@@ -262,6 +284,8 @@ class DiscordClient(discord.Client):
             if message_description := message.embeds[0].description:
                 if match_id not in message_description:
                     continue
+                if message.embeds[0].color == Color(1752220):
+                    await message.delete()
 
             # get nicknames from URL-embed discord format [nickname](URL)
             if not message.embeds or not message.embeds[0].fields:

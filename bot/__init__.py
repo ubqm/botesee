@@ -11,7 +11,7 @@ class EnvType(StrEnum):
 
 
 class Settings(BaseSettings):
-    ENV: EnvType
+    ENV: EnvType = EnvType.DEV
     DISCORD_TOKEN: str = ""
     STEAM_TOKEN: str = ""
     FACEIT_TOKEN: str = ""
