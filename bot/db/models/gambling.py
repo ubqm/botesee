@@ -15,12 +15,6 @@ if TYPE_CHECKING:
     from bot.db.models.match import Match
 
 
-class BetEventEnum(StrEnum):
-    BET: str = "bet"
-    CANCEL_BY_USER: str = "cancel_by_user"
-    CANCEL_BY_SYSTEM: str = "cancel_by_system"
-
-
 class TransactionEvent(StrEnum):
     DIRECT: str = "direct"
     PAYOUT: str = "payout"
