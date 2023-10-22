@@ -370,10 +370,9 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         )
         return None
     match_id = int(match[1:])
-    # TODO: time check
 
     async with Session() as session:
-        bet_match: BetMatch = await gambling_repo.get_bet_match(session=session, match_id=match_id)
+        bet_match: BetMatch = await gambling_repo.get_bet_match_by_id(session=session, match_id=match_id)
         if ctx.created_at - bet_match.created_at > timedelta(minutes=MINUTES_TILL_EXPIRE):
             await ctx.response.send_message(
                 f"Bets are closed. {MINUTES_TILL_EXPIRE} minutes expired",

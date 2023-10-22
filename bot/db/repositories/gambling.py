@@ -48,6 +48,10 @@ class GamblingRepository:
         stmt = select(BetMatch).where(BetMatch.match_id == match_id)
         return await session.scalar(stmt)
 
+    async def get_bet_match_by_id(self, session: AsyncSession, bet_match_id: int) -> BetMatch:
+        stmt = select(BetMatch).where(BetMatch.id == bet_match_id)
+        return await session.scalar(stmt)
+
     async def get_match_coefficients(self, session: AsyncSession, match_id: str) -> Sequence[BetCoefficient]:
         stmt = select(BetCoefficient).join(BetCoefficient.bet_match).where(BetMatch.match_id == match_id)
         coefs: Sequence[BetCoefficient] = (await session.scalars(stmt)).all()
