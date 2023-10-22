@@ -211,9 +211,9 @@ class DiscordClient(discord.Client):
         await self.faceit_channel.send(embed=embed_msg)
 
         async with Session() as session:
-            await gambling_repo.new_match(session=session, match_id=match.payload.id)
-            await gambling_repo.get_match_coefficients(session=session, match_id=match.payload.id)
-        # await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
+            bet_match = await gambling_repo.new_match(session=session, match_id=match.payload.id)
+            coefs = await gambling_repo.get_match_coefficients(session=session, match_id=match.payload.id)
+        await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
 
     async def gambling_message(self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]) -> None:
         description = ""
