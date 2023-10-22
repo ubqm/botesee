@@ -1,9 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey, Integer, String, text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func, text
 from sqlalchemy.dialects.postgresql import ENUM as DB_ENUM
 from sqlalchemy.dialects.postgresql import UUID as DB_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,6 +37,7 @@ class BetMatch(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     match_id: Mapped[str] = mapped_column(ForeignKey("matches.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     coefficients: Mapped[list["BetCoefficient"]] = relationship("BetCoefficient", back_populates="bet_match")
     match: Mapped["Match"] = relationship("Match", back_populates="bet_match")

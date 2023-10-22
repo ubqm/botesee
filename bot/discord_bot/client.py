@@ -1,5 +1,6 @@
 import asyncio
 import re
+from datetime import timedelta
 from io import BytesIO
 from typing import Any, Sequence
 
@@ -359,6 +360,7 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
 @logger.catch
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
+    MINUTES_TILL_EXPIRE = 4
     if not match.startswith("m") or len(match) < 2 or not match[1:].isdigit():
         await ctx.response.send_message(
             "Please, input appropriate match id. It should be in format like 'm1'",
@@ -368,7 +370,16 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         return None
     match_id = int(match[1:])
     # TODO: time check
+
     async with Session() as session:
+        bet_match: BetMatch = gambling_repo.get_bet_match(session=session, match_id=match_id)
+        if ctx.created_at - bet_match.created_at > timedelta(minutes=MINUTES_TILL_EXPIRE):
+            await ctx.response.send_message(
+                f"Bets are closed. {MINUTES_TILL_EXPIRE} minutes expired",
+                ephemeral=True,
+                delete_after=5.0,
+            )
+            return None
         current_balance = await gambling_repo.get_balance(session=session, member_id=ctx.user.id)
         if current_balance - amount < 0:
             await ctx.response.send_message(
