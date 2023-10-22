@@ -374,6 +374,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
     logger.info(f"{match_id=}")
 
     async with Session() as session:
+        logger.info(f"{session = }")
         bet_match: BetMatch = await gambling_repo.get_bet_match_by_id(session=session, match_id=match_id)
         logger.info(f"{bet_match=}")
         logger.info(f"{ctx.created_at = }, {bet_match.created_at = }")
@@ -408,3 +409,4 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
             f"Your bet is accepted. {amount} points on {bet_type}",
             ephemeral=True,
         )
+    logger.info("Bet command end")
