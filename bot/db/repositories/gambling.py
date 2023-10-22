@@ -50,6 +50,7 @@ class GamblingRepository:
         return await session.scalar(stmt)
 
     async def get_bet_match_by_id(self, session: AsyncSession, bet_match_id: int) -> BetMatch:
+        logger.info("INSIDE get_bet_match_by_id")
         stmt = select(BetMatch).where(BetMatch.id == bet_match_id)
         logger.info(f"{stmt = }")
         res = await session.scalar(stmt)
