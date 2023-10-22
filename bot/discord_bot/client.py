@@ -26,6 +26,8 @@ from bot.utils.enums import subscribers
 from bot.web.models.base import Player
 from bot.web.models.events import MatchAborted, MatchFinished, MatchReady
 
+MINUTES_TILL_EXPIRE = 4
+
 
 @logger.catch()
 def get_match_finished_message_color(statistics: MatchStatistics) -> int:
@@ -226,7 +228,7 @@ class DiscordClient(discord.Client):
             description=description,
             color=1752220,  # Aqua #1ABC9C
         )
-        await self.faceit_channel.send(embed=embed_msg, delete_after=180)
+        await self.faceit_channel.send(embed=embed_msg, delete_after=MINUTES_TILL_EXPIRE * 60)
 
     @logger.catch
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
@@ -360,7 +362,6 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
 @logger.catch
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
-    MINUTES_TILL_EXPIRE = 4
     if not match.startswith("m") or len(match) < 2 or not match[1:].isdigit():
         await ctx.response.send_message(
             "Please, input appropriate match id. It should be in format like 'm1'",
