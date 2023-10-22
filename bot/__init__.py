@@ -17,17 +17,18 @@ class Settings(BaseSettings):
     FACEIT_TOKEN: str = ""
     FACEIT_HEADERS: dict[str, str] | None = None
     FACEIT_WEBHOOK_AUTH: str = ""
-    DB_USER: str = ""
-    DB_PASSWORD: str = ""
-    DB_HOST: str = ""
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
+    DB_HOST: str = "localhost"
     DB_PORT: int = 5432
-    DB_NAME: str = ""
+    DB_NAME: str = "bot"
     RABBIT_HOST: str = ""
     RABBIT_PORT: int = 5672
     RABBIT_USER: str = ""
     RABBIT_PASSWORD: str = ""
     REDIS_HOST: str = ""
     REDIS_PORT: int = 6379
+    START_BALANCE: int = 100
 
     @property
     def db_string(self) -> str:
