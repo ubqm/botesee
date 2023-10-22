@@ -217,7 +217,7 @@ class DiscordClient(discord.Client):
         await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
 
     async def gambling_message(self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]) -> None:
-        description = ""
+        description = "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
         for coef in coefs:
             description += f"{coef.bet_type} - {coef.coefficient}\n"
 
