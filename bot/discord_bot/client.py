@@ -362,6 +362,7 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
 @logger.catch
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
+    logger.info(f"New bet from {ctx.user}, {match}, {bet_type}, {amount=}")
     if not match.startswith("m") or len(match) < 2 or not match[1:].isdigit():
         await ctx.response.send_message(
             "Please, input appropriate match id. It should be in format like 'm1'",
@@ -370,9 +371,13 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         )
         return None
     match_id = int(match[1:])
+    logger.info(f"{match_id=}")
 
     async with Session() as session:
         bet_match: BetMatch = await gambling_repo.get_bet_match_by_id(session=session, match_id=match_id)
+        logger.info(f"{bet_match=}")
+        logger.info(f"{ctx.created_at = }, {bet_match.created_at = }")
+        logger.info(f"time_between = {ctx.created_at - bet_match.created_at}")
         if ctx.created_at - bet_match.created_at > timedelta(minutes=MINUTES_TILL_EXPIRE):
             await ctx.response.send_message(
                 f"Bets are closed. {MINUTES_TILL_EXPIRE} minutes expired",
@@ -381,6 +386,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
             )
             return None
         current_balance = await gambling_repo.get_balance(session=session, member_id=ctx.user.id)
+        logger.info(f"{current_balance = }")
         if current_balance - amount < 0:
             await ctx.response.send_message(
                 f"Not enough points. Current balance: {current_balance}",
@@ -397,6 +403,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
             amount=amount,
         )
         await session.commit()
+        logger.info("Bet accepted")
         await ctx.response.send_message(
             f"Your bet is accepted. {amount} points on {bet_type}",
             ephemeral=True,
