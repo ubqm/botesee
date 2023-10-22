@@ -359,7 +359,6 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
     await discord_client.faceit_channel.send(file=discord_client.compile_binary_image(image))
 
 
-@logger.catch
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
     logger.info(f"New bet from {ctx.user}, {match}, {bet_type}, {amount=}")
