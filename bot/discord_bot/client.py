@@ -359,6 +359,13 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
 @logger.catch
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
+    if not match.startswith("m") or len(match) < 2 or not match[1:].isdigit():
+        await ctx.response.send_message(
+            "Please, input appropriate match id. It should be in format like 'm1'",
+            ephemeral=True,
+            delete_after=5.0,
+        )
+        return None
     match_id = int(match[1:])
     # TODO: time check
     async with Session() as session:
