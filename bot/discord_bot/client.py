@@ -13,7 +13,7 @@ from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db import Session
-from bot.db.models.gambling import BetCoefficient, BetMatch
+from bot.db.models.gambling import BetCoefficient, BetMatch, BetType
 from bot.db.repositories.gambling import gambling_repo
 from bot.db.script import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
@@ -216,16 +216,16 @@ class DiscordClient(discord.Client):
         # await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
 
     async def gambling_message(self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]) -> None:
-        title = ""
+        description = ""
         for coef in coefs:
-            title += f"{coef.bet_type} - {coef.coefficient}\n"
+            description += f"{coef.bet_type} - {coef.coefficient}\n"
 
         embed_msg = discord.Embed(
-            description=f"Bets for match [m{bet_match.id}] {match.payload.id}",
-            title=title,
+            title=f"Bets for match [m{bet_match.id}] {match.payload.id}",
+            description=description,
             color=1752220,  # Aqua #1ABC9C
         )
-        await self.faceit_channel.send(embed=embed_msg)
+        await self.faceit_channel.send(embed=embed_msg, delete_after=180)
 
     @logger.catch
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
@@ -268,6 +268,8 @@ class DiscordClient(discord.Client):
 
     @logger.catch
     async def post_faceit_message_aborted(self, match: MatchAborted) -> None:
+        async with Session() as session:
+            await gambling_repo.cancel_bets(session=session, match=match)
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
     @logger.catch
@@ -352,3 +354,28 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
     )
     image = await imgcmpr.collect_image()
     await discord_client.faceit_channel.send(file=discord_client.compile_binary_image(image))
+
+
+@logger.catch
+@tree.command(name="bet", description="Bet points for match results")
+async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
+    match_id = int(match[1:])
+    # TODO: time check
+    async with Session() as session:
+        current_balance = await gambling_repo.get_balance(session=session, member_id=ctx.user.id)
+        if current_balance - amount < 0:
+            await ctx.response.send_message(
+                f"Not enough points. Current balance: {current_balance}",
+                ephemeral=True,
+                delete_after=5.0,
+            )
+            return None
+
+        await gambling_repo.create_event(
+            session=session,
+            match_id=match_id,
+            member_id=ctx.user.id,
+            bet_type=bet_type,
+            amount=amount,
+        )
+        await session.commit()

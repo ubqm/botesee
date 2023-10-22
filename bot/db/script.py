@@ -5,6 +5,7 @@ from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db import Session
 from bot.db.repositories.elo import EloRepository
+from bot.db.repositories.gambling import gambling_repo
 from bot.db.repositories.match import MatchRepository
 from bot.db.repositories.player import PlayerRepository
 from bot.web.models.events import MatchFinished
@@ -36,4 +37,5 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
                         match=db_match,
                         elo=getattr(player_details.games, f"{match.payload.game}").faceit_elo,
                     )
+        await gambling_repo.make_payout(session=sa_session, match=match, statistics=statistics)
         await sa_session.commit()

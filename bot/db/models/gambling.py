@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 class TransactionEvent(StrEnum):
     DIRECT: str = "direct"
     PAYOUT: str = "payout"
+    CANCEL: str = "cancel"
 
 
 class BetType(StrEnum):
@@ -40,6 +41,9 @@ class BetMatch(Base):
     match: Mapped["Match"] = relationship("Match", back_populates="bet_match")
     events: Mapped[list["BetEvent"]] = relationship("BetEvent", back_populates="bet_match")
 
+    def __repr__(self) -> str:
+        return f"<BetMatch id={self.id}, faceit_match={self.match_id}>"
+
 
 class BetEvent(Base):
     __tablename__ = "bet_events"
@@ -58,6 +62,9 @@ class BetEvent(Base):
     bet_match: Mapped["BetMatch"] = relationship("BetMatch", back_populates="events")
     coefficient: Mapped["BetCoefficient"] = relationship("BetCoefficient", back_populates="bet_event")
 
+    def __repr__(self) -> str:
+        return f"<BetEvent state={self.state}, bet_type={self.bet_type}, member={self.member_id}>"
+
 
 class BetTransactions(Base):
     __tablename__ = "bet_transactions"
@@ -69,6 +76,9 @@ class BetTransactions(Base):
     member_id: Mapped[int] = mapped_column(Integer, nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
     bet_event_id: Mapped[UUID] = mapped_column(ForeignKey("bet_events.id"), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<BetTransaction id={self.id}, event={self.event}, member={self.member_id}, amount={self.amount}>"
 
 
 class BetCoefficient(Base):
@@ -83,3 +93,6 @@ class BetCoefficient(Base):
 
     bet_match: Mapped["BetMatch"] = relationship("BetMatch", back_populates="coefficients")
     bet_event: Mapped["BetEvent"] = relationship("BetEvent", back_populates="coefficient")
+
+    def __repr__(self) -> str:
+        return f"<BetCoef match={self.bet_match_id}, type={self.bet_type}, ratio={self.coefficient}>"
