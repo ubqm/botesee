@@ -2,6 +2,7 @@ from decimal import Decimal
 from math import ceil
 from typing import Sequence
 
+from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -50,7 +51,10 @@ class GamblingRepository:
 
     async def get_bet_match_by_id(self, session: AsyncSession, bet_match_id: int) -> BetMatch:
         stmt = select(BetMatch).where(BetMatch.id == bet_match_id)
-        return await session.scalar(stmt)
+        logger.info(f"{stmt = }")
+        res = await session.scalar(stmt)
+        logger.info(f"{res = }")
+        return res
 
     async def get_match_coefficients(self, session: AsyncSession, match_id: str) -> Sequence[BetCoefficient]:
         stmt = select(BetCoefficient).join(BetCoefficient.bet_match).where(BetMatch.match_id == match_id)
