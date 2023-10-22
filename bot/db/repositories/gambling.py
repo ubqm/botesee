@@ -2,7 +2,6 @@ from decimal import Decimal
 from math import ceil
 from typing import Sequence
 
-from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -42,8 +41,7 @@ class GamblingRepository:
         )
         session.add_all((bet_match, bet_coef_t1, bet_coef_t2))
         await session.commit()
-        logger.info(f"BEFORE select {bet_match = }")
-        bet_match = await self.get_bet_match(session, match_id)
+        bet_match = await self.get_bet_match(session=session, match_id=match_id)
         return bet_match
 
     async def get_bet_match(self, session: AsyncSession, match_id: str) -> BetMatch:
