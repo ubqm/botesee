@@ -37,7 +37,9 @@ class BetMatch(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     match_id: Mapped[str] = mapped_column(ForeignKey("matches.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
 
     coefficients: Mapped[list["BetCoefficient"]] = relationship("BetCoefficient", back_populates="bet_match")
     match: Mapped["Match"] = relationship("Match", back_populates="bet_match")
