@@ -13,7 +13,7 @@ from sqlalchemy.types import DECIMAL
 from bot.db.models.base import Base
 
 if TYPE_CHECKING:
-    from bot.db.models.match import Match
+    pass
 
 
 class TransactionEvent(StrEnum):
@@ -36,13 +36,13 @@ class BetMatch(Base):
     __tablename__ = "bet_matches"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    match_id: Mapped[str] = mapped_column(ForeignKey("matches.id"))
+    match_id: Mapped[str] = mapped_column(String(length=128))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.now, server_default=func.now()
     )
 
     coefficients: Mapped[list["BetCoefficient"]] = relationship("BetCoefficient", back_populates="bet_match")
-    match: Mapped["Match"] = relationship("Match", back_populates="bet_match")
+    # match: Mapped["Match"] = relationship("Match", back_populates="bet_match")
     events: Mapped[list["BetEvent"]] = relationship("BetEvent", back_populates="bet_match")
 
     def __repr__(self) -> str:
