@@ -375,7 +375,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
 
     async with Session() as session:
         logger.info(f"{session = }")
-        bet_match = await gambling_repo.get_bet_match_by_id(session=session, match_id=match_id)
+        bet_match = await gambling_repo.get_bet_match_by_id(session=session, bet_match_id=match_id)
         logger.info(f"{bet_match=}")
         logger.info(f"{ctx.created_at = }, {bet_match.created_at = }")
         logger.info(f"time_between = {ctx.created_at - bet_match.created_at}")
