@@ -1,7 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, func, text
@@ -11,9 +10,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DECIMAL
 
 from bot.db.models.base import Base
-
-if TYPE_CHECKING:
-    pass
 
 
 class TransactionEvent(StrEnum):
