@@ -401,6 +401,6 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         logger.info("Bet accepted")
 
     await ctx.response.send_message(
-        f"Your bet is accepted. {amount} points on {bet_type}",
+        f"Your bet is accepted. {amount} points on {bet_type}. Match id [{match}]",
         ephemeral=True,
     )
