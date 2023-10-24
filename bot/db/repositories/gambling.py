@@ -2,7 +2,6 @@ from decimal import Decimal
 from math import ceil
 from typing import Sequence
 
-from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -50,19 +49,15 @@ class GamblingRepository:
         return await session.scalar(stmt)
 
     async def get_bet_match_by_id(self, session: AsyncSession, bet_match_id: int) -> BetMatch:
-        logger.info("INSIDE get_bet_match_by_id")
         stmt = select(BetMatch).where(BetMatch.id == bet_match_id)
-        logger.info(f"{stmt = }")
-        res = await session.scalar(stmt)
-        logger.info(f"{res = }")
-        return res
+        return await session.scalar(stmt)
 
     async def get_match_coefficients(self, session: AsyncSession, match_id: str) -> Sequence[BetCoefficient]:
         stmt = select(BetCoefficient).join(BetCoefficient.bet_match).where(BetMatch.match_id == match_id)
         coefs: Sequence[BetCoefficient] = (await session.scalars(stmt)).all()
         return coefs
 
-    async def get_coefficients_by_type(self, session: AsyncSession, bet_match_id: str, bet_type: BetType):
+    async def get_coefficients_by_type(self, session: AsyncSession, bet_match_id: int, bet_type: BetType):
         stmt = select(BetCoefficient).where(
             (BetCoefficient.bet_match_id == bet_match_id) & (BetCoefficient.bet_type == bet_type)
         )
@@ -72,15 +67,14 @@ class GamblingRepository:
     async def create_event(
         self,
         session: AsyncSession,
-        match_id: str,
+        bet_match_id: int,
         member_id: int,
         bet_type: BetType,
         amount: int,
     ) -> None:
-        bet_match: BetMatch = await session.scalar(select(BetMatch).where(BetMatch.match_id == match_id))
-        bet_coef = await self.get_coefficients_by_type(session=session, bet_match_id=bet_match.id, bet_type=bet_type)
+        bet_coef = await self.get_coefficients_by_type(session=session, bet_match_id=bet_match_id, bet_type=bet_type)
         bet_event = BetEvent(
-            bet_type=bet_type, bet_match_id=bet_match.id, member_id=member_id, amount=amount, bet_coef_id=bet_coef.id
+            bet_type=bet_type, bet_match_id=bet_match_id, member_id=member_id, amount=amount, bet_coef_id=bet_coef.id
         )
         session.add(bet_event)
         await session.commit()
