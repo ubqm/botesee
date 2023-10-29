@@ -22,7 +22,7 @@ class Game(BaseModel):
 
 
 class Games(BaseModel):
-    csgo: Game
+    csgo: Game | None
     valorant: Game | None
     cs2: Game | None
 
