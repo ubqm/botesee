@@ -55,7 +55,7 @@ class BetEvent(Base):
     reason: Mapped[str] = mapped_column(String(length=128), nullable=True)
     bet_type: Mapped[BetType] = mapped_column(DB_ENUM(BetType))
     bet_match_id: Mapped[str] = mapped_column(ForeignKey("bet_matches.id"))
-    member_id: Mapped[int] = mapped_column(Integer)
+    member_id: Mapped[str] = mapped_column(String(64))
     amount: Mapped[int] = mapped_column(Integer)
     bet_coef_id: Mapped[UUID] = mapped_column(ForeignKey("bet_coefficients.id"))
 
@@ -73,7 +73,7 @@ class BetTransactions(Base):
         DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("uuid_generate_v4()")
     )
     event: Mapped[TransactionEvent] = mapped_column(DB_ENUM(TransactionEvent), nullable=False)
-    member_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    member_id: Mapped[str] = mapped_column(String(64), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
     bet_event_id: Mapped[UUID] = mapped_column(ForeignKey("bet_events.id"), nullable=True)
 

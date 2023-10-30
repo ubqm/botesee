@@ -361,6 +361,8 @@ async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -
 
 @tree.command(name="bet", description="Bet points for match results")
 async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> None:
+    logger.info(f"Bet from ({ctx.user.name}: {ctx.user.id})")
+    logger.info(f"{match=}, {bet_type=}, {amount=}")
     if not match.startswith("m") or len(match) < 2 or not match[1:].isdigit():
         await ctx.response.send_message(
             "Please, input appropriate match id. It should be in format like 'm1'",
@@ -381,7 +383,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
             )
             return None
 
-        current_balance = await gambling_repo.get_balance(session=session, member_id=ctx.user.id)
+        current_balance = await gambling_repo.get_balance(session=session, member_id=str(ctx.user.id))
         if current_balance - amount < 0:
             await ctx.response.send_message(
                 f"Not enough points. Current balance: {current_balance}",
@@ -393,7 +395,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         await gambling_repo.create_event(
             session=session,
             bet_match_id=bet_match.id,
-            member_id=ctx.user.id,
+            member_id=str(ctx.user.id),
             bet_type=bet_type,
             amount=amount,
         )
