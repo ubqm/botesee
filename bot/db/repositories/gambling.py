@@ -68,7 +68,7 @@ class GamblingRepository:
         self,
         session: AsyncSession,
         bet_match_id: int,
-        member_id: int,
+        member_id: str,
         bet_type: BetType,
         amount: int,
     ) -> None:
@@ -79,7 +79,7 @@ class GamblingRepository:
         session.add(bet_event)
         await session.commit()
 
-    async def get_balance(self, session: AsyncSession, member_id: int) -> int:
+    async def get_balance(self, session: AsyncSession, member_id: str) -> int:
         stmt = select(func.sum(BetTransactions.amount.label("balance_change"))).where(
             BetTransactions.member_id == member_id
         )
