@@ -28,4 +28,4 @@ class Match(Base):
         return f"<Match {str(self.id)}>"
 
     def __repr__(self) -> str:
-        return f"<Match {str(self.id)}, {self.date}>"
+        return f"<Match {str(self.id)}, {self.date}, {self.game}>"
