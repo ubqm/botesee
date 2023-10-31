@@ -23,3 +23,6 @@ class MatchRepository:
             match = Match(id=str(match_uuid), date=date, game=game)
             session.add(match)
         return match
+
+
+match_repo = MatchRepository()

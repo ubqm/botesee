@@ -49,7 +49,7 @@ class BetEvent(Base):
     __tablename__ = "bet_events"
 
     id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("uuid_generate_v4()")
+        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
     )
     state: Mapped[BetState] = mapped_column(DB_ENUM(BetState), default=BetState.OPEN)
     reason: Mapped[str] = mapped_column(String(length=128), nullable=True)
@@ -70,7 +70,7 @@ class BetTransactions(Base):
     __tablename__ = "bet_transactions"
 
     id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("uuid_generate_v4()")
+        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
     )
     event: Mapped[TransactionEvent] = mapped_column(DB_ENUM(TransactionEvent), nullable=False)
     member_id: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -85,7 +85,7 @@ class BetCoefficient(Base):
     __tablename__ = "bet_coefficients"
 
     id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("uuid_generate_v4()")
+        DB_UUID(as_uuid=True), primary_key=True, default=uuid4, server_default=text("gen_random_uuid()")
     )
     bet_match_id: Mapped[str] = mapped_column(ForeignKey("bet_matches.id"))
     bet_type: Mapped[BetType] = mapped_column(DB_ENUM(BetType), nullable=False)

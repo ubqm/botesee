@@ -16,3 +16,6 @@ class PlayerRepository:
             player = Player(id=str(player_uuid))
             session.add(player)
         return player
+
+
+player_repo = PlayerRepository()

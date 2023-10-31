@@ -4,15 +4,11 @@ from bot import conf
 from bot.clients.faceit import FaceitClient
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db import Session
-from bot.db.repositories.elo import EloRepository
+from bot.db.repositories.elo import elo_repo
 from bot.db.repositories.gambling import gambling_repo
-from bot.db.repositories.match import MatchRepository
-from bot.db.repositories.player import PlayerRepository
+from bot.db.repositories.match import match_repo
+from bot.db.repositories.player import player_repo
 from bot.web.models.events import MatchFinished
-
-match_repo = MatchRepository()
-elo_repo = EloRepository()
-player_repo = PlayerRepository()
 
 
 async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -> None:
