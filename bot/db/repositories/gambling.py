@@ -85,7 +85,9 @@ class GamblingRepository:
         )
         balance_tr = await session.scalar(stmt) or 0
 
-        stmt = select(func.sum(BetEvent.amount.label("balance_on_hold"))).where(BetEvent.member_id == member_id)
+        stmt = select(func.sum(BetEvent.amount.label("balance_on_hold"))).where(
+            (BetEvent.member_id == member_id) & (BetEvent.state == BetState.OPEN)
+        )
         balance_on_hold = await session.scalar(stmt) or 0
         live_balance = conf.START_BALANCE + balance_tr - balance_on_hold
 
