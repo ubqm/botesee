@@ -3,13 +3,11 @@ from asyncio import Task
 from io import BytesIO
 from typing import Literal
 
-import aiohttp
-from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
 from PIL import Image, ImageDraw, ImageFont
 
-from bot import conf, redis_cache
-from bot.clients.faceit import FaceitClient
+from bot import redis_cache
+from bot.clients.faceit import faceit_client
 from bot.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from bot.image_collectors import TEMPLATE_PATH
@@ -44,15 +42,14 @@ class MatchFinishedImCol:
 
     async def collect_images(self) -> list[Image]:
         images: list[Image] = []
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            for match_round in self.statistics.rounds:
-                canvas = await self._draw_image(session, match_round)
-                images.append(canvas)
+        for match_round in self.statistics.rounds:
+            canvas = await self._draw_image(match_round)
+            images.append(canvas)
         return images
 
-    async def _draw_image(self, session: ClientSession, round_: Round) -> Image:
+    async def _draw_image(self, round_: Round) -> Image:
         canvas: Image = await self._get_map_image(round_)
-        canvas = await self._draw_players(session, round_, canvas)
+        canvas = await self._draw_players(round_, canvas)
         return canvas
 
     async def _get_map_image(self, round_: Round) -> Image:
@@ -61,24 +58,23 @@ class MatchFinishedImCol:
         await self._draw_game_score(round_, canvas)
         return canvas
 
-    async def _draw_players(self, session: ClientSession, round_: Round, canvas: Image) -> Image:
+    async def _draw_players(self, round_: Round, canvas: Image) -> Image:
         tasks: list[Task] = []
         for idx_team, team in enumerate(round_.teams):
             for idx_player, player in enumerate(team.players):
-                task = asyncio.create_task(self._draw_player(session, canvas, player, idx_team, idx_player))
+                task = asyncio.create_task(self._draw_player(canvas, player, idx_team, idx_player))
                 tasks.append(task)
         await asyncio.gather(*tasks)
         return canvas
 
     async def _draw_player(
         self,
-        session: ClientSession,
         canvas: Image,
         player: Player,
         idx_team: int,
         idx_player: int,
     ) -> Image:
-        canvas = await self._draw_player_avatar(session, canvas, player, idx_team, idx_player)
+        canvas = await self._draw_player_avatar(canvas, player, idx_team, idx_player)
         await self._draw_player_stats(player, canvas, idx_team, idx_player)
         return canvas
 
@@ -157,14 +153,13 @@ class MatchFinishedImCol:
 
     async def _draw_player_avatar(
         self,
-        session: ClientSession,
         canvas: Image,
         player: Player,
         idx_team: int,
         idx_player: int,
     ) -> Image:
         draw_image = ImageDraw.Draw(canvas)
-        player_elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname, self.match.payload.game)
+        player_elo = await faceit_client.get_player_elo_by_nickname(player.nickname, self.match.payload.game)
         elo_diff = await self.calculate_elo_change(player, player_elo)
 
         for idx_req_player, req_player in enumerate(self.match.payload.teams[idx_team].roster):
@@ -446,8 +441,7 @@ if __name__ == "__main__":
         # im.show()
         mf = match_finished_()
         print(f"{mf = }")
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            statistics = await FaceitClient.match_stats(session, mf.payload.id)
+        statistics = await faceit_client.match_stats(mf.payload.id)
         mf_imcol = MatchFinishedImCol(
             mf,
             statistics,
