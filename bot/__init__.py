@@ -48,9 +48,6 @@ class Settings(BaseSettings):
 
 
 conf = Settings()
-conf.FACEIT_HEADERS = {
-    "accept": "application/json",
-    "Authorization": f"Bearer {conf.FACEIT_TOKEN}",
-}
+
 
 redis_cache = RedisBackend(cache_name="aiohttp-cache", address=conf.redis_string, expire_after=timedelta(days=30))

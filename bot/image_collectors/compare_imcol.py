@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
 from bot import conf
-from bot.clients.faceit import FaceitClient
+from bot.clients.faceit import faceit_client
 from bot.clients.models.faceit.match_stats import MatchStatistics, Round
 from bot.clients.models.faceit.player_details import PlayerDetails
 from bot.clients.models.faceit.player_history import MatchHistory
@@ -82,17 +82,13 @@ class CompareImCol:
                     return self.image
 
     async def _collect_user_info(self, session: ClientSession, nickname: str) -> None:
-        player_details = await FaceitClient.player_details(session, nickname)
-        player_history = await FaceitClient.player_history(
-            session, player_details.player_id, offset=0, limit=self.amount
-        )
-        player_region_stats = await FaceitClient.region_stats(
-            session=session,
+        player_details = await faceit_client.player_details(nickname)
+        player_history = await faceit_client.player_history(player_details.player_id, offset=0, limit=self.amount)
+        player_region_stats = await faceit_client.region_stats(
             player_id=player_details.player_id,
             region=player_details.games.cs2.region,
         )
-        player_country_stats = await FaceitClient.region_stats(
-            session=session,
+        player_country_stats = await faceit_client.region_stats(
             player_id=player_details.player_id,
             region=player_details.games.cs2.region,
             country=player_details.country,
@@ -133,8 +129,7 @@ class CompareImCol:
         await self._collect_user_info(session, nickname)
         tasks: list[Task] = []
         for match_history in self.player_stat[nickname].player_history.items:
-            task2 = asyncio.create_task(FaceitClient.match_stats(session, match_history.match_id))
-            tasks.append(task2)
+            tasks.append(asyncio.create_task(faceit_client.match_stats(match_history.match_id)))
         results: tuple[MatchStatistics, ...] = await asyncio.gather(*tasks, return_exceptions=True)
         for idx, match_stats in enumerate(results):
             if not match_stats:

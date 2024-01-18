@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
 
 from bot import conf
-from bot.clients.faceit import FaceitClient
+from bot.clients.faceit import faceit_client
 from bot.clients.models.faceit.match_stats import MatchStatistics, Round
 from bot.clients.models.faceit.player_history import MatchHistory
 from bot.clients.steam import SteamClient
@@ -43,26 +43,27 @@ class LastStatsImCol:
     async def collect_stat(self) -> GameStatLastStorage:
         games: list[GameStatLast] = []
         await self._collect_user_info()
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            tasks: list[Task] = []
-            for match_history in self.player_stat[self.nickname].player_history.items:
-                task2 = asyncio.create_task(FaceitClient.match_stats(session, match_history.match_id))
-                tasks.append(task2)
-            results: list[MatchStatistics] = await asyncio.gather(*tasks)  # type: ignore
-            for idx, match_stats in enumerate(results):
-                if not match_stats:
-                    continue
-                for match_round in match_stats.rounds:
-                    game = self.compile_game(
-                        match_round,
-                        self.player_stat[self.nickname].player_history.items[idx],
-                    )
-                    if not game:
-                        continue
-                    games.append(game)
 
-                    if len(games) >= 10:
-                        return GameStatLastStorage(games=games)
+        tasks: list[Task] = []
+        for match_history in self.player_stat[self.nickname].player_history.items:
+            tasks.append(asyncio.create_task(faceit_client.match_stats(match_history.match_id)))
+        results: list[MatchStatistics] = await asyncio.gather(*tasks)  # type: ignore
+
+        for idx, match_stats in enumerate(results):
+            if not match_stats:
+                continue
+            for match_round in match_stats.rounds:
+                game = self.compile_game(
+                    match_round,
+                    self.player_stat[self.nickname].player_history.items[idx],
+                )
+                if not game:
+                    continue
+                games.append(game)
+
+                if len(games) >= 10:
+                    return GameStatLastStorage(games=games)
+
         return GameStatLastStorage(games=games)
 
     async def _draw_image(self, games: GameStatLastStorage) -> None:
@@ -105,20 +106,17 @@ class LastStatsImCol:
         )
 
     async def _collect_user_info(self):
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            player_details = await FaceitClient.player_details(session, self.nickname)
-            player_history = await FaceitClient.player_history(session, player_details.player_id)
-            player_region_stats = await FaceitClient.region_stats(
-                session=session,
-                player_id=player_details.player_id,
-                region=player_details.games.cs2.region,
-            )
-            player_country_stats = await FaceitClient.region_stats(
-                session=session,
-                player_id=player_details.player_id,
-                region=player_details.games.cs2.region,
-                country=player_details.country,
-            )
+        player_details = await faceit_client.player_details(self.nickname)
+        player_history = await faceit_client.player_history(player_details.player_id)
+        player_region_stats = await faceit_client.region_stats(
+            player_id=player_details.player_id,
+            region=player_details.games.cs2.region,
+        )
+        player_country_stats = await faceit_client.region_stats(
+            player_id=player_details.player_id,
+            region=player_details.games.cs2.region,
+            country=player_details.country,
+        )
 
         async with aiohttp.ClientSession() as session:
             steam_app_stat = await SteamClient.user_app_stat(
@@ -305,7 +303,7 @@ if __name__ == "__main__":
 
     async def main():
         # async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-        # player_details = await FaceitClient.player_details(session, "Ayudesee")
+        # player_details = await faceit_client.player_details("Ayudesee")
         # steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
 
         # print(steam_app_stat)

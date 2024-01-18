@@ -1,16 +1,13 @@
-import asyncio
 import re
 from datetime import timedelta
 from io import BytesIO
 from typing import Any, Sequence
 
-import aiohttp
 import discord
 from discord import Color, Intents, Interaction, Member, RawReactionActionEvent, TextChannel, app_commands
 from loguru import logger
 
-from bot import conf
-from bot.clients.faceit import FaceitClient
+from bot.clients.faceit import faceit_client
 from bot.clients.models.faceit.match_details import MatchDetails
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db import Session
@@ -18,7 +15,6 @@ from bot.db.models.gambling import BetCoefficient, BetMatch, BetType
 from bot.db.repositories.gambling import gambling_repo
 from bot.db.script import db_match_finished
 from bot.discord_bot.models.embed import NickEloStorage, PlayerStorage
-from bot.image_collectors._exceptions import BadAPICallException
 from bot.image_collectors.compare_imcol import CompareImCol
 from bot.image_collectors.last_stat_imcol import LastStatsImCol
 from bot.image_collectors.match_finished import MatchFinishedImCol
@@ -66,10 +62,10 @@ def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
     return str_nick_1 + "\n" + str_nick_2, color
 
 
-async def get_nicks_and_elo(session, roster: list[Player], game: str = "cs2") -> NickEloStorage:
+async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
     players_storage: list[PlayerStorage] = []
     for player in roster:
-        elo = await FaceitClient.get_player_elo_by_nickname(session, player.nickname, game)
+        elo = await faceit_client.get_player_elo_by_nickname(player.nickname, game)
         players_storage.append(PlayerStorage(nickname=player.nickname, elo=elo))
     return NickEloStorage(players=players_storage)
 
@@ -207,9 +203,8 @@ class DiscordClient(discord.Client):
     async def post_faceit_message_ready(self, match: MatchReady) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            nick_elo_1 = await get_nicks_and_elo(session, match.payload.teams[0].roster, game=match.payload.game)
-            nick_elo_2 = await get_nicks_and_elo(session, match.payload.teams[1].roster, game=match.payload.game)
+        nick_elo_1 = await get_nicks_and_elo(match.payload.teams[0].roster, game=match.payload.game)
+        nick_elo_2 = await get_nicks_and_elo(match.payload.teams[1].roster, game=match.payload.game)
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
         await self.faceit_channel.send(embed=embed_msg)
 
@@ -234,19 +229,8 @@ class DiscordClient(discord.Client):
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
-        async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-            retry_count = 1
-            while retry_count < 10:
-                try:
-                    statistics = await FaceitClient.match_stats(session, match.payload.id)
-                except BadAPICallException as e:
-                    logger.warning(e)
-                    retry_count += 1
-                    if retry_count == 10:
-                        raise Exception(f"could not get statistics from Finished match {match.payload.id}")
-                    await asyncio.sleep(retry_count**2)
-                else:
-                    break
+
+        statistics = await faceit_client.match_stats(match.payload.id)
 
         await db_match_finished(match, statistics)
 
