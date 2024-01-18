@@ -1,7 +1,4 @@
-import aiohttp
-
-from bot import conf
-from bot.clients.faceit import FaceitClient
+from bot.clients.faceit import faceit_client
 from bot.clients.models.faceit.match_stats import MatchStatistics
 from bot.db import Session
 from bot.db.repositories.elo import elo_repo
@@ -16,10 +13,7 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
         for match_stat in statistics.rounds:
             for team in match_stat.teams:
                 for player in team.players:
-                    async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
-                        player_details = await FaceitClient.player_details_by_id(
-                            session=session, player_id=player.player_id
-                        )
+                    player_details = await faceit_client.player_details_by_id(player_id=player.player_id)
                     db_player = await player_repo.get_or_create(session=sa_session, player_uuid=player.player_id)
                     db_match = await match_repo.get_or_create(
                         session=sa_session,
