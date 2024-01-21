@@ -61,8 +61,8 @@ services:
         source: ./errors.log
         target: /app/errors.log
       - type: bind
-        source: ./bot
-        target: /bot
+        source: ./src
+        target: /botesee/src
     tty: true
 
   celery:
