@@ -1,5 +1,6 @@
 import asyncio
 
+import httpx
 from aiohttp.client_exceptions import ClientConnectorError
 from celery import Celery
 from loguru import logger
@@ -18,7 +19,7 @@ async def _score_update(match_id: str) -> None:
         await asyncio.sleep(20)
         try:
             match_details = await faceit_client.match_details(match_id)
-        except ClientConnectorError as e:
+        except httpx.PoolTimeout as e:
             logger.error(e)
         else:
             if match_details.finished_at:
