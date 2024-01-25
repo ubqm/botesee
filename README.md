@@ -7,6 +7,7 @@ A bunch of python services that provide some functions related to FaceIT platfor
 - `/bet [match_id] [bet_type] [amount]` - take a bet in virtual points amount on a match
 
 Examples:
+
 ![img_3.png](img_3.png)
 ![img_2.png](img_2.png)
 
