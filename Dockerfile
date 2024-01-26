@@ -3,7 +3,7 @@ FROM python:3.11.6 AS base
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
 
-COPY pyproject.toml pdm.lock .env /botesee/
+COPY pyproject.toml pdm.lock /botesee/
 
 WORKDIR /botesee
 RUN mkdir __pypackages__ && pdm sync --prod --no-editable
