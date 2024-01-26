@@ -115,7 +115,7 @@ class DiscordClient(discord.Client):
     def __init__(self, faceit_channel_id: int, intents: Intents, **options: Any):
         super().__init__(intents=intents, options=options)
         self.faceit_channel_id: int = faceit_channel_id
-        self.faceit_channel: discord.TextChannel | None
+        self.faceit_channel: discord.TextChannel | None = None
 
     async def on_ready(self):
         await self.wait_until_ready()
