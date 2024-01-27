@@ -289,7 +289,7 @@ class LastStatsImCol:
         minsk_time = game.started_at.astimezone(pytz.timezone("Europe/Minsk"))
         game_date = minsk_time.strftime("%d %b")
         game_time = minsk_time.strftime("%H:%M")
-        w, h = canvas.textsize(game_time, font=self.font)
+        w = canvas.textlength(game_time, font=self.font)
         canvas.text((488, 50 * idx_game + 30), game_date, font=self.font)
         canvas.text((648 - w, 50 * idx_game + 30), game_time, font=self.font)
 
