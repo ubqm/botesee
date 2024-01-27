@@ -40,7 +40,7 @@ dependencies = [
     "discord-py>=2.3.2",
     "httpx>=0.26.0",
     "loguru>=0.7.2",
-    "pillow==9.4.0",
+    "pillow>=10.2.0",
     "psycopg2-binary>=2.9.9",
     "SQLAlchemy>=2.0.25",
     "pydantic-settings>=2.1.0",

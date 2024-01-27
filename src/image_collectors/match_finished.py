@@ -21,14 +21,28 @@ class MatchFinishedImCol:
     font_file = "Outfit-Bold.ttf"
     font_file_mainscore = "Outfit-ExtraBold.ttf"
     fonts = {
-        "mainscore": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50),
-        "avatar": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18),
-        "player_score": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32),
-        "player_stats": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22),
-        "halftime": ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22),
+        "mainscore": ImageFont.truetype(
+            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50
+        ),
+        "avatar": ImageFont.truetype(
+            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
+        ),
+        "player_score": ImageFont.truetype(
+            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32
+        ),
+        "player_stats": ImageFont.truetype(
+            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
+        ),
+        "halftime": ImageFont.truetype(
+            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
+        ),
     }
-    image_dark_avatar_bot = Image.open(f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png")
-    image_dark_avatar_top = Image.open(f"{TEMPLATE_PATH}/background_features/for_avatar_top.png")
+    image_dark_avatar_bot = Image.open(
+        f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png"
+    )
+    image_dark_avatar_top = Image.open(
+        f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
+    )
 
     def __init__(
         self,
@@ -62,7 +76,9 @@ class MatchFinishedImCol:
         tasks: list[Task] = []
         for idx_team, team in enumerate(round_.teams):
             for idx_player, player in enumerate(team.players):
-                task = asyncio.create_task(self._draw_player(canvas, player, idx_team, idx_player))
+                task = asyncio.create_task(
+                    self._draw_player(canvas, player, idx_team, idx_player)
+                )
                 tasks.append(task)
         await asyncio.gather(*tasks)
         return canvas
@@ -100,15 +116,19 @@ class MatchFinishedImCol:
     ):
         image_draw = ImageDraw.Draw(canvas)
         stat_dict = {
-            "kad": f"{player.player_stats.kills}/" f"{player.player_stats.assists}/" f"{player.player_stats.deaths}",
+            "kad": f"{player.player_stats.kills}/"
+            f"{player.player_stats.assists}/"
+            f"{player.player_stats.deaths}",
             "mvp": f"MVP: {player.player_stats.mvps}",
             "kr": f"K/R: {player.player_stats.kr_ratio}",
             "kd": f"K/D: {player.player_stats.kd_ratio}",
         }
         text = stat_dict[stat]
-        w, h = image_draw.textsize(
+        w = image_draw.textlength(
             text,
-            font=self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"],
+            font=self.fonts["player_score"]
+            if stat == "kad"
+            else self.fonts["player_stats"],
         )
         stat_pos_dict = {
             "kad": (130 + (162 - w) / 2 + idx_player * 162, 155 + 195 * idx_team),
@@ -119,11 +139,15 @@ class MatchFinishedImCol:
         image_draw.text(
             stat_pos_dict[stat],
             text,
-            font=self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"],
+            font=self.fonts["player_score"]
+            if stat == "kad"
+            else self.fonts["player_stats"],
             fill=kd_color if stat == "kd" else ColorTuple.WHITE,
         )
 
-    async def _draw_player_stats(self, player: Player, canvas: Image, idx_team: int, idx_player: int) -> None:
+    async def _draw_player_stats(
+        self, player: Player, canvas: Image, idx_team: int, idx_player: int
+    ) -> None:
         kd_color = self._get_kd_color(player)
         kad: Literal["kad"] = "kad"
         mvp: Literal["mvp"] = "mvp"
@@ -159,43 +183,73 @@ class MatchFinishedImCol:
         idx_player: int,
     ) -> Image:
         draw_image = ImageDraw.Draw(canvas)
-        player_elo = await faceit_client.get_player_elo_by_nickname(player.nickname, self.match.payload.game)
+        player_elo = await faceit_client.get_player_elo_by_nickname(
+            player.nickname, self.match.payload.game
+        )
         elo_diff = await self.calculate_elo_change(player, player_elo)
 
-        for idx_req_player, req_player in enumerate(self.match.payload.teams[idx_team].roster):
+        for idx_req_player, req_player in enumerate(
+            self.match.payload.teams[idx_team].roster
+        ):
             if player.nickname == req_player.nickname:
                 image_avatar = await self._download_player_avatar(req_player)
                 draw_image_avatar = ImageDraw.Draw(image_avatar)
                 faceitlvl = req_player.game_skill_level
 
                 if idx_team == 0:
-                    image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
-                    image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
                     image_avatar.paste(
-                        Image.open(f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
+                        self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
+                    )
+                    image_avatar.paste(
+                        self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
+                    )
+                    image_avatar.paste(
+                        Image.open(
+                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
+                        ).convert("RGBA"),
                         (0, 0),
-                        Image.open(f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
+                        Image.open(
+                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
+                        ).convert("RGBA"),
                     )
 
-                    w, h = draw_image.textsize(elo_diff, font=self.fonts["avatar"])
-                    draw_image_avatar.text((127 - w, 0), elo_diff, font=self.fonts["avatar"])
-                    # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text((26, 0), str(player_elo), font=self.fonts["avatar"])
+                    w = draw_image.textlength(elo_diff, font=self.fonts["avatar"])
+                    draw_image_avatar.text(
+                        (127 - w, 0), elo_diff, font=self.fonts["avatar"]
+                    )
+                    # w = self.draw_image_map.textlength(player_elo, font=self._fonts['avatar'])
+                    draw_image_avatar.text(
+                        (26, 0), str(player_elo), font=self.fonts["avatar"]
+                    )
                 else:
-                    image_avatar.paste(self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top)
-                    image_avatar.paste(self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot)
                     image_avatar.paste(
-                        Image.open(f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
+                        self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
+                    )
+                    image_avatar.paste(
+                        self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
+                    )
+                    image_avatar.paste(
+                        Image.open(
+                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
+                        ).convert("RGBA"),
                         (0, 106),
-                        Image.open(f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png").convert("RGBA"),
+                        Image.open(
+                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
+                        ).convert("RGBA"),
                     )
 
-                    w, h = draw_image.textsize(elo_diff, font=self.fonts["avatar"])
-                    draw_image_avatar.text((127 - w, 107), elo_diff, font=self.fonts["avatar"])
-                    # w, h = self.draw_image_map.textsize(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text((26, 107), str(player_elo), font=self.fonts["avatar"])
+                    w = draw_image.textlength(elo_diff, font=self.fonts["avatar"])
+                    draw_image_avatar.text(
+                        (127 - w, 107), elo_diff, font=self.fonts["avatar"]
+                    )
+                    # w = self.draw_image_map.textlength(player_elo, font=self._fonts['avatar'])
+                    draw_image_avatar.text(
+                        (26, 107), str(player_elo), font=self.fonts["avatar"]
+                    )
 
-                w, h = draw_image.textsize(req_player.nickname, font=self.fonts["avatar"])
+                w = draw_image.textlength(
+                    req_player.nickname, font=self.fonts["avatar"]
+                )
                 if w > 130:
                     draw_image_avatar.text(
                         (0, 107 - idx_team * 107),
@@ -208,7 +262,9 @@ class MatchFinishedImCol:
                         req_player.nickname,
                         font=self.fonts["avatar"],
                     )
-                canvas.paste(image_avatar, (146 + idx_player * 162, 20 + 370 * idx_team))
+                canvas.paste(
+                    image_avatar, (146 + idx_player * 162, 20 + 370 * idx_team)
+                )
         return canvas
 
     async def calculate_elo_change(self, player: Player, player_elo: int) -> str:
@@ -216,7 +272,13 @@ class MatchFinishedImCol:
             elo_change = player_elo - self.prev_nick_elo[player.nickname].elo
         else:
             elo_change = 0
-        return f"(+{elo_change})" if elo_change > 0 else f"({elo_change})" if elo_change < 0 else ""
+        return (
+            f"(+{elo_change})"
+            if elo_change > 0
+            else f"({elo_change})"
+            if elo_change < 0
+            else ""
+        )
 
     async def _draw_game_score(self, round_: Round, canvas: Image) -> None:
         await self._draw_final_score(round_, canvas)
@@ -225,10 +287,13 @@ class MatchFinishedImCol:
     async def _draw_halftime_score(self, round_: Round, canvas: Image) -> None:
         draw_image = ImageDraw.Draw(canvas)
         for idx_team, team in enumerate(round_.teams):
-            halftimes = f"{team.team_stats.first_half_score}—" f"{team.team_stats.second_half_score}"
+            halftimes = (
+                f"{team.team_stats.first_half_score}—"
+                f"{team.team_stats.second_half_score}"
+            )
             if round_.has_overtime():
                 halftimes += f"—{team.team_stats.overtime_score}"
-            w, h = draw_image.textsize(halftimes, font=self.fonts["halftime"])
+            w = draw_image.textlength(halftimes, font=self.fonts["halftime"])
             draw_image.text(
                 ((146 - w) / 2, 277 if idx_team else 235),
                 halftimes,
@@ -238,7 +303,7 @@ class MatchFinishedImCol:
     async def _draw_final_score(self, round_: Round, canvas: Image) -> None:
         draw_image = ImageDraw.Draw(canvas)
         for idx_team, team in enumerate(round_.teams):
-            w, h = draw_image.textsize(
+            w = draw_image.textlength(
                 str(team.team_stats.final_score),
                 font=self.fonts["mainscore"],
             )
@@ -250,7 +315,9 @@ class MatchFinishedImCol:
 
     async def _draw_win_features(self, round_: Round, canvas: Image) -> Image:
         top_image, bot_image = await self._get_win_feature_images(round_)
-        dark_middle = Image.open(f"{TEMPLATE_PATH}/background_features/dark-middle2.png")
+        dark_middle = Image.open(
+            f"{TEMPLATE_PATH}/background_features/dark-middle2.png"
+        )
         canvas.paste(top_image, (0, 0), top_image)
         canvas.paste(bot_image, (0, 0), bot_image)
         canvas.paste(dark_middle, (0, 0), dark_middle)
@@ -259,11 +326,19 @@ class MatchFinishedImCol:
     async def _get_win_feature_images(self, round_: Round) -> tuple[Image, Image]:
         """Return green and red background features(First team is on top)"""
         if round_.teams[0].team_stats.team_win:
-            image_topcolor = Image.open(f"{TEMPLATE_PATH}/background_features/Win-topleft.png")
-            image_botcolor = Image.open(f"{TEMPLATE_PATH}/background_features/Lose-botleft.png")
+            image_topcolor = Image.open(
+                f"{TEMPLATE_PATH}/background_features/Win-topleft.png"
+            )
+            image_botcolor = Image.open(
+                f"{TEMPLATE_PATH}/background_features/Lose-botleft.png"
+            )
             return image_topcolor, image_botcolor
-        image_topcolor = Image.open(f"{TEMPLATE_PATH}/background_features/Lose-topleft.png")
-        image_botcolor = Image.open(f"{TEMPLATE_PATH}/background_features/Win-botleft.png")
+        image_topcolor = Image.open(
+            f"{TEMPLATE_PATH}/background_features/Lose-topleft.png"
+        )
+        image_botcolor = Image.open(
+            f"{TEMPLATE_PATH}/background_features/Win-botleft.png"
+        )
         return image_topcolor, image_botcolor
 
     async def _get_background(self, round_: Round) -> Image:
