@@ -29,8 +29,8 @@ class TeamFactions(BaseModel):
 
 
 class Score(BaseModel):
-    faction1: bool | str | None = None
-    faction2: bool | str | None = None
+    faction1: int | None = None
+    faction2: int | None = None
 
 
 class ResultsHistory(BaseModel):
