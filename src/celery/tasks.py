@@ -1,7 +1,6 @@
 import asyncio
 
 import httpx
-from aiohttp.client_exceptions import ClientConnectorError
 from celery import Celery
 from loguru import logger
 
@@ -14,7 +13,9 @@ app = Celery(broker=conf.rmq_string)
 
 
 async def _score_update(match_id: str) -> None:
-    rabbit = RabbitClient(conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD)
+    rabbit = RabbitClient(
+        conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD
+    )
     while True:
         await asyncio.sleep(20)
         try:
@@ -25,7 +26,9 @@ async def _score_update(match_id: str) -> None:
             if match_details.finished_at:
                 break
 
-            await rabbit.publish(match_details.json(), routing_key=QueueName.UPDATE_SCORE)
+            await rabbit.publish(
+                match_details.json(), routing_key=QueueName.UPDATE_SCORE
+            )
 
 
 @app.task
