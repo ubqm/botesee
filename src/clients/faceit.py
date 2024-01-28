@@ -20,7 +20,8 @@ class FaceitClient(httpx.AsyncClient):
 
     def __init__(self, api_key: str):
         headers = {"Authorization": f"Bearer {api_key}", "accept": "application/json"}
-        super().__init__(headers=headers)
+        transport = httpx.AsyncHTTPTransport(retries=4)
+        super().__init__(headers=headers, transport=transport)
 
     async def _request(
         self,
