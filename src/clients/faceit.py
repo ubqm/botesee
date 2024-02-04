@@ -1,9 +1,11 @@
 import asyncio
+import time
 from uuid import UUID
 
 import httpx
 from httpx import USE_CLIENT_DEFAULT
 from httpx._client import UseClientDefault
+from loguru import logger
 
 from src import conf
 from src.clients.models.faceit.match_details import MatchDetails
@@ -30,11 +32,20 @@ class FaceitClient(httpx.AsyncClient):
         params: dict | None = None,
         json: dict | None = None,
         timeout: tuple | UseClientDefault = USE_CLIENT_DEFAULT,
+        retry_attempts: int = 5,
     ) -> dict:
-        response = await self.request(
-            method, url, params=params, json=json, timeout=timeout
-        )
-        response.raise_for_status()
+        for i in range(retry_attempts):
+            try:
+                response = await self.request(
+                    method, url, params=params, json=json, timeout=timeout
+                )
+                response.raise_for_status()
+            except httpx.HTTPStatusError:
+                logger.info(f"Retrying {url} for {i} time")
+                time.sleep(0.5 * 2**i)
+            else:
+                break
+
         return response.json()
 
     async def player_details(self, nickname: str) -> PlayerDetails:
