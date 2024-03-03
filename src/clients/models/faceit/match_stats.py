@@ -77,4 +77,4 @@ class Round(BaseModel):
 
 
 class MatchStatistics(BaseModel):
-    rounds: list[Round]
+    rounds: list[Round] = Field(default_factory=list)
