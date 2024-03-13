@@ -40,8 +40,8 @@ class FaceitClient(httpx.AsyncClient):
                     method, url, params=params, json=json, timeout=timeout
                 )
                 response.raise_for_status()
-            except httpx.HTTPStatusError:
-                logger.info(f"Retrying {url} for {i} time")
+            except httpx.HTTPStatusError as e:
+                logger.info(f"Retrying {url} for {i} time. {e}")
                 time.sleep(0.5 * 2**i)
             else:
                 break
