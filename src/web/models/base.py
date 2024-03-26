@@ -31,11 +31,11 @@ class Player(BaseModel):
 
 
 class Team(BaseModel):
-    id: UUID
+    id: UUID | str
     name: str
     type: UUID | str | None = None
     avatar: str
-    leader_id: UUID
+    leader_id: UUID | str
     co_leader_id: UUID | str | None = None
     roster: list[Player]
     substitutions: int
