@@ -21,7 +21,7 @@ async def _score_update(match_id: str) -> None:
         try:
             match_details = await faceit_client.match_details(match_id)
         except httpx.PoolTimeout as e:
-            logger.error(e)
+            logger.exception(f"{e}", exc_info=e)
         else:
             if match_details.finished_at:
                 break
