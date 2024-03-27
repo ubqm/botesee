@@ -44,9 +44,8 @@ class FaceitClient(httpx.AsyncClient):
                 logger.info(f"Retrying {url} for {i} time. {e}")
                 time.sleep(0.5 * 2**i)
             else:
-                break
-
-        return response.json()
+                return response.json()
+        raise httpx.ReadTimeout(f"Unable to read data from {url}. I tried {retry_attempts} times...")
 
     async def player_details(self, nickname: str) -> PlayerDetails:
         api_url = f"{self.base_url}/players?nickname={nickname}"
@@ -137,10 +136,10 @@ faceit_client = FaceitClient(conf.FACEIT_TOKEN)
 if __name__ == "__main__":
 
     async def main():
-        # res = await faceit_client.player_details("Ayudesee")
-        res = await faceit_client.player_history(
-            UUID("278790a2-1f08-4350-bd96-427f7dcc8722")
-        )
+        res = await faceit_client.player_details("Fr1ze")
+        # res = await faceit_client.player_history(
+        #     UUID("278790a2-1f08-4350-bd96-427f7dcc8722")
+        # )
         print(res)
 
     asyncio.run(main())

@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  postgres:
+  botesee_postgres:
     container_name: botesee_postgres
     image: postgres:15.0
     restart: on-failure
@@ -12,13 +12,15 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - botesee_postgres:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 1s
       timeout: 60s
       retries: 60
 
-  rabbit:
+  botesee_rabbit:
     container_name: botesee_rabbit
     image: rabbitmq:3.11.8-management
     restart: on-failure
@@ -31,7 +33,7 @@ services:
       timeout: 60s
       retries: 20
 
-  discord-bot:
+  botesee_discord:
     container_name: botesee_discord
     build:
       context: .
@@ -40,14 +42,14 @@ services:
     env_file:
       - ".env"
     depends_on:
-      rabbit:
+      botesee_rabbit:
         condition: service_healthy
-      redis:
+      botesee_redis:
         condition: service_healthy
     tty: true
 
-  web:
-    container_name: botesee_web
+  botesee_backend:
+    container_name: botesee_backend
     build:
       context: .
       target: web
@@ -65,7 +67,7 @@ services:
         target: /botesee/src
     tty: true
 
-  celery:
+  botesee_celery:
     container_name: botesee_celery
     build:
       context: .
@@ -74,11 +76,11 @@ services:
     env_file:
       - ".env"
     depends_on:
-      rabbit:
+      botesee_rabbit:
         condition: service_healthy
     tty: true
 
-  flower:
+  botesee_flower:
     image: mher/flower
     container_name: botesee_flower
     command: celery flower --persistent=True
@@ -88,13 +90,16 @@ services:
     ports:
     - "5555:5555"
     depends_on:
-      rabbit:
+      botesee_rabbit:
         condition: service_healthy
 
-  redis:
+  botesee_redis:
     image: redis:7.2.1
     container_name: botesee_redis
     ports:
       - "6379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli","ping" ]
+
+volumes:
+  botesee_postgres:

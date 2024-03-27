@@ -21,7 +21,7 @@ from src.clients.models.faceit.match_stats import MatchStatistics
 from src.db import Session
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
-from src.db.script import db_match_finished
+from src.db.repositories.match import match_repo
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
@@ -269,9 +269,7 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
-        statistics = await faceit_client.match_stats(match.payload.id)
-
-        await db_match_finished(match, statistics)
+        statistics = (await match_repo.get_stats(match_ids=[match.payload.id]))[0]
 
         # TODO: for round in statistics.rounds
         str_nick, my_color = get_strnick_embed_color(statistics)

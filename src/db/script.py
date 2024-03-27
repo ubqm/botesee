@@ -18,6 +18,7 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
                     db_match = await match_repo.get_or_create(
                         session=sa_session,
                         match_uuid=match_stat.match_id,
+                        stats=statistics,
                         date=match.timestamp,
                         game=match.payload.game,
                     )
