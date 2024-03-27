@@ -1,4 +1,4 @@
-FROM python:3.11.6 AS base
+FROM python:3.11.8 AS base
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm

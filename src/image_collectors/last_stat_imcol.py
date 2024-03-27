@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import Task
 from io import BytesIO
 
 import aiohttp
@@ -10,9 +9,10 @@ from aiohttp_client_cache import CachedSession
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
-from src.clients.models.faceit.match_stats import MatchStatistics, Round
+from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_history import MatchHistory
 from src.clients.steam import SteamClient
+from src.db.repositories.match import match_repo
 from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.models.last_stat import (
     FullPlayerStat,
@@ -40,6 +40,8 @@ class LastStatsImCol:
 
     async def collect_image(self) -> Image:
         games = await self.collect_stat()
+        if not games:
+            raise ValueError("No recent games found in DB")
         await self._draw_image(games)
         return self.image
 
@@ -47,12 +49,8 @@ class LastStatsImCol:
         games: list[GameStatLast] = []
         await self._collect_user_info()
 
-        tasks: list[Task] = []
-        for match_history in self.player_stat[self.nickname].player_history.items:
-            tasks.append(
-                asyncio.create_task(faceit_client.match_stats(match_history.match_id))
-            )
-        results: list[MatchStatistics] = await asyncio.gather(*tasks)  # type: ignore
+        match_ids = [match_history.match_id for match_history in self.player_stat[self.nickname].player_history.items]
+        results = await match_repo.get_stats(match_ids=match_ids)
 
         for idx, match_stats in enumerate(results):
             if not match_stats:
@@ -71,7 +69,7 @@ class LastStatsImCol:
 
         return GameStatLastStorage(games=games)
 
-    async def _draw_image(self, games: GameStatLastStorage) -> None:
+    async def _draw_image(self, games_storage: GameStatLastStorage) -> None:
         draw_image_bg = ImageDraw.Draw(self.image)
         draw_image_bg.text(
             (160, 20),
@@ -83,9 +81,9 @@ class LastStatsImCol:
         self._draw_steam_stats(draw_image_bg)
         self._draw_faceit_elo(draw_image_bg)
         self._draw_region_stats(draw_image_bg)
-        self._draw_player_last_10_stats(draw_image_bg, games)
+        self._draw_player_last_10_stats(draw_image_bg, games_storage)
 
-        for idx, game in enumerate(games):
+        for idx, game in enumerate(games_storage.games):
             self._draw_game(draw_image_bg, game, idx)
             if idx == 10:
                 break

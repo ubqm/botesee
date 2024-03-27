@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import Task
 from io import BytesIO
 from typing import Any, Literal
 
@@ -11,9 +10,10 @@ from PIL.ImageFont import FreeTypeFont
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
-from src.clients.models.faceit.match_stats import MatchStatistics, Round
+from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_details import PlayerDetails
 from src.clients.models.faceit.player_history import MatchHistory
+from src.db.repositories.match import match_repo
 from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors._exceptions import BadAPICallException
 from src.image_collectors.models.last_stat import (
@@ -141,14 +141,10 @@ class CompareImCol:
     ) -> GameStatLastStorage:
         games: list[GameStatLast] = []
         await self._collect_user_info(session, nickname)
-        tasks: list[Task] = []
-        for match_history in self.player_stat[nickname].player_history.items:
-            tasks.append(
-                asyncio.create_task(faceit_client.match_stats(match_history.match_id))
-            )
-        results: tuple[MatchStatistics, ...] = await asyncio.gather(
-            *tasks, return_exceptions=True
-        )
+
+        match_ids = [match_history.match_id for match_history in self.player_stat[nickname].player_history.items]
+        results = await match_repo.get_stats(match_ids=match_ids)
+
         for idx, match_stats in enumerate(results):
             if not match_stats:
                 continue

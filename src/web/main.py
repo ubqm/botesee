@@ -7,8 +7,10 @@ from pydantic import BaseModel
 
 from src import conf
 from src.celery.tasks import match_score_update
+from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
+from src.db.script import db_match_finished
 from src.web.dependencies import get_rabbit
 from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
@@ -66,7 +68,15 @@ async def faceit_webhook(
     token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     logger.info(f"{match.json()}")
+
+    match match.event:
+        case EventEnum.CONFIGURING:
+            match_score_update.delay(match.payload.id)
+        case EventEnum.FINISHED:
+            statistics = await faceit_client.match_stats(match.payload.id)
+            await db_match_finished(match, statistics)
+        case _:
+            pass
+
     background_tasks.add_task(rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES)
-    if match.event == EventEnum.CONFIGURING:
-        match_score_update.delay(match.payload.id)
     return OKResponse()
