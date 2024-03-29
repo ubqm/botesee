@@ -19,7 +19,8 @@ async def _score_update(match_id: str) -> None:
     while True:
         await asyncio.sleep(20)
         try:
-            match_details = await faceit_client.match_details(match_id)
+            async with faceit_client:
+                match_details = await faceit_client.match_details(match_id)
         except httpx.PoolTimeout as e:
             logger.exception(f"{e}", exc_info=e)
         else:

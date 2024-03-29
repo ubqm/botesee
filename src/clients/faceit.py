@@ -18,12 +18,10 @@ from src.clients.models.faceit.region_stats import RegionStatistics
 
 
 class FaceitClient(httpx.AsyncClient):
-    base_url = "https://open.faceit.com/data/v4"
-
     def __init__(self, api_key: str):
         headers = {"Authorization": f"Bearer {api_key}", "accept": "application/json"}
         transport = httpx.AsyncHTTPTransport(retries=4)
-        super().__init__(headers=headers, transport=transport)
+        super().__init__(headers=headers, transport=transport, base_url="https://open.faceit.com/data/v4")
 
     async def _request(
         self,
