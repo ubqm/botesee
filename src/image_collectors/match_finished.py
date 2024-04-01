@@ -48,7 +48,7 @@ class MatchFinishedImCol:
         self,
         match: MatchFinished,
         statistics: MatchStatistics,
-        nick_elo: NickEloStorage,
+        nick_elo: NickEloStorage | None = None,
     ):
         self.match = match
         self.statistics = statistics

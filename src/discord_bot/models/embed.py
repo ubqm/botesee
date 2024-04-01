@@ -31,5 +31,5 @@ class NickEloStorage(BaseModel):
                 return player
         return PlayerStorage(nickname="Not Found", elo=0)
 
-    def get_dict(self) -> dict:
+    def get_dict(self) -> dict[str, int]:
         return {player.nickname: player.elo for player in self.players}
