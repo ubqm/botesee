@@ -18,6 +18,7 @@ from loguru import logger
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
 from src.clients.models.faceit.match_stats import MatchStatistics
+from src.clients.redis import redis_repo
 from src.db import Session
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
@@ -236,6 +237,8 @@ class DiscordClient(discord.Client):
         nick_elo_2 = await get_nicks_and_elo(
             match.payload.teams[1].roster, game=match.payload.game
         )
+        nicks_elo_dict = nick_elo_1.get_dict() | nick_elo_2.get_dict()
+        await redis_repo.save_match(match.payload.id, nicks_elo_dict)
         embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
         await self.faceit_channel.send(embed=embed_msg)
 
