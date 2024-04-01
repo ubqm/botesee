@@ -283,12 +283,18 @@ class DiscordClient(discord.Client):
             color=my_color,
             url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
         )
-        nick_elo = await self.delete_message_by_faceit_match_id(match.payload.id)
+        await self.delete_message_by_faceit_match_id(match.payload.id)
         redis_nick_elo = await redis_repo.get_match_elo(match.payload.id)
-        logger.info(f"{nick_elo = }")
-        logger.info(f"{redis_nick_elo = }")
-        if not nick_elo:
-            return
+        nick_elo = (
+            NickEloStorage(
+                players=[
+                    PlayerStorage(nickname=nick, elo=elo)
+                    for nick, elo in redis_nick_elo.items()
+                ]
+            )
+            if redis_nick_elo
+            else None
+        )
 
         img_collector = MatchFinishedImCol(match, statistics, nick_elo)
         image_list = await img_collector.collect_images()
@@ -305,9 +311,7 @@ class DiscordClient(discord.Client):
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
     @logger.catch
-    async def delete_message_by_faceit_match_id(
-        self, match_id: str
-    ) -> NickEloStorage | None:
+    async def delete_message_by_faceit_match_id(self, match_id: str) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
@@ -323,36 +327,10 @@ class DiscordClient(discord.Client):
                 if message.embeds[0].color == Color(1752220):
                     await message.delete()
 
-            # get nicknames from URL-embed discord format [nickname](URL)
             if not message.embeds or not message.embeds[0].fields:
                 return None
 
-            nick1 = re.findall(
-                r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[0].value)
-            )
-            elo1_temp = str(message.embeds[0].fields[1].value).split(
-                "\n"
-            )  # type: list[str]
-            elo1 = [int(item) for item in elo1_temp]  # type: list[int]
-            st1 = [
-                PlayerStorage(nickname=nickname, elo=elo)
-                for nickname, elo in zip(nick1, elo1)
-            ]
-
-            nick2 = re.findall(
-                r"\[(?P<nickname>.*?)]", str(message.embeds[0].fields[3].value)
-            )
-            elo2_temp = str(message.embeds[0].fields[4].value).split(
-                "\n"
-            )  # type: list[str]
-            elo2 = [int(item) for item in elo2_temp]  # type: list[int]
-            st2 = [
-                PlayerStorage(nickname=nickname, elo=elo)
-                for nickname, elo in zip(nick2, elo2)
-            ]
-
             await message.delete()
-            return NickEloStorage(players=st1 + st2)
         return None
 
     @logger.catch
