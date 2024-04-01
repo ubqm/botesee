@@ -10,6 +10,7 @@ from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
 
 app = Celery(broker=conf.rmq_string)
+event_loop = asyncio.new_event_loop()
 
 
 async def _score_update(match_id: str) -> None:
@@ -19,8 +20,7 @@ async def _score_update(match_id: str) -> None:
     while True:
         await asyncio.sleep(20)
         try:
-            async with faceit_client:
-                match_details = await faceit_client.match_details(match_id)
+            match_details = await faceit_client.match_details(match_id)
         except httpx.PoolTimeout as e:
             logger.exception(f"{e}", exc_info=e)
         else:
@@ -35,5 +35,5 @@ async def _score_update(match_id: str) -> None:
 @app.task
 def match_score_update(match_id: str) -> None:
     logger.info(f"Started score fetching for {match_id}")
-    asyncio.run(_score_update(match_id))
+    event_loop.run_until_complete(_score_update(match_id))
     logger.info(f"Stopped score fetching for {match_id}")
