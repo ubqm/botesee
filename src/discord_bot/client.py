@@ -284,6 +284,9 @@ class DiscordClient(discord.Client):
             url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
         )
         nick_elo = await self.delete_message_by_faceit_match_id(match.payload.id)
+        redis_nick_elo = await redis_repo.get_match_elo(match.payload.id)
+        logger.info(f"{nick_elo = }")
+        logger.info(f"{redis_nick_elo = }")
         if not nick_elo:
             return
 
