@@ -11,7 +11,8 @@ class NickEloStorage(BaseModel):
 
     def get_discord_nicknames(self, sep: str = "\n") -> str:
         nicknames = [
-            f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})" for player in self.players
+            f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+            for player in self.players
         ]
         return sep.join(nicknames)
 
@@ -29,3 +30,6 @@ class NickEloStorage(BaseModel):
             if player.nickname == nickname:
                 return player
         return PlayerStorage(nickname="Not Found", elo=0)
+
+    def get_dict(self) -> dict:
+        return {player.nickname: player.elo for player in self.players}
