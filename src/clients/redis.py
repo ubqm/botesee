@@ -18,7 +18,7 @@ class RedisRepository:
         r_key = f"matches:{match_id}"
         async with redis_client:
             redis_data: dict[bytes:bytes] = await redis_client.hgetall(r_key)
-            return {str(k): int(v) for k, v in redis_data}
+            return {k.decode(): int(v) for k, v in redis_data.items()}
 
 
 redis_repo = RedisRepository()
