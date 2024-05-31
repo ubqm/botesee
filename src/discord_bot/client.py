@@ -449,3 +449,15 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         f"Your bet is accepted. {amount} points on {bet_type}. Match id [{match}]",
         ephemeral=True,
     )
+
+
+@tree.command(name="balance", description="Display current amount of points")
+async def balance(ctx: Interaction) -> None:
+    async with Session() as session:
+        current_balance = await gambling_repo.get_balance(
+            session=session, member_id=str(ctx.user.id)
+        )
+        await ctx.response.send_message(
+            f"Your current balance is {current_balance}",
+            ephemeral=True,
+        )
