@@ -21,7 +21,11 @@ class FaceitClient(httpx.AsyncClient):
     def __init__(self, api_key: str):
         headers = {"Authorization": f"Bearer {api_key}", "accept": "application/json"}
         transport = httpx.AsyncHTTPTransport(retries=4)
-        super().__init__(headers=headers, transport=transport, base_url="https://open.faceit.com/data/v4")
+        super().__init__(
+            headers=headers,
+            transport=transport,
+            base_url="https://open.faceit.com/data/v4/",
+        )
 
     async def _request(
         self,
@@ -43,11 +47,13 @@ class FaceitClient(httpx.AsyncClient):
                 time.sleep(0.5 * 2**i)
             else:
                 return response.json()
-        raise httpx.ReadTimeout(f"Unable to read data from {url}. I tried {retry_attempts} times...")
+        raise httpx.ReadTimeout(
+            f"Unable to read data from {url}. I tried {retry_attempts} times..."
+        )
 
     async def player_details(self, nickname: str) -> PlayerDetails:
-        api_url = f"{self.base_url}/players?nickname={nickname}"
-        res = await self._request("GET", api_url)
+        path = "players"
+        res = await self._request("GET", url=path, params={"nickname": nickname})
         return PlayerDetails(**res)
 
     async def get_player_elo_by_nickname(self, nickname: str, game: str = "cs2") -> int:
@@ -64,9 +70,8 @@ class FaceitClient(httpx.AsyncClient):
                 return 0
 
     async def player_details_by_id(self, player_id: UUID | str) -> PlayerDetails:
-        player_id = str(player_id)
-        api_url = f"{self.base_url}/players/{player_id}"
-        res = await self._request("GET", api_url)
+        path = f"players/{str(player_id)}"
+        res = await self._request("GET", url=path)
         return PlayerDetails(**res)
 
     async def player_history(
@@ -76,8 +81,7 @@ class FaceitClient(httpx.AsyncClient):
         offset: int = 0,
         limit: int = 20,
     ) -> PlayerHistory:
-        player_id = str(player_id)
-        api_url = f"{self.base_url}/players/{player_id}/history"
+        api_url = f"players/{str(player_id)}/history"
         res = await self._request(
             "GET", api_url, params={"game": game, "offset": offset, "limit": limit}
         )
@@ -86,8 +90,7 @@ class FaceitClient(httpx.AsyncClient):
     async def player_stats(
         self, player_id: UUID | str, game_id: str = "cs2"
     ) -> PlayerGameStats:
-        player_id = str(player_id)
-        api_url = f"{self.base_url}/players/{player_id}/stats/{game_id}"
+        api_url = f"players/{str(player_id)}/stats/{game_id}"
         res = await self._request("GET", api_url)
         return PlayerGameStats(**res)
 
@@ -98,18 +101,19 @@ class FaceitClient(httpx.AsyncClient):
         page_size: int = 10,
         page: int = 1,
     ) -> PlayerStatsCollection:
-        player_id = str(player_id)
-        api_url = f"{self.base_url}/players/{player_id}/games/{game_id}/stats?size={page_size}&page={page}"
-        res = await self._request("GET", api_url)
+        api_url = f"players/{player_id}/games/{game_id}/stats"
+        res = await self._request(
+            "GET", url=api_url, params={"size": page_size, "page": page}
+        )
         return PlayerStatsCollection(**res)
 
     async def match_details(self, match_id: str) -> MatchDetails:
-        api_url = f"{self.base_url}/matches/{match_id}"
+        api_url = f"matches/{match_id}"
         res = await self._request("GET", api_url)
         return MatchDetails(**res)
 
     async def match_stats(self, match_id: str) -> MatchStatistics:
-        api_url = f"{self.base_url}/matches/{match_id}/stats"
+        api_url = f"matches/{match_id}/stats"
         res = await self._request("GET", api_url, timeout=(1.0, 3.0, 5.0, 9.0))
         return MatchStatistics(**res)
 
@@ -121,7 +125,7 @@ class FaceitClient(httpx.AsyncClient):
         game: str = "cs2",
     ) -> RegionStatistics:
         player_id = str(player_id)
-        api_url = f"{self.base_url}/rankings/games/{game}/regions/{region}/players/{player_id}"
+        api_url = f"rankings/games/{game}/regions/{region}/players/{player_id}"
         params = {"limit": 2}
         if country:
             params["country"] = country
