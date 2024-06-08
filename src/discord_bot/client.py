@@ -18,7 +18,7 @@ from loguru import logger
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
 from src.clients.models.faceit.match_stats import MatchStatistics
-from src.clients.redis import redis_repo
+from src.clients.redis_repo import redis_repo
 from src.db import Session
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
