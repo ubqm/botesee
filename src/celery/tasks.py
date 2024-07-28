@@ -50,6 +50,7 @@ async def _match_finished(match: WebhookMatch) -> None:
 
 
 @app.task
-def match_finished(match: WebhookMatch) -> None:
+def match_finished(match_finished_dict: dict) -> None:
+    match = WebhookMatch(**match_finished_dict)
     logger.info(f"Match finished {match.payload.id}")
     event_loop.run_until_complete(_match_finished(match))
