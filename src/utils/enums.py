@@ -44,6 +44,14 @@ class ColorTuple(tuple, Enum):
     RED: tuple[int, int, int, int] = (170, 0, 0, 255)
 
 
+class ColorEvaluation(tuple, Enum):
+    P_1_MUCH_BETTER: tuple[ColorTuple, ColorTuple] = ColorTuple.GREEN, ColorTuple.RED
+    P_1_BETTER: tuple[ColorTuple, ColorTuple] = ColorTuple.GREEN, ColorTuple.WHITE
+    EQUAL: tuple[ColorTuple, ColorTuple] = ColorTuple.WHITE, ColorTuple.WHITE
+    P_2_BETTER: tuple[ColorTuple, ColorTuple] = ColorTuple.WHITE, ColorTuple.GREEN
+    P_2_MUCH_BETTER: tuple[ColorTuple, ColorTuple] = ColorTuple.RED, ColorTuple.GREEN
+
+
 class AvailableMaps(BaseModel):
     ANCIENT: str = "de_ancient"
     DUST_2: str = "de_dust2"
