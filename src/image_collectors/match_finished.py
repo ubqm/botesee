@@ -43,8 +43,8 @@ class MatchFinishedImCol:
     image_dark_avatar_top = Image.open(
         f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
     )
-    image_golden_border = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_golden-border.png"
+    image_avatar_border = Image.open(
+        f"{TEMPLATE_PATH}/background_features/for_avatar_border.png"
     )
 
     def __init__(
@@ -197,7 +197,7 @@ class MatchFinishedImCol:
 
                 if player.player_id in subscribers:
                     image_avatar.paste(
-                        self.image_golden_border, (0, 0), self.image_golden_border
+                        self.image_avatar_border, (0, 0), self.image_avatar_border
                     )
                 image_avatar.paste(
                     self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
