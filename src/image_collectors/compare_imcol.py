@@ -1,6 +1,7 @@
 import asyncio
+from enum import Enum
 from io import BytesIO
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
@@ -187,8 +188,9 @@ class CompareImCol:
             started_at=match_h.started_at,
         )
 
-    @staticmethod
+    @classmethod
     def compare_stats(
+        cls,
         values: tuple[float, float],
         category: Literal["1f", "2f", "%", "reverse", "total"],
     ) -> ColorEvaluation:
@@ -199,83 +201,46 @@ class CompareImCol:
         @return: color tuple that shows which values are `better`
         """
 
-        values_dict = {
-            "1f": {
-                0: {
-                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_1_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-                1: {
-                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_2_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-            },
-            "2f": {
-                0: {
-                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_1_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-                1: {
-                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_2_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-            },
-            "%": {
-                0: {
-                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_1_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-                1: {
-                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_2_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-            },
-            "reverse": {
-                0: {
-                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_2_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-                1: {
-                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
-                    "1.2": ColorEvaluation.P_1_BETTER,
-                    "1": ColorEvaluation.EQUAL,
-                },
-            },
-            "total": {
-                0: {
-                    "1.4": ColorEvaluation.EQUAL,
-                    "1.2": ColorEvaluation.EQUAL,
-                    "1": ColorEvaluation.EQUAL,
-                },
-                1: {
-                    "1.4": ColorEvaluation.EQUAL,
-                    "1.2": ColorEvaluation.EQUAL,
-                    "1": ColorEvaluation.EQUAL,
-                },
-            },
-        }
+        class NumberCompare(Enum):
+            P1: int = 0
+            EQUAL: None = None
+            P2: int = 1
 
-        if not isinstance(values, tuple) or len(values) != 2:
+            @classmethod
+            def compare(cls, _values: tuple[float, float]) -> Self:
+                return (
+                    cls.P1
+                    if values[0] > values[1]
+                    else cls.P2
+                    if values[1] > values[0]
+                    else cls.EQUAL
+                )
+
+        if category == "reverse":
+            return cls.compare_stats((values[1], values[0]), "1f")
+
+        higher_number: NumberCompare = NumberCompare.compare(values)
+        if higher_number == NumberCompare.EQUAL:
             return ColorEvaluation.EQUAL
 
-        if values[0] == values[1] == 0:
-            return values_dict[category][values.index(max(values))]["1"]
-
-        rating = (max(values) / min(values)) if min(values) != 0 else 100
-        if rating >= 1.4:
-            rating_s = "1.4"
-        elif rating >= 1.2:
-            rating_s = "1.2"
-        else:
-            rating_s = "1"
-        return values_dict[category][values.index(max(values))][rating_s]
+        rating: float = (
+            values[higher_number.value] / values[higher_number.value - 1]
+            if values[higher_number.value - 1]
+            else 100
+        )
+        match rating, higher_number, category:
+            case (_, _, "total"):
+                return ColorEvaluation.EQUAL
+            case (rating, NumberCompare.P1, _) if rating >= 1.4:
+                return ColorEvaluation.P_1_MUCH_BETTER
+            case (rating, NumberCompare.P2, _) if rating >= 1.4:
+                return ColorEvaluation.P_2_MUCH_BETTER
+            case (rating, NumberCompare.P1, _) if rating >= 1.2:
+                return ColorEvaluation.P_1_BETTER
+            case (rating, NumberCompare.P2, _) if rating >= 1.2:
+                return ColorEvaluation.P_2_BETTER
+            case _:
+                return ColorEvaluation.EQUAL
 
     def _draw_stat(
         self,
