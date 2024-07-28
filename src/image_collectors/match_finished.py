@@ -11,7 +11,7 @@ from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import MatchStatistics, Player, Round
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.image_collectors import TEMPLATE_PATH
-from src.utils.enums import ColorTuple, available_maps
+from src.utils.enums import ColorTuple, available_maps, subscribers
 from src.web.models.base import Player as webPlayer
 from src.web.models.events import MatchFinished
 
@@ -42,6 +42,9 @@ class MatchFinishedImCol:
     )
     image_dark_avatar_top = Image.open(
         f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
+    )
+    image_golden_border = Image.open(
+        f"{TEMPLATE_PATH}/background_features/for_avatar_golden-border.png"
     )
 
     def __init__(
@@ -196,13 +199,17 @@ class MatchFinishedImCol:
                 draw_image_avatar = ImageDraw.Draw(image_avatar)
                 faceitlvl = req_player.game_skill_level
 
+                if player.player_id in subscribers:
+                    image_avatar.paste(
+                        self.image_golden_border, (0, 0), self.image_golden_border
+                    )
+                image_avatar.paste(
+                    self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
+                )
+                image_avatar.paste(
+                    self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
+                )
                 if idx_team == 0:
-                    image_avatar.paste(
-                        self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
-                    )
-                    image_avatar.paste(
-                        self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
-                    )
                     image_avatar.paste(
                         Image.open(
                             f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
@@ -222,12 +229,6 @@ class MatchFinishedImCol:
                         (26, 0), str(player_elo), font=self.fonts["avatar"]
                     )
                 else:
-                    image_avatar.paste(
-                        self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
-                    )
-                    image_avatar.paste(
-                        self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
-                    )
                     image_avatar.paste(
                         Image.open(
                             f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
