@@ -17,7 +17,7 @@ from loguru import logger
 
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
-from src.clients.models.faceit.match_stats import MatchStatistics
+from src.clients.models.faceit.match_stats import Round
 from src.clients.redis_repo import redis_repo
 from src.db import Session
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
@@ -34,11 +34,10 @@ from src.web.models.events import MatchAborted, MatchFinished, MatchReady
 MINUTES_TILL_EXPIRE = 4
 
 
-@logger.catch()
-def get_match_finished_message_color(statistics: MatchStatistics) -> int:
+def get_match_finished_message_color(round: Round) -> int:
     black, green, red, gray = 1, 2067276, 10038562, 9936031
     teams_subscribers_found = [False, False]  # Team1 and Team2 boolean
-    for idx_team, team in enumerate(statistics.rounds[0].teams):
+    for idx_team, team in enumerate(round.teams):
         for player in team.players:
             if player.player_id in subscribers:
                 teams_subscribers_found[idx_team] = True
@@ -46,26 +45,23 @@ def get_match_finished_message_color(statistics: MatchStatistics) -> int:
         return gray
     if not any(teams_subscribers_found):
         return black
-    if (
-        teams_subscribers_found[0] and statistics.rounds[0].teams[0].team_stats.team_win
-    ) or (
-        teams_subscribers_found[1] and statistics.rounds[0].teams[1].team_stats.team_win
+    if (teams_subscribers_found[0] and round.teams[0].team_stats.team_win) or (
+        teams_subscribers_found[1] and round.teams[1].team_stats.team_win
     ):
         return green
     return red
 
 
-@logger.catch()
-def get_strnick_embed_color(statistics: MatchStatistics) -> tuple[str, int]:
-    color = get_match_finished_message_color(statistics)
+def get_strnick_embed_color(round: Round) -> tuple[str, int]:
+    color = get_match_finished_message_color(round)
 
     nicknames_1 = [
         f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-        for player in statistics.rounds[0].teams[0].players
+        for player in round.teams[0].players
     ]
     nicknames_2 = [
         f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-        for player in statistics.rounds[0].teams[1].players
+        for player in round.teams[1].players
     ]
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
@@ -81,7 +77,6 @@ async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloS
     return NickEloStorage(players=players_storage)
 
 
-@logger.catch
 def form_ready_embed_message(
     match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
 ) -> discord.Embed:
@@ -127,7 +122,6 @@ class DiscordClient(discord.Client):
         self.faceit_channel = self.get_channel(self.faceit_channel_id)
 
     @staticmethod
-    @logger.catch()
     def compile_binary_image(image):
         if image is not None:
             with BytesIO() as image_binary:
@@ -137,7 +131,6 @@ class DiscordClient(discord.Client):
                 return binary_image
 
     @staticmethod
-    @logger.catch()
     def is_contains_media(message: discord.Message) -> bool:
         return any(
             (
@@ -149,16 +142,13 @@ class DiscordClient(discord.Client):
         )
 
     @staticmethod
-    @logger.catch()
     def is_stats_request(content: list) -> bool:
         return bool(re.search("^[.]stats?$", content[0]) and len(content) == 2)
 
     @staticmethod
-    @logger.catch()
     def is_compare_request(content: list) -> bool:
         return bool(re.search(r"^[.]compare$", content[0])) and (len(content) in (3, 5))
 
-    @logger.catch()
     async def on_message(self, message) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
@@ -175,15 +165,12 @@ class DiscordClient(discord.Client):
             elif bool(re.search(r"^[.]$", _content[0])):
                 pass
 
-    @logger.catch()
     async def on_raw_reaction_add(self, payload: RawReactionActionEvent) -> None:
         await self._handle_reaction_event(payload)
 
-    @logger.catch()
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent) -> None:
         await self._handle_reaction_event(payload)
 
-    @logger.catch()
     async def _handle_reaction_event(self, payload: RawReactionActionEvent):
         upvotes = downvotes = 0
         if payload.emoji.name not in ("👍", "👎"):
@@ -227,7 +214,6 @@ class DiscordClient(discord.Client):
                 f"{downvotes} Downvotes\n"
             )
 
-    @logger.catch
     async def post_faceit_message_ready(self, match: MatchReady) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
@@ -267,50 +253,46 @@ class DiscordClient(discord.Client):
             embed=embed_msg, delete_after=MINUTES_TILL_EXPIRE * 60
         )
 
-    @logger.catch
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
         statistics = (await match_repo.get_stats(match_ids=[match.payload.id]))[0]
 
-        # TODO: for round in statistics.rounds
-        str_nick, my_color = get_strnick_embed_color(statistics)
-        embed_msg = discord.Embed(
-            description=str_nick,
-            type="rich",
-            title=f"{statistics.rounds[0].round_stats.map} [{match.payload.game}]",
-            color=my_color,
-            url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
-        )
-        await self.delete_message_by_faceit_match_id(match.payload.id)
-        redis_nick_elo = await redis_repo.get_match_elo(match.payload.id)
-        nick_elo = (
-            NickEloStorage(
-                players=[
-                    PlayerStorage(nickname=nick, elo=elo)
-                    for nick, elo in redis_nick_elo.items()
-                ]
+        for match_round in statistics.rounds:
+            str_nick, my_color = get_strnick_embed_color(match_round)
+            embed_msg = discord.Embed(
+                description=str_nick,
+                type="rich",
+                title=f"{match_round.round_stats.map} [{match.payload.game}] - {match.payload.entity.name}",
+                color=my_color,
+                url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
             )
-            if redis_nick_elo
-            else None
-        )
+            await self.delete_message_by_faceit_match_id(match.payload.id)
+            redis_nick_elo = await redis_repo.get_match_elo(match.payload.id)
+            nick_elo = (
+                NickEloStorage(
+                    players=[
+                        PlayerStorage(nickname=nick, elo=elo)
+                        for nick, elo in redis_nick_elo.items()
+                    ]
+                )
+                if redis_nick_elo
+                else None
+            )
 
-        img_collector = MatchFinishedImCol(match, statistics, nick_elo)
-        image_list = await img_collector.collect_images()
-        for image in image_list:
+            img_collector = MatchFinishedImCol(match, match_round, nick_elo)
+            image = await img_collector.collect_image()
             embed_msg.set_image(url="attachment://image.png")
             await self.faceit_channel.send(
                 embed=embed_msg, file=self.compile_binary_image(image)
             )
 
-    @logger.catch
     async def post_faceit_message_aborted(self, match: MatchAborted) -> None:
         async with Session() as session:
             await gambling_repo.cancel_bets(session=session, match=match)
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
-    @logger.catch
     async def delete_message_by_faceit_match_id(self, match_id: str) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
@@ -333,7 +315,6 @@ class DiscordClient(discord.Client):
             await message.delete()
         return None
 
-    @logger.catch
     async def update_score_for_match(self, match_details: MatchDetails) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
@@ -365,7 +346,6 @@ discord_client = DiscordClient(
 tree = app_commands.CommandTree(discord_client)
 
 
-@logger.catch
 @tree.command(name="stats", description="Show last 10 matches stats from a player")
 async def stats(ctx: Interaction, player: str) -> None:
     await ctx.response.send_message(
@@ -378,7 +358,6 @@ async def stats(ctx: Interaction, player: str) -> None:
     )
 
 
-@logger.catch
 @tree.command(name="compare", description="Compare 2 players")
 async def compare(ctx: Interaction, player_1: str, player_2: str, amount: int) -> None:
     await ctx.response.send_message(
