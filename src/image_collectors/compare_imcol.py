@@ -21,7 +21,7 @@ from src.image_collectors.models.last_stat import (
     GameStatLast,
     GameStatLastStorage,
 )
-from src.utils.enums import ColorTuple, available_maps
+from src.utils.enums import ColorTuple, ColorEvaluation, available_maps
 
 
 class CompareImCol:
@@ -191,7 +191,7 @@ class CompareImCol:
     def compare_stats(
         values: tuple[float, float],
         category: Literal["1f", "2f", "%", "reverse", "total"],
-    ) -> tuple[ColorTuple, ColorTuple]:
+    ) -> ColorEvaluation:
         """
         Compare stats values for players and return their respective colors
         @param values: tuple of numbers that should be compared
@@ -199,37 +199,75 @@ class CompareImCol:
         @return: color tuple that shows which values are `better`
         """
 
-        white = ColorTuple.WHITE
-        green = ColorTuple.GREEN
-        red = ColorTuple.RED
-
         values_dict = {
             "1f": {
-                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
-                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
+                0: {
+                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_1_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
+                1: {
+                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_2_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
             },
             "2f": {
-                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
-                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
+                0: {
+                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_1_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
+                1: {
+                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_2_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
             },
             "%": {
-                0: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
-                1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
+                0: {
+                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_1_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
+                1: {
+                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_2_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
             },
             "reverse": {
-                0: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
-                1: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
+                0: {
+                    "1.4": ColorEvaluation.P_2_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_2_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
+                1: {
+                    "1.4": ColorEvaluation.P_1_MUCH_BETTER,
+                    "1.2": ColorEvaluation.P_1_BETTER,
+                    "1": ColorEvaluation.EQUAL,
+                },
             },
             "total": {
-                0: {"1.4": (white, white), "1.2": (white, white), "1": (white, white)},
-                1: {"1.4": (white, white), "1.2": (white, white), "1": (white, white)},
+                0: {
+                    "1.4": ColorEvaluation.EQUAL,
+                    "1.2": ColorEvaluation.EQUAL,
+                    "1": ColorEvaluation.EQUAL,
+                },
+                1: {
+                    "1.4": ColorEvaluation.EQUAL,
+                    "1.2": ColorEvaluation.EQUAL,
+                    "1": ColorEvaluation.EQUAL,
+                },
             },
         }
 
         if not isinstance(values, tuple) or len(values) != 2:
-            return (white, white)
+            return ColorEvaluation.EQUAL
+
         if values[0] == values[1] == 0:
             return values_dict[category][values.index(max(values))]["1"]
+
         rating = (max(values) / min(values)) if min(values) != 0 else 100
         if rating >= 1.4:
             rating_s = "1.4"
