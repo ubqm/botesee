@@ -142,7 +142,10 @@ class CompareImCol:
         games: list[GameStatLast] = []
         await self._collect_user_info(session, nickname)
 
-        match_ids = [match_history.match_id for match_history in self.player_stat[nickname].player_history.items]
+        match_ids = [
+            match_history.match_id
+            for match_history in self.player_stat[nickname].player_history.items
+        ]
         results = await match_repo.get_stats(match_ids=match_ids)
 
         for idx, match_stats in enumerate(results):
@@ -186,8 +189,16 @@ class CompareImCol:
 
     @staticmethod
     def compare_stats(
-        value: tuple, category: Literal["1f", "2f", "%", "reverse", "total"]
+        values: tuple[float, float],
+        category: Literal["1f", "2f", "%", "reverse", "total"],
     ) -> tuple[ColorTuple, ColorTuple]:
+        """
+        Compare stats values for players and return their respective colors
+        @param values: tuple of numbers that should be compared
+        @param category: logic meaning of values (smaller/higher - better or worse)
+        @return: color tuple that shows which values are `better`
+        """
+
         white = ColorTuple.WHITE
         green = ColorTuple.GREEN
         red = ColorTuple.RED
@@ -206,8 +217,8 @@ class CompareImCol:
                 1: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
             },
             "reverse": {
-                0: {"1.4": (red, green), "1.2": (green, white), "1": (white, white)},
-                1: {"1.4": (green, red), "1.2": (white, green), "1": (white, white)},
+                0: {"1.4": (red, green), "1.2": (white, green), "1": (white, white)},
+                1: {"1.4": (green, red), "1.2": (green, white), "1": (white, white)},
             },
             "total": {
                 0: {"1.4": (white, white), "1.2": (white, white), "1": (white, white)},
@@ -215,18 +226,18 @@ class CompareImCol:
             },
         }
 
-        if not isinstance(value, tuple) or len(value) != 2:
+        if not isinstance(values, tuple) or len(values) != 2:
             return (white, white)
-        if value[0] == value[1] == 0:
-            return values_dict[category][value.index(max(value))]["1"]
-        rating = (max(value) / min(value)) if min(value) != 0 else 100
+        if values[0] == values[1] == 0:
+            return values_dict[category][values.index(max(values))]["1"]
+        rating = (max(values) / min(values)) if min(values) != 0 else 100
         if rating >= 1.4:
             rating_s = "1.4"
         elif rating >= 1.2:
             rating_s = "1.2"
         else:
             rating_s = "1"
-        return values_dict[category][value.index(max(value))][rating_s]
+        return values_dict[category][values.index(max(values))][rating_s]
 
     def _draw_stat(
         self,
