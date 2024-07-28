@@ -76,7 +76,7 @@ async def faceit_webhook(
         case EventEnum.CONFIGURING:
             match_score_update.delay(match.payload.id)
         case EventEnum.FINISHED:
-            match_finished.delay(match.json())
+            match_finished.delay(match.dict())
         case _:
             pass
 
