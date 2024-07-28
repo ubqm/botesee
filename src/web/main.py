@@ -1,4 +1,12 @@
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Request,
+    status,
+    BackgroundTasks,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -7,6 +15,9 @@ from pydantic import BaseModel
 
 from src import conf
 from src.celery.tasks import match_score_update, match_finished
+from src.clients.models.rabbit.queues import QueueName
+from src.clients.rabbit import RabbitClient
+from src.web.dependencies import get_rabbit
 from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
 
@@ -68,6 +79,8 @@ async def celery(
 @app.post("/webhooks/faceit", tags=["Webhooks"])
 async def faceit_webhook(
     match: WebhookMatch,
+    background_tasks: BackgroundTasks,
+    rabbit: RabbitClient = Depends(get_rabbit),
     token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     logger.info(f"{match.json()}")
@@ -75,6 +88,9 @@ async def faceit_webhook(
     match match.event:
         case EventEnum.CONFIGURING:
             match_score_update.delay(match.payload.id)
+            background_tasks.add_task(
+                rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
+            )
         case EventEnum.FINISHED:
             match_finished.delay(match.dict())
         case _:
