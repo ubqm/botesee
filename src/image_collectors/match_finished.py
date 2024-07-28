@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
-from src.clients.models.faceit.match_stats import MatchStatistics, Player, Round
+from src.clients.models.faceit.match_stats import Player, Round
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.image_collectors import TEMPLATE_PATH
 from src.utils.enums import ColorTuple, available_maps, subscribers
@@ -50,19 +50,15 @@ class MatchFinishedImCol:
     def __init__(
         self,
         match: MatchFinished,
-        statistics: MatchStatistics,
+        match_round: Round,
         nick_elo: NickEloStorage | None = None,
     ):
         self.match = match
-        self.statistics = statistics
+        self.match_round = match_round
         self.prev_nick_elo = nick_elo
 
-    async def collect_images(self) -> list[Image]:
-        images: list[Image] = []
-        for match_round in self.statistics.rounds:
-            canvas = await self._draw_image(match_round)
-            images.append(canvas)
-        return images
+    async def collect_image(self) -> Image:
+        return await self._draw_image(self.match_round)
 
     async def _draw_image(self, round_: Round) -> Image:
         canvas: Image = await self._get_map_image(round_)
