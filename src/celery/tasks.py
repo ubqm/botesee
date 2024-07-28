@@ -10,7 +10,7 @@ from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
 from src.db.script import db_match_finished
 from src.web.dependencies import get_rabbit
-from src.web.models.events import WebhookMatch
+from src.web.models.events import MatchFinished
 
 app = Celery(broker=conf.rmq_string)
 event_loop = asyncio.new_event_loop()
@@ -42,15 +42,15 @@ def match_score_update(match_id: str) -> None:
     logger.info(f"Stopped score fetching for {match_id}")
 
 
-async def _match_finished(match: WebhookMatch) -> None:
+async def _match_finished(match: MatchFinished) -> None:
     statistics = await faceit_client.match_stats(match.payload.id)
     await db_match_finished(match, statistics)
     rabbit: RabbitClient = await get_rabbit()
-    await rabbit.publish(message=match.json(), routing_key=QueueName.MATCHES)
+    await rabbit.publish(message=match.model_dump_json(), routing_key=QueueName.MATCHES)
 
 
 @app.task
 def match_finished(match_finished_dict: dict) -> None:
-    match = WebhookMatch(**match_finished_dict)
+    match = MatchFinished(**match_finished_dict)
     logger.info(f"Match finished {match.payload.id}")
     event_loop.run_until_complete(_match_finished(match))
