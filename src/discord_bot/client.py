@@ -95,14 +95,22 @@ def form_ready_embed_message(
         value=nick_elo_1.get_discord_nicknames(),
         inline=True,
     )
-    embed_msg.add_field(name="ELO", value=nick_elo_1.get_discord_elos(), inline=True)
+    embed_msg.add_field(
+        name=f"ELO[{nick_elo_1.get_avg_elo()}]",
+        value=nick_elo_1.get_discord_elos(),
+        inline=True,
+    )
     embed_msg.add_field(name="\u200b", value="\u200b")
     embed_msg.add_field(
         name=match.payload.teams[1].name,
         value=nick_elo_2.get_discord_nicknames(),
         inline=True,
     )
-    embed_msg.add_field(name="ELO", value=nick_elo_2.get_discord_elos(), inline=True)
+    embed_msg.add_field(
+        name=f"ELO[{nick_elo_2.get_avg_elo()}]",
+        value=nick_elo_2.get_discord_elos(),
+        inline=True,
+    )
     embed_msg.add_field(name="\u200b", value="\u200b")
     return embed_msg
 

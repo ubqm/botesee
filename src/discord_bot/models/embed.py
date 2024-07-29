@@ -33,3 +33,6 @@ class NickEloStorage(BaseModel):
 
     def get_dict(self) -> dict[str, int]:
         return {player.nickname: player.elo for player in self.players}
+
+    def get_avg_elo(self) -> int:
+        return int(sum([player.elo for player in self.players]) / len(self.players))
