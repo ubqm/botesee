@@ -240,8 +240,8 @@ class DiscordClient(discord.Client):
             bet_match = await gambling_repo.new_match(
                 session=session,
                 match_id=match.payload.id,
-                avg_elo_1=nick_elo_1,
-                avg_elo_2=nick_elo_2,
+                avg_elo_1=nick_elo_1.get_avg_elo(),
+                avg_elo_2=nick_elo_2.get_avg_elo(),
             )
             coefs = await gambling_repo.get_match_coefficients(
                 session=session, match_id=match.payload.id
