@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import httpx
 from celery import Celery
@@ -9,37 +10,43 @@ from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
 from src.db.script import db_match_finished
+from src.utils.shared_models import DetailsMatchDict
 from src.web.dependencies import get_rabbit
-from src.web.models.events import MatchFinished
+from src.web.models.events import MatchFinished, MatchReady
 
 app = Celery(broker=conf.rmq_string)
 event_loop = asyncio.new_event_loop()
 
 
-async def _score_update(match_id: str) -> None:
+async def _score_update(match_ready: MatchReady) -> None:
     rabbit = RabbitClient(
         conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD
     )
     while True:
         await asyncio.sleep(20)
         try:
-            match_details = await faceit_client.match_details(match_id)
+            match_details = await faceit_client.match_details(match_ready.payload.id)
         except httpx.PoolTimeout as e:
             logger.exception(f"{e}", exc_info=e)
         else:
             if match_details.finished_at:
                 break
 
+            details_match_dict: DetailsMatchDict = DetailsMatchDict(
+                match_details=match_details, match_ready=match_ready
+            )
             await rabbit.publish(
-                match_details.json(), routing_key=QueueName.UPDATE_SCORE
+                json.dumps(details_match_dict.model_dump_json()),
+                routing_key=QueueName.UPDATE_SCORE,
             )
 
 
 @app.task
-def match_score_update(match_id: str) -> None:
-    logger.info(f"Started score fetching for {match_id}")
-    event_loop.run_until_complete(_score_update(match_id))
-    logger.info(f"Stopped score fetching for {match_id}")
+def match_score_update(match_ready_dict: dict) -> None:
+    match_ready = MatchReady(**match_ready_dict)
+    logger.info(f"Started score fetching for {match_ready}")
+    event_loop.run_until_complete(_score_update(match_ready))
+    logger.info(f"Stopped score fetching for {match_ready}")
 
 
 async def _match_finished(match: MatchFinished) -> None:
