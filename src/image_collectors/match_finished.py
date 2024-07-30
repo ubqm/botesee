@@ -60,21 +60,21 @@ class MatchFinishedImCol:
         self.match_round = match_round
         self.prev_nick_elo = nick_elo
 
-    async def collect_image(self) -> Image:
+    async def collect_image(self) -> Image.Image:
         return await self._draw_image(self.match_round)
 
-    async def _draw_image(self, round_: Round) -> Image:
-        canvas: Image = await self._get_map_image(round_)
+    async def _draw_image(self, round_: Round) -> Image.Image:
+        canvas: Image.Image = await self._get_map_image(round_)
         canvas = await self._draw_players(round_, canvas)
         return canvas
 
-    async def _get_map_image(self, round_: Round) -> Image:
-        canvas: Image = await self._get_background(round_)
+    async def _get_map_image(self, round_: Round) -> Image.Image:
+        canvas: Image.Image = await self._get_background(round_)
         canvas = await self._draw_win_features(round_, canvas)
         await self._draw_game_score(round_, canvas)
         return canvas
 
-    async def _draw_players(self, round_: Round, canvas: Image) -> Image:
+    async def _draw_players(self, round_: Round, canvas: Image.Image) -> Image.Image:
         tasks: list[Task] = []
         for idx_team, team in enumerate(round_.teams):
             for idx_player, player in enumerate(team.players):
@@ -87,11 +87,11 @@ class MatchFinishedImCol:
 
     async def _draw_player(
         self,
-        canvas: Image,
+        canvas: Image.Image,
         player: Player,
         idx_team: int,
         idx_player: int,
-    ) -> Image:
+    ) -> Image.Image:
         canvas = await self._draw_player_avatar(canvas, player, idx_team, idx_player)
         await self._draw_player_stats(player, canvas, idx_team, idx_player)
         return canvas
@@ -111,7 +111,7 @@ class MatchFinishedImCol:
         self,
         stat: Literal["kad", "mvp", "kr", "kd"],
         player: Player,
-        canvas: Image,
+        canvas: Image.Image,
         idx_team: int,
         idx_player: int,
         kd_color: ColorTuple,
@@ -148,7 +148,7 @@ class MatchFinishedImCol:
         )
 
     async def _draw_player_stats(
-        self, player: Player, canvas: Image, idx_team: int, idx_player: int
+        self, player: Player, canvas: Image.Image, idx_team: int, idx_player: int
     ) -> None:
         kd_color = self._get_kd_color(player)
         kad: Literal["kad"] = "kad"
@@ -159,7 +159,7 @@ class MatchFinishedImCol:
         for stat in vals:
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
 
-    async def _download_player_avatar(self, req_player: webPlayer) -> Image:
+    async def _download_player_avatar(self, req_player: webPlayer) -> Image.Image:
         avatar_size = (130, 130)
         unknown_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
         unknown_avatar = unknown_avatar.resize(avatar_size)
@@ -179,11 +179,11 @@ class MatchFinishedImCol:
 
     async def _draw_player_avatar(
         self,
-        canvas: Image,
+        canvas: Image.Image,
         player: Player,
         idx_team: int,
         idx_player: int,
-    ) -> Image:
+    ) -> Image.Image:
         draw_image = ImageDraw.Draw(canvas)
         player_elo = await faceit_client.get_player_elo_by_nickname(
             player.nickname, self.match.payload.game
@@ -288,11 +288,11 @@ class MatchFinishedImCol:
             else ""
         )
 
-    async def _draw_game_score(self, round_: Round, canvas: Image) -> None:
+    async def _draw_game_score(self, round_: Round, canvas: Image.Image) -> None:
         await self._draw_final_score(round_, canvas)
         await self._draw_halftime_score(round_, canvas)
 
-    async def _draw_halftime_score(self, round_: Round, canvas: Image) -> None:
+    async def _draw_halftime_score(self, round_: Round, canvas: Image.Image) -> None:
         draw_image = ImageDraw.Draw(canvas)
         for idx_team, team in enumerate(round_.teams):
             halftimes = (
@@ -308,7 +308,7 @@ class MatchFinishedImCol:
                 font=self.fonts["halftime"],
             )
 
-    async def _draw_final_score(self, round_: Round, canvas: Image) -> None:
+    async def _draw_final_score(self, round_: Round, canvas: Image.Image) -> None:
         draw_image = ImageDraw.Draw(canvas)
         for idx_team, team in enumerate(round_.teams):
             w = draw_image.textlength(
@@ -321,7 +321,9 @@ class MatchFinishedImCol:
                 font=self.fonts["mainscore"],
             )
 
-    async def _draw_win_features(self, round_: Round, canvas: Image) -> Image:
+    async def _draw_win_features(
+        self, round_: Round, canvas: Image.Image
+    ) -> Image.Image:
         top_image, bot_image = await self._get_win_feature_images(round_)
         dark_middle = Image.open(
             f"{TEMPLATE_PATH}/background_features/dark-middle2.png"
@@ -331,7 +333,9 @@ class MatchFinishedImCol:
         canvas.paste(dark_middle, (0, 0), dark_middle)
         return canvas
 
-    async def _get_win_feature_images(self, round_: Round) -> tuple[Image, Image]:
+    async def _get_win_feature_images(
+        self, round_: Round
+    ) -> tuple[Image.Image, Image.Image]:
         """Return green and red background features(First team is on top)"""
         if round_.teams[0].team_stats.team_win:
             image_topcolor = Image.open(
@@ -349,7 +353,7 @@ class MatchFinishedImCol:
         )
         return image_topcolor, image_botcolor
 
-    async def _get_background(self, round_: Round) -> Image:
+    async def _get_background(self, round_: Round) -> Image.Image:
         if round_.round_stats.map not in available_maps.values:
             return Image.open(f"{TEMPLATE_PATH}/maps/black.png")
 
@@ -527,10 +531,10 @@ if __name__ == "__main__":
         statistics = await faceit_client.match_stats(mf.payload.id)
         mf_imcol = MatchFinishedImCol(
             mf,
-            statistics,
+            statistics.rounds[0],
             NickEloStorage(players=[PlayerStorage(nickname="Test", elo=1)]),
         )
-        images_list = await mf_imcol.collect_images()
+        images_list = await mf_imcol.collect_image()
         images_list[0].show()
 
     asyncio.run(main())
