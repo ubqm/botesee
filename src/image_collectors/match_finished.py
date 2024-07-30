@@ -185,8 +185,8 @@ class MatchFinishedImCol:
         idx_player: int,
     ) -> Image.Image:
         draw_image = ImageDraw.Draw(canvas)
-        player_elo = await faceit_client.get_player_elo_by_nickname(
-            player.nickname, self.match.payload.game
+        player_elo = await faceit_client.get_player_elo_by_player_id(
+            player.player_id, self.match.payload.game
         )
         elo_diff = await self.calculate_elo_change(player, player_elo)
 
@@ -534,7 +534,7 @@ if __name__ == "__main__":
             statistics.rounds[0],
             NickEloStorage(players=[PlayerStorage(nickname="Test", elo=1)]),
         )
-        images_list = await mf_imcol.collect_image()
-        images_list[0].show()
+        image = await mf_imcol.collect_image()
+        image.show()
 
     asyncio.run(main())
