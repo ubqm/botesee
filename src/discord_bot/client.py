@@ -78,7 +78,10 @@ async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloS
 
 
 def form_ready_embed_message(
-    match: MatchReady, nick_elo_1: NickEloStorage, nick_elo_2: NickEloStorage
+    match: MatchReady,
+    nick_elo_1: NickEloStorage,
+    nick_elo_2: NickEloStorage,
+    coefs: Sequence[BetCoefficient],
 ) -> discord.Embed:
     my_color = 9936031  # gray
     description = (
@@ -91,7 +94,7 @@ def form_ready_embed_message(
         color=my_color,
     )
     embed_msg.add_field(
-        name=match.payload.teams[0].name,
+        name=f"{match.payload.teams[0].name}[{coefs[0]}]",
         value=nick_elo_1.get_discord_nicknames(),
         inline=True,
     )
@@ -102,7 +105,7 @@ def form_ready_embed_message(
     )
     embed_msg.add_field(name="\u200b", value="\u200b")
     embed_msg.add_field(
-        name=match.payload.teams[1].name,
+        name=f"{match.payload.teams[1].name}[{coefs[1]}]",
         value=nick_elo_2.get_discord_nicknames(),
         inline=True,
     )
@@ -233,8 +236,6 @@ class DiscordClient(discord.Client):
         )
         nicks_elo_dict = nick_elo_1.get_dict() | nick_elo_2.get_dict()
         await redis_repo.save_match(match.payload.id, nicks_elo_dict)
-        embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2)
-        await self.faceit_channel.send(embed=embed_msg)
 
         async with Session() as session:
             bet_match = await gambling_repo.new_match(
@@ -246,6 +247,9 @@ class DiscordClient(discord.Client):
             coefs = await gambling_repo.get_match_coefficients(
                 session=session, match_id=match.payload.id
             )
+
+        embed_msg = form_ready_embed_message(match, nick_elo_1, nick_elo_2, coefs)
+        await self.faceit_channel.send(embed=embed_msg)
         await self.gambling_message(match=match, bet_match=bet_match, coefs=coefs)
 
     async def gambling_message(
@@ -326,7 +330,9 @@ class DiscordClient(discord.Client):
             await message.delete()
         return None
 
-    async def update_score_for_match(self, match_details: MatchDetails) -> None:
+    async def update_score_for_match(
+        self, match_details: MatchDetails, match_ready: MatchReady
+    ) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
@@ -346,6 +352,7 @@ class DiscordClient(discord.Client):
                     f"[{match_details.voting.map.pick[0]}]"
                     f"(https://www.faceit.com/en/cs2/room/{match_details.match_id})"
                     f"{' - ' + location.pick[0] if location else ''}"
+                    f" - {match_ready.payload.entity.name}"
                 )
             await message.edit(embeds=message.embeds)
             break

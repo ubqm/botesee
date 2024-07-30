@@ -87,7 +87,7 @@ async def faceit_webhook(
 
     match match.event:
         case EventEnum.CONFIGURING:
-            match_score_update.delay(match.payload.id)
+            match_score_update.delay(match.dict())
             background_tasks.add_task(
                 rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
             )
