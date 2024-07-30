@@ -51,7 +51,7 @@ class GamblingRepository:
         self, avg_elo_1: int, avg_elo_2: int
     ) -> tuple[Decimal, Decimal]:
         elo = (avg_elo_1, avg_elo_2)
-        MARGIN: Final[Decimal] = Decimal("0.05")
+        MARGIN: Final[float] = 0.05
 
         possibility_gap = (1 - min(elo) / max(elo)) * 100
         extra_gap_coefficient = max(elo) / min(elo)
