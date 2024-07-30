@@ -94,7 +94,7 @@ def form_ready_embed_message(
         color=my_color,
     )
     embed_msg.add_field(
-        name=f"{match.payload.teams[0].name}[{coefs[0]}]",
+        name=f"{match.payload.teams[0].name}[{str(coefs[0].coefficient)}]",
         value=nick_elo_1.get_discord_nicknames(),
         inline=True,
     )
@@ -105,7 +105,7 @@ def form_ready_embed_message(
     )
     embed_msg.add_field(name="\u200b", value="\u200b")
     embed_msg.add_field(
-        name=f"{match.payload.teams[1].name}[{coefs[1]}]",
+        name=f"{match.payload.teams[1].name}[{str(coefs[1].coefficient)}]",
         value=nick_elo_2.get_discord_nicknames(),
         inline=True,
     )
