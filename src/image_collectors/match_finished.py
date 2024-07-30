@@ -43,11 +43,11 @@ class MatchFinishedImCol:
     image_dark_avatar_top = Image.open(
         f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
     )
-    image_avatar_top_border = Image.open(
-        f"{TEMPLATE_PATH}/background_features/avatar_top_border.png"
+    fade_for_top_pfp = Image.open(
+        f"{TEMPLATE_PATH}/background_features/fade_for_top_pfp.png"
     )
-    image_avatar_bottom_border = Image.open(
-        f"{TEMPLATE_PATH}/background_features/avatar_bottom_border.png"
+    fade_for_bottom_pfp = Image.open(
+        f"{TEMPLATE_PATH}/background_features/fade_for_bottom_pfp.png"
     )
 
     def __init__(
@@ -225,9 +225,9 @@ class MatchFinishedImCol:
                     )
                     if player.player_id in subscribers:
                         canvas.paste(
-                            self.image_avatar_top_border,
-                            (146 + idx_player * 162, 0),
-                            self.image_avatar_top_border,
+                            self.fade_for_top_pfp,
+                            (146 + idx_player * 162, 150),
+                            self.fade_for_top_pfp,
                         )
                 else:
                     image_avatar.paste(
@@ -250,9 +250,12 @@ class MatchFinishedImCol:
                     )
                     if player.player_id in subscribers:
                         canvas.paste(
-                            self.image_avatar_bottom_border,
-                            (146 + idx_player * 162, 520),
-                            self.image_avatar_bottom_border,
+                            self.fade_for_bottom_pfp,
+                            (
+                                146 + idx_player * 162,
+                                390 - self.fade_for_bottom_pfp.height,
+                            ),
+                            self.fade_for_bottom_pfp,
                         )
 
                 w = draw_image.textlength(
