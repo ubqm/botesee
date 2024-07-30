@@ -43,8 +43,11 @@ class MatchFinishedImCol:
     image_dark_avatar_top = Image.open(
         f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
     )
-    image_avatar_border = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_border.png"
+    image_avatar_top_border = Image.open(
+        f"{TEMPLATE_PATH}/background_features/avatar_top_border.png"
+    )
+    image_avatar_bottom_border = Image.open(
+        f"{TEMPLATE_PATH}/background_features/avatar_bottom_border.png"
     )
 
     def __init__(
@@ -195,10 +198,6 @@ class MatchFinishedImCol:
                 draw_image_avatar = ImageDraw.Draw(image_avatar)
                 faceitlvl = req_player.game_skill_level
 
-                if player.player_id in subscribers:
-                    image_avatar.paste(
-                        self.image_avatar_border, (0, 0), self.image_avatar_border
-                    )
                 image_avatar.paste(
                     self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
                 )
@@ -224,6 +223,12 @@ class MatchFinishedImCol:
                     draw_image_avatar.text(
                         (26, 0), str(player_elo), font=self.fonts["avatar"]
                     )
+                    if player.player_id in subscribers:
+                        canvas.paste(
+                            self.image_avatar_top_border,
+                            (146 + idx_player * 162, 0),
+                            self.image_avatar_top_border,
+                        )
                 else:
                     image_avatar.paste(
                         Image.open(
@@ -243,6 +248,12 @@ class MatchFinishedImCol:
                     draw_image_avatar.text(
                         (26, 107), str(player_elo), font=self.fonts["avatar"]
                     )
+                    if player.player_id in subscribers:
+                        canvas.paste(
+                            self.image_avatar_bottom_border,
+                            (146 + idx_player * 162, 520),
+                            self.image_avatar_bottom_border,
+                        )
 
                 w = draw_image.textlength(
                     req_player.nickname, font=self.fonts["avatar"]
