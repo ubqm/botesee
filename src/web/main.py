@@ -68,14 +68,6 @@ async def health() -> OKResponse:
     return OKResponse()
 
 
-@app.get("/celery", tags=["Celery"])
-async def celery(
-    match_id: str,
-) -> OKResponse:
-    match_score_update.delay(match_id)
-    return OKResponse()
-
-
 @app.post("/webhooks/faceit", tags=["Webhooks"])
 async def faceit_webhook(
     match: WebhookMatch,
