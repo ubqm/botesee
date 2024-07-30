@@ -94,6 +94,8 @@ async def faceit_webhook(
         case EventEnum.FINISHED:
             match_finished.delay(match.dict())
         case _:
-            pass
+            background_tasks.add_task(
+                rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
+            )
 
     return OKResponse()
