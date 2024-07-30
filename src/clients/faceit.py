@@ -56,6 +56,21 @@ class FaceitClient(httpx.AsyncClient):
         res = await self._request("GET", url=path, params={"nickname": nickname})
         return PlayerDetails(**res)
 
+    async def get_player_elo_by_player_id(
+        self, player_id: str | UUID, game: str = "cs2"
+    ) -> int:
+        details = await self.player_details_by_id(player_id)
+        if not details:
+            return 0
+
+        match game:
+            case "csgo":
+                return details.games.csgo.faceit_elo
+            case "cs2":
+                return details.games.cs2.faceit_elo if details.games.cs2 else 0
+            case _:
+                return 0
+
     async def get_player_elo_by_nickname(self, nickname: str, game: str = "cs2") -> int:
         details = await self.player_details(nickname)
         if not details:
