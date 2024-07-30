@@ -72,7 +72,7 @@ def get_strnick_embed_color(round: Round) -> tuple[str, int]:
 async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
     players_storage: list[PlayerStorage] = []
     for player in roster:
-        elo = await faceit_client.get_player_elo_by_nickname(player.nickname, game)
+        elo = await faceit_client.get_player_elo_by_player_id(player.id, game)
         players_storage.append(PlayerStorage(nickname=player.nickname, elo=elo))
     return NickEloStorage(players=players_storage)
 
