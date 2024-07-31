@@ -136,9 +136,9 @@ class RabbitWorker:
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
-                m = json.loads(message.body.decode())
-                logger.info(f"message after decoding and loads {m = }")
-                details_and_match_dict = TypeAdapter(DetailsMatchDict).validate_json(m)
+                details_and_match_dict = TypeAdapter(DetailsMatchDict).validate_json(
+                    json.loads(message.body.decode())
+                )
                 match_details = TypeAdapter(MatchDetails).validate_python(
                     details_and_match_dict.match_details
                 )
