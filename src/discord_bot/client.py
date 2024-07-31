@@ -52,7 +52,9 @@ def get_match_finished_message_color(round: Round) -> int:
     return red
 
 
-def get_strnick_embed_color(round: Round) -> tuple[str, int]:
+def get_strnick_embed_color(
+    round: Round, coefs: Sequence[BetCoefficient]
+) -> tuple[str, int]:
     color = get_match_finished_message_color(round)
 
     nicknames_1 = [
@@ -66,7 +68,7 @@ def get_strnick_embed_color(round: Round) -> tuple[str, int]:
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
 
-    return str_nick_1 + "\n" + str_nick_2, color
+    return f"[{coefs[0]}] - {str_nick_1}\n[{coefs[1]}] - {str_nick_2}", color
 
 
 async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
@@ -273,9 +275,13 @@ class DiscordClient(discord.Client):
             raise ConnectionError("Discord is not initialized yet")
 
         statistics = (await match_repo.get_stats(match_ids=[match.payload.id]))[0]
+        async with Session() as session:
+            coefs = await gambling_repo.get_match_coefficients(
+                session, match.payload.id
+            )
 
         for match_round in statistics.rounds:
-            str_nick, my_color = get_strnick_embed_color(match_round)
+            str_nick, my_color = get_strnick_embed_color(match_round, coefs)
             embed_msg = discord.Embed(
                 description=str_nick,
                 type="rich",
