@@ -1,3 +1,4 @@
+import random
 import re
 from datetime import timedelta
 from io import BytesIO
@@ -255,7 +256,12 @@ class DiscordClient(discord.Client):
     async def gambling_message(
         self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]
     ) -> None:
-        description = "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
+        description = (
+            "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
+            f"Example: /bet {bet_match.id} {random.choice([BetType.T1_WIN.value, BetType.T2_WIN.value])} "
+            f"{random.choice([10, 20, 30, 50])}\n"
+            f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
+        )
         for coef in coefs:
             description += f"{coef.bet_type} - {coef.coefficient}\n"
 
@@ -420,7 +426,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
             minutes=MINUTES_TILL_EXPIRE
         ):
             await ctx.response.send_message(
-                f"Bets are closed. {MINUTES_TILL_EXPIRE} minutes expired",
+                f"Bets are closed: {MINUTES_TILL_EXPIRE} minutes expired",
                 ephemeral=True,
                 delete_after=5.0,
             )
