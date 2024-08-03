@@ -19,9 +19,7 @@ event_loop = asyncio.new_event_loop()
 
 
 async def _score_update(match_ready: MatchReady) -> None:
-    rabbit = RabbitClient(
-        conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD
-    )
+    rabbit = await get_rabbit()
     while True:
         await asyncio.sleep(20)
         try:
@@ -44,9 +42,9 @@ async def _score_update(match_ready: MatchReady) -> None:
 @app.task
 def match_score_update(match_ready_dict: dict) -> None:
     match_ready = MatchReady(**match_ready_dict)
-    logger.info(f"Started score fetching for {match_ready}")
+    logger.info(f"Started score fetching for {match_ready.payload.id}")
     event_loop.run_until_complete(_score_update(match_ready))
-    logger.info(f"Stopped score fetching for {match_ready}")
+    logger.info(f"Stopped score fetching for {match_ready.payload.id}")
 
 
 async def _match_finished(match: MatchFinished) -> None:
