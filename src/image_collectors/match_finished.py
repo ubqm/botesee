@@ -1,26 +1,24 @@
 import asyncio
 from asyncio import Task
-from io import BytesIO
 from typing import Literal
 
-from aiohttp_client_cache import CachedSession
+from PIL.ImageFont import FreeTypeFont
 from PIL import Image, ImageDraw, ImageFont
 
-from src import redis_cache
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Player, Round
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.image_collectors import TEMPLATE_PATH
+from src.image_collectors.avatar_designer import AvatarDesigner
 from src.utils.enums import ColorTuple, available_maps, subscribers
-from src.web.models.base import Player as webPlayer
 from src.web.models.events import MatchFinished
 
 
 class MatchFinishedImCol:
-    font_folder = "Outfit"
-    font_file = "Outfit-Bold.ttf"
-    font_file_mainscore = "Outfit-ExtraBold.ttf"
-    fonts = {
+    font_folder = "jetbrains_mono"
+    font_file = "JetBrainsMono-ExtraBold.ttf"
+    font_file_mainscore = "JetBrainsMono-ExtraBold.ttf"
+    fonts: dict[str, FreeTypeFont] = {
         "mainscore": ImageFont.truetype(
             f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50
         ),
@@ -37,12 +35,6 @@ class MatchFinishedImCol:
             f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
         ),
     }
-    image_dark_avatar_bot = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png"
-    )
-    image_dark_avatar_top = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
-    )
     fade_for_top_pfp = Image.open(
         f"{TEMPLATE_PATH}/background_features/fade_for_top_pfp.png"
     )
@@ -97,15 +89,21 @@ class MatchFinishedImCol:
         return canvas
 
     @staticmethod
-    def _get_kd_color(player: Player) -> ColorTuple:
-        if player.player_stats.kd_ratio >= 1.3:
-            return ColorTuple.GREEN
-        elif player.player_stats.kd_ratio < 0.6:
-            return ColorTuple.RED
-        elif 0.8 > player.player_stats.kd_ratio >= 0.6:
-            return ColorTuple.ORANGE
-        else:
+    def _get_color_for_stat(
+        player: Player, stat: Literal["kad", "mvp", "kr", "kd"]
+    ) -> ColorTuple:
+        if stat != "kd":
             return ColorTuple.WHITE
+
+        match player.player_stats.kd_ratio:
+            case kd if kd >= 1.3:
+                return ColorTuple.GREEN
+            case kd if 0.6 <= kd < 0.8:
+                return ColorTuple.ORANGE
+            case kd if kd < 0.6:
+                return ColorTuple.RED
+            case _:
+                return ColorTuple.WHITE
 
     def _draw_player_stat(
         self,
@@ -114,8 +112,7 @@ class MatchFinishedImCol:
         canvas: Image.Image,
         idx_team: int,
         idx_player: int,
-        kd_color: ColorTuple,
-    ):
+    ) -> None:
         image_draw = ImageDraw.Draw(canvas)
         stat_dict = {
             "kad": f"{player.player_stats.kills}/"
@@ -128,54 +125,39 @@ class MatchFinishedImCol:
         text = stat_dict[stat]
         w = image_draw.textlength(
             text,
-            font=self.fonts["player_score"]
-            if stat == "kad"
-            else self.fonts["player_stats"],
+            font=self._get_font_for_stat(stat),
         )
-        stat_pos_dict = {
-            "kad": (130 + (162 - w) / 2 + idx_player * 162, 155 + 195 * idx_team),
+        stat_pos_dict: dict[Literal["kad", "mvp", "kr", "kd"], tuple[int, int]] = {
+            "kad": (130 + (162 - w) / 2 + idx_player * 162, 150 + 200 * idx_team),
             "mvp": (156 + idx_player * 162, 240 + 36 * idx_team),
             "kr": (156 + idx_player * 162, 220 + 76 * idx_team),
             "kd": (156 + idx_player * 162, 200 + 116 * idx_team),
         }
+        stat_color = self._get_color_for_stat(player, stat)
+        stat_font = self._get_font_for_stat(stat)
         image_draw.text(
             stat_pos_dict[stat],
             text,
-            font=self.fonts["player_score"]
-            if stat == "kad"
-            else self.fonts["player_stats"],
-            fill=kd_color if stat == "kd" else ColorTuple.WHITE,
+            font=stat_font,
+            fill=stat_color,
+        )
+
+    def _get_font_for_stat(
+        self, stat: Literal["kad", "mvp", "kr", "kd"]
+    ) -> FreeTypeFont:
+        return (
+            self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"]
         )
 
     async def _draw_player_stats(
         self, player: Player, canvas: Image.Image, idx_team: int, idx_player: int
     ) -> None:
-        kd_color = self._get_kd_color(player)
         kad: Literal["kad"] = "kad"
         mvp: Literal["mvp"] = "mvp"
         kr: Literal["kr"] = "kr"
         kd: Literal["kd"] = "kd"
-        vals: tuple[Literal["kad", "mvp", "kr", "kd"], ...] = (kad, mvp, kr, kd)
-        for stat in vals:
-            self._draw_player_stat(stat, player, canvas, idx_team, idx_player, kd_color)
-
-    async def _download_player_avatar(self, req_player: webPlayer) -> Image.Image:
-        avatar_size = (130, 130)
-        unknown_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
-        unknown_avatar = unknown_avatar.resize(avatar_size)
-        if not req_player.avatar:
-            return unknown_avatar
-
-        async with CachedSession(cache=redis_cache) as session:
-            response = await session.get(req_player.avatar)
-
-        if response.status != 200:
-            return unknown_avatar
-
-        actual_avatar = Image.open(BytesIO(await response.read()))
-        actual_avatar = actual_avatar.convert("RGB")
-        actual_avatar = actual_avatar.resize(avatar_size)
-        return actual_avatar
+        for stat in (kad, mvp, kr, kd):
+            self._draw_player_stat(stat, player, canvas, idx_team, idx_player)
 
     async def _draw_player_avatar(
         self,
@@ -184,98 +166,27 @@ class MatchFinishedImCol:
         idx_team: int,
         idx_player: int,
     ) -> Image.Image:
-        draw_image = ImageDraw.Draw(canvas)
         player_elo = await faceit_client.get_player_elo_by_player_id(
             player.player_id, self.match.payload.game
         )
         elo_diff = await self.calculate_elo_change(player, player_elo)
+        req_player = self.match.payload.teams[idx_team].get_player_by_nickname(
+            player.nickname
+        )
 
-        for idx_req_player, req_player in enumerate(
-            self.match.payload.teams[idx_team].roster
-        ):
-            if player.nickname == req_player.nickname:
-                image_avatar = await self._download_player_avatar(req_player)
-                draw_image_avatar = ImageDraw.Draw(image_avatar)
-                faceitlvl = req_player.game_skill_level
+        avatar_designer = AvatarDesigner(req_player, player_elo, elo_diff)
+        image_avatar = await avatar_designer.get_avatar(req_player, idx_team)
 
-                image_avatar.paste(
-                    self.image_dark_avatar_top, (0, 0), self.image_dark_avatar_top
-                )
-                image_avatar.paste(
-                    self.image_dark_avatar_bot, (0, 0), self.image_dark_avatar_bot
-                )
-                if idx_team == 0:
-                    image_avatar.paste(
-                        Image.open(
-                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
-                        ).convert("RGBA"),
-                        (0, 0),
-                        Image.open(
-                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
-                        ).convert("RGBA"),
-                    )
+        if player.player_id in subscribers:
+            fade_image = self.fade_for_bottom_pfp if idx_team else self.fade_for_top_pfp
+            fade_pos = (
+                (146 + idx_player * 162, 390 - self.fade_for_bottom_pfp.height)
+                if idx_team
+                else (146 + idx_player * 162, 150)
+            )
+            canvas.paste(fade_image, fade_pos, fade_image)
 
-                    w = draw_image.textlength(elo_diff, font=self.fonts["avatar"])
-                    draw_image_avatar.text(
-                        (127 - w, 0), elo_diff, font=self.fonts["avatar"]
-                    )
-                    # w = self.draw_image_map.textlength(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text(
-                        (26, 0), str(player_elo), font=self.fonts["avatar"]
-                    )
-                    if player.player_id in subscribers:
-                        canvas.paste(
-                            self.fade_for_top_pfp,
-                            (146 + idx_player * 162, 150),
-                            self.fade_for_top_pfp,
-                        )
-                else:
-                    image_avatar.paste(
-                        Image.open(
-                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
-                        ).convert("RGBA"),
-                        (0, 106),
-                        Image.open(
-                            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceitlvl}.png"
-                        ).convert("RGBA"),
-                    )
-
-                    w = draw_image.textlength(elo_diff, font=self.fonts["avatar"])
-                    draw_image_avatar.text(
-                        (127 - w, 107), elo_diff, font=self.fonts["avatar"]
-                    )
-                    # w = self.draw_image_map.textlength(player_elo, font=self._fonts['avatar'])
-                    draw_image_avatar.text(
-                        (26, 107), str(player_elo), font=self.fonts["avatar"]
-                    )
-                    if player.player_id in subscribers:
-                        canvas.paste(
-                            self.fade_for_bottom_pfp,
-                            (
-                                146 + idx_player * 162,
-                                390 - self.fade_for_bottom_pfp.height,
-                            ),
-                            self.fade_for_bottom_pfp,
-                        )
-
-                w = draw_image.textlength(
-                    req_player.nickname, font=self.fonts["avatar"]
-                )
-                if w > 130:
-                    draw_image_avatar.text(
-                        (0, 107 - idx_team * 107),
-                        req_player.nickname,
-                        font=self.fonts["avatar"],
-                    )
-                else:
-                    draw_image_avatar.text(
-                        ((130 - w) / 2, 107 - idx_team * 107),
-                        req_player.nickname,
-                        font=self.fonts["avatar"],
-                    )
-                canvas.paste(
-                    image_avatar, (146 + idx_player * 162, 20 + 370 * idx_team)
-                )
+        canvas.paste(image_avatar, (146 + idx_player * 162, 20 + 370 * idx_team))
         return canvas
 
     async def calculate_elo_change(self, player: Player, player_elo: int) -> str:
@@ -537,6 +448,7 @@ if __name__ == "__main__":
             statistics.rounds[0],
             NickEloStorage(players=[PlayerStorage(nickname="Test", elo=1)]),
         )
+        print(mf_imcol.font_file)
         image = await mf_imcol.collect_image()
         image.show()
 
