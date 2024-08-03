@@ -52,23 +52,21 @@ def get_match_finished_message_color(round: Round) -> int:
     return red
 
 
-def get_strnick_embed_color(
-    round: Round, coefs: Sequence[BetCoefficient]
-) -> tuple[str, int]:
-    color = get_match_finished_message_color(round)
-
+def get_description_for_match_finish(
+    match_round: Round, coefs: Sequence[BetCoefficient]
+) -> str:
     nicknames_1 = [
         f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-        for player in round.teams[0].players
+        for player in match_round.teams[0].players
     ]
     nicknames_2 = [
         f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
-        for player in round.teams[1].players
+        for player in match_round.teams[1].players
     ]
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
 
-    return f"[{coefs[0]}] - {str_nick_1}\n[{coefs[1]}] - {str_nick_2}", color
+    return f"[{coefs[0]}] {str_nick_1}\n[{coefs[1]}] {str_nick_2}"
 
 
 async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
@@ -281,7 +279,8 @@ class DiscordClient(discord.Client):
             )
 
         for match_round in statistics.rounds:
-            str_nick, my_color = get_strnick_embed_color(match_round, coefs)
+            str_nick = get_description_for_match_finish(match_round, coefs)
+            my_color = get_match_finished_message_color(match_round)
             embed_msg = discord.Embed(
                 description=str_nick,
                 type="rich",
