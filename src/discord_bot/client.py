@@ -258,7 +258,7 @@ class DiscordClient(discord.Client):
     ) -> None:
         description = (
             "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
-            f"Example: /bet {bet_match.id} {random.choice([BetType.T1_WIN.value, BetType.T2_WIN.value])} "
+            f"Example: /bet m{bet_match.id} {random.choice([BetType.T1_WIN.value, BetType.T2_WIN.value])} "
             f"{random.choice([10, 20, 30, 50])}\n"
             f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
         )
