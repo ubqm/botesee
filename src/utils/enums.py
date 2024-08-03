@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class SubscribedPlayers(BaseModel):
-    AYUDESEE: UUID = UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543")
+    UBIQUM: UUID = UUID("ad42c90b-45a9-49b6-8ab0-9c8662330543")
     NAPAD: UUID = UUID("278790a2-1f08-4350-bd96-427f7dcc8722")
     MORZY: UUID = UUID("18e2a663-9e20-4db9-8b29-3c3cbdff30ac")
     HAWK: UUID = UUID("8cbb0b36-4c6b-4ebd-a92b-829234016626")
