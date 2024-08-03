@@ -13,7 +13,7 @@ async def main():
         conf.RABBIT_USER,
         conf.RABBIT_PASSWORD,
         discord_client,
-        asyncio.get_event_loop(),
+        asyncio.get_running_loop(),
     )
 
     await asyncio.gather(

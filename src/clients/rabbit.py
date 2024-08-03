@@ -6,7 +6,7 @@ import aio_pika
 from aio_pika.abc import AbstractRobustConnection
 from aio_pika.pool import Pool
 from loguru import logger
-from pydantic import parse_obj_as, TypeAdapter
+from pydantic import TypeAdapter
 
 from src.clients.models.faceit.match_details import MatchDetails
 from src.clients.models.rabbit.queues import QueueName
@@ -26,7 +26,6 @@ class RabbitClient:
         self.connection_pool: Pool = Pool(
             self._get_connection, max_size=2, loop=self.loop
         )
-        self.channel_pool: Pool = Pool(self._get_channel, max_size=2, loop=self.loop)
 
     async def _get_connection(self) -> AbstractRobustConnection:
         return await aio_pika.connect_robust(
@@ -34,16 +33,14 @@ class RabbitClient:
             port=self.port,
             login=self.user,
             password=self.password,
+            loop=self.loop,
         )
-
-    async def _get_channel(self) -> aio_pika.Channel:
-        async with self.connection_pool.acquire() as connection:
-            return await connection.channel()
 
     async def publish(
         self, message: str, routing_key: QueueName = QueueName.MATCHES
     ) -> None:
-        async with self.channel_pool.acquire() as channel:
+        async with self.connection_pool.acquire() as connection:
+            channel = await connection.channel()
             await channel.default_exchange.publish(
                 aio_pika.Message(body=message.encode()),
                 routing_key=routing_key,
@@ -75,6 +72,7 @@ class RabbitWorker:
             port=self.port,
             login=self.user,
             password=self.password,
+            loop=self.loop,
         )
 
     async def _get_channel(self) -> aio_pika.Channel:
@@ -84,11 +82,11 @@ class RabbitWorker:
     async def _process_match(self, match: WebhookMatch) -> None:
         match match.event:
             case EventEnum.READY | EventEnum.CONFIGURING:
-                await self.discord.post_faceit_message_ready(match)  # type: ignore
+                await self.discord.post_faceit_message_ready(match)
             case EventEnum.CANCELLED | EventEnum.ABORTED:
-                await self.discord.post_faceit_message_aborted(match)  # type: ignore
+                await self.discord.post_faceit_message_aborted(match)
             case EventEnum.FINISHED:
-                await self.discord.post_faceit_message_finished(match)  # type: ignore
+                await self.discord.post_faceit_message_finished(match)
 
     async def _update_score(self, match_details: MatchDetails, match_ready: MatchReady):
         await self.discord.update_score_for_match(
@@ -106,7 +104,7 @@ class RabbitWorker:
 
     async def consume(self):
         await self._wait_discord_startup()
-        async with self.channel_pool.acquire() as channel:  # type: aio_pika.abc.AbstractChannel
+        async with self.channel_pool.acquire() as channel:  # type: aio_pika.Channel
             await asyncio.gather(
                 self._consume_match_queue(channel, "matches"),
                 self._consume_score_queue(channel, "update_score"),
@@ -120,7 +118,9 @@ class RabbitWorker:
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
-                match: WebhookMatch = parse_obj_as(WebhookMatch, json.loads(message.body.decode()))  # type: ignore
+                match: WebhookMatch = TypeAdapter(WebhookMatch).validate_python(
+                    json.loads(message.body.decode())
+                )
                 try:
                     await self._process_match(match)
                 except Exception as ex:
