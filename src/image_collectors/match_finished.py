@@ -190,17 +190,19 @@ class MatchFinishedImCol:
         return canvas
 
     async def calculate_elo_change(self, player: Player, player_elo: int) -> str:
-        if self.prev_nick_elo:
-            elo_change = player_elo - self.prev_nick_elo[player.nickname].elo
-        else:
-            elo_change = 0
-        return (
-            f"(+{elo_change})"
-            if elo_change > 0
-            else f"({elo_change})"
-            if elo_change < 0
-            else ""
+        elo_change = (
+            player_elo - self.prev_nick_elo[player.nickname].elo
+            if self.prev_nick_elo
+            else 0
         )
+
+        match elo_change:
+            case elo_change if elo_change > 0:
+                return f"(+{elo_change})"
+            case elo_change if elo_change < 0:
+                return f"({elo_change})"
+            case _:
+                return ""
 
     async def _draw_game_score(self, round_: Round, canvas: Image.Image) -> None:
         await self._draw_final_score(round_, canvas)
@@ -248,22 +250,22 @@ class MatchFinishedImCol:
         return canvas
 
     async def _get_win_feature_images(
-        self, round_: Round
+        self, match_round: Round
     ) -> tuple[Image.Image, Image.Image]:
         """Return green and red background features(First team is on top)"""
-        if round_.teams[0].team_stats.team_win:
-            image_topcolor = Image.open(
-                f"{TEMPLATE_PATH}/background_features/Win-topleft.png"
-            )
-            image_botcolor = Image.open(
-                f"{TEMPLATE_PATH}/background_features/Lose-botleft.png"
-            )
-            return image_topcolor, image_botcolor
+        first_team_win_values = "Win", "Lose"
+        second_team_win_values = "Lose", "Win"
+
+        actual_values = (
+            first_team_win_values
+            if match_round.teams[0].team_stats.team_win
+            else second_team_win_values
+        )
         image_topcolor = Image.open(
-            f"{TEMPLATE_PATH}/background_features/Lose-topleft.png"
+            f"{TEMPLATE_PATH}/background_features/{actual_values[0]}-topleft.png"
         )
         image_botcolor = Image.open(
-            f"{TEMPLATE_PATH}/background_features/Win-botleft.png"
+            f"{TEMPLATE_PATH}/background_features/{actual_values[1]}-botleft.png"
         )
         return image_topcolor, image_botcolor
 
