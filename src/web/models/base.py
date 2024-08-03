@@ -41,6 +41,12 @@ class Team(BaseModel):
     substitutions: int
     substitutes: list[Player] | None = None
 
+    def get_player_by_nickname(self, nickname: str) -> Player:
+        for player in self.roster:
+            if player.nickname == nickname:
+                return player
+        raise ValueError(f"Player {nickname} not found in roster for this team")
+
 
 class BasePayload(BaseModel):
     id: str
