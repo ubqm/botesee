@@ -66,7 +66,7 @@ def get_description_for_match_finish(
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
 
-    return f"[{coefs[0]}] {str_nick_1}\n[{coefs[1]}] {str_nick_2}"
+    return f"[{str(coefs[0].coefficient)}] {str_nick_1}\n[{str(coefs[1].coefficient)}] {str_nick_2}"
 
 
 async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
