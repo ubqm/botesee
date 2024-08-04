@@ -85,7 +85,7 @@ services:
     container_name: botesee_flower
     command: celery flower --persistent=True
     environment:
-      - CELERY_BROKER_URL=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}
+      - CELERY_BROKER_URL=redis://${REDIS_HOST}:${REDIS_PORT}
       - FLOWER_PORT=5555
     ports:
     - "5555:5555"
