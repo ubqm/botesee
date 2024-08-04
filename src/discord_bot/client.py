@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 from io import BytesIO
 from typing import Any, Sequence
 
@@ -36,8 +36,9 @@ MINUTES_TILL_EXPIRE = 4
 
 
 class PreBetView(discord.ui.View):
-    def __init__(self, bet_match_id: int):
+    def __init__(self, bet_match_id: int, live_until: datetime):
         self._bet_match_id = bet_match_id
+        self._live_until = live_until
         super().__init__()
 
     @discord.ui.button(
@@ -54,13 +55,14 @@ class PreBetView(discord.ui.View):
             )
 
     @discord.ui.button(
-        label="Bet Menu", style=discord.ButtonStyle.blurple, emoji="💸", row=0
+        label="Bet Menu", style=discord.ButtonStyle.gray, emoji="🗒️", row=0
     )
     async def bet_menu(self, ctx: Interaction, button: discord.Button):
         await ctx.response.send_message(
             "Bet Menu",
             ephemeral=True,
             view=MatchBetView(bet_match_id=self._bet_match_id),
+            delete_after=self._live_until - datetime.now(),
         )
 
 
@@ -385,7 +387,10 @@ class DiscordClient(discord.Client):
         await self.faceit_channel.send(
             embed=embed_msg,
             delete_after=MINUTES_TILL_EXPIRE * 60,
-            view=PreBetView(bet_match.id),
+            view=PreBetView(
+                bet_match.id,
+                live_until=datetime.now() + timedelta(minutes=MINUTES_TILL_EXPIRE),
+            ),
         )
 
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
