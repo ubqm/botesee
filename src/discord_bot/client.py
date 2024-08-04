@@ -12,7 +12,7 @@ from discord import (
     Member,
     RawReactionActionEvent,
     TextChannel,
-    app_commands,
+    app_commands, SelectOption,
 )
 from loguru import logger
 
@@ -469,3 +469,34 @@ async def balance(ctx: Interaction) -> None:
             f"Your current balance is {current_balance}",
             ephemeral=True,
         )
+
+
+class MyView(discord.ui.View):
+    @discord.ui.button(label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0)
+    async def button_callback(self, button, interaction):
+        logger.info(f"{type(button), button}")
+        logger.info(f"{type(interaction), interaction}")
+
+        await interaction.response.send_message("You clicked the button!", ephemeral=True)
+
+    @discord.ui.select(options=[SelectOption(label="Team 1", value=BetType.T1_WIN), SelectOption(label="Team 2", value=BetType.T2_WIN)])
+    async def bet_type_select(self, *args, **kwargs):
+        logger.info(f"{args, kwargs = }")
+
+    @discord.ui.button(label="R1-1", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    async def b1(self, button, interaction):
+        pass
+
+    @discord.ui.button(label="R1-2", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    async def b2(self, button, interaction):
+        pass
+
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    async def b3(self, button, interaction):
+        pass
+
+
+@tree.command(name="buttons", description="Command to test view with buttons")
+async def buttons(ctx: Interaction) -> None:
+    logger.info(f"{type(ctx) = }")
+    await ctx.response.send_message(view=MyView())
