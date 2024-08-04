@@ -1,4 +1,3 @@
-import random
 import re
 from datetime import timedelta
 from io import BytesIO
@@ -34,6 +33,108 @@ from src.web.models.base import Player
 from src.web.models.events import MatchAborted, MatchFinished, MatchReady
 
 MINUTES_TILL_EXPIRE = 4
+
+
+class MatchBetView(discord.ui.View):
+    def __init__(self, bet_match_id: str):
+        self._bet_type: BetType | None = None
+        self._amount: int | None = None
+        self.bet_match_id = bet_match_id
+        super().__init__()
+
+    @discord.ui.button(
+        label="Balance", style=discord.ButtonStyle.blurple, emoji="💸", row=0
+    )
+    async def get_current_balance(self, ctx: Interaction, button: discord.Button):
+        async with session_maker() as session:
+            current_balance = await gambling_repo.get_balance(
+                session=session, member_id=str(ctx.user.id)
+            )
+            await ctx.response.send_message(
+                f"Your current balance is {current_balance}",
+                ephemeral=True,
+            )
+
+    @discord.ui.select(
+        options=[
+            SelectOption(label="Team 1 win", value=BetType.T1_WIN),
+            SelectOption(label="Team 2 win", value=BetType.T2_WIN),
+        ],
+        placeholder="Please choose bet type",
+        row=1,
+    )
+    async def select_bet_type(self, ctx: Interaction, selected: discord.ui.Select):
+        self._bet_type = selected.values[0]
+        await ctx.response.defer()
+
+    @discord.ui.select(
+        options=[
+            SelectOption(label="1"),
+            SelectOption(label="5"),
+            SelectOption(label="10"),
+            SelectOption(label="20"),
+            SelectOption(label="30"),
+            SelectOption(label="40"),
+            SelectOption(label="50"),
+            SelectOption(label="75"),
+            SelectOption(label="100"),
+            SelectOption(label="150"),
+            SelectOption(label="200"),
+            SelectOption(label="500"),
+        ],
+        placeholder="Please choose amount",
+        max_values=12,
+        row=2,
+    )
+    async def select_amount(self, ctx: Interaction, selected: discord.ui.Select):
+        self._amount = sum([int(v) for v in selected.values])
+        await ctx.response.defer()
+
+    @discord.ui.button(
+        label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=3
+    )
+    async def confirm_bet(self, ctx: Interaction, button: discord.Button):
+        async with session_maker() as session:
+            bet_match = await gambling_repo.get_bet_match_by_id(
+                session=session, bet_match_id=self.bet_match_id
+            )
+            logger.info(f"time_between = {ctx.created_at - bet_match.created_at}")
+            if ctx.created_at - bet_match.created_at > timedelta(
+                minutes=MINUTES_TILL_EXPIRE
+            ):
+                await ctx.response.send_message(
+                    f"Bets are closed: {MINUTES_TILL_EXPIRE} minutes expired",
+                    ephemeral=True,
+                    delete_after=5.0,
+                )
+                return None
+
+            current_balance = await gambling_repo.get_balance(
+                session=session, member_id=str(ctx.user.id)
+            )
+            if current_balance - self._amount < 0:
+                await ctx.response.send_message(
+                    f"Not enough points. Current balance: {current_balance}",
+                    ephemeral=True,
+                    delete_after=5.0,
+                )
+                return None
+
+            await gambling_repo.create_event(
+                session=session,
+                bet_match_id=bet_match.id,
+                member_id=str(ctx.user.id),
+                bet_type=self._bet_type,
+                amount=self._amount,
+            )
+            await session.commit()
+
+        await ctx.response.send_message(
+            f"Your bet is accepted. {self._amount} points on {self._bet_type}. Match id [{self.bet_match_id}]",
+            ephemeral=True,
+        )
+
+        self.stop()
 
 
 def get_match_finished_message_color(round: Round) -> int:
@@ -257,12 +358,7 @@ class DiscordClient(discord.Client):
     async def gambling_message(
         self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]
     ) -> None:
-        description = (
-            "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
-            f"Example: /bet m{bet_match.id} {random.choice([BetType.T1_WIN.value, BetType.T2_WIN.value])} "
-            f"{random.choice([10, 20, 30, 50])}\n"
-            f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
-        )
+        description = f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
         for coef in coefs:
             description += f"{coef.bet_type} - {coef.coefficient}\n"
 
@@ -272,7 +368,9 @@ class DiscordClient(discord.Client):
             color=1752220,  # Aqua #1ABC9C
         )
         await self.faceit_channel.send(
-            embed=embed_msg, delete_after=MINUTES_TILL_EXPIRE * 60
+            embed=embed_msg,
+            delete_after=MINUTES_TILL_EXPIRE * 60,
+            view=MatchBetView(bet_match_id=bet_match.id, coefs=coefs),
         )
 
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
@@ -470,72 +568,11 @@ async def balance(ctx: Interaction) -> None:
         )
 
 
-class MyView(discord.ui.View):
-    def __init__(self, match: str = ""):
-        self._bet_type: BetType | None = None
-        self._amount: int | None = None
-        self._match = match
-        super().__init__()
-
-    @discord.ui.button(
-        label="Balance", style=discord.ButtonStyle.blurple, emoji="💸", row=0
-    )
-    async def get_current_balance(self, ctx: Interaction, button: discord.Button):
-        async with session_maker() as session:
-            current_balance = await gambling_repo.get_balance(
-                session=session, member_id=str(ctx.user.id)
-            )
-            await ctx.response.send_message(
-                f"Your current balance is {current_balance}",
-                ephemeral=True,
-            )
-
-    @discord.ui.select(
-        options=[
-            SelectOption(label="Team 1 win", value=BetType.T1_WIN),
-            SelectOption(label="Team 2 win", value=BetType.T2_WIN),
-        ],
-        placeholder="Please choose bet type",
-        row=1,
-    )
-    async def select_bet_type(self, ctx: Interaction, selected: discord.ui.Select):
-        self._bet_type = selected.values[0]
-        await ctx.response.defer()
-
-    @discord.ui.select(
-        options=[
-            SelectOption(label="1"),
-            SelectOption(label="5"),
-            SelectOption(label="10"),
-            SelectOption(label="20"),
-            SelectOption(label="30"),
-            SelectOption(label="40"),
-            SelectOption(label="50"),
-            SelectOption(label="75"),
-            SelectOption(label="100"),
-            SelectOption(label="150"),
-            SelectOption(label="200"),
-            SelectOption(label="500"),
-        ],
-        placeholder="Please choose amount",
-        max_values=12,
-        row=2,
-    )
-    async def select_amount(self, ctx: Interaction, selected: discord.ui.Select):
-        self._amount = sum([int(v) for v in selected.values])
-        await ctx.response.defer()
-
-    @discord.ui.button(
-        label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=3
-    )
-    async def confirm_bet(self, ctx: Interaction, button: discord.Button):
-        await ctx.response.send_message(
-            f"Your bet is accepted. {self.amount} points on {self.bet_type}. Match id [{self._match}]",
-            ephemeral=True,
-        )
-        self.stop()
-
-
 @tree.command(name="buttons", description="Command to test view with buttons")
 async def buttons(ctx: Interaction) -> None:
-    await ctx.response.send_message(view=MyView())
+    embed_msg = discord.Embed(
+        title="Bets for match",
+        description="Tets description",
+        color=1752220,  # Aqua #1ABC9C
+    )
+    await ctx.response.send_message(embed=embed_msg, view=MatchBetView("test_id"))
