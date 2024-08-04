@@ -1,1 +1,1 @@
-TEMPLATE_PATH = "./src/image_collectors/templates"
+TEMPLATE_PATH = "../image_collectors/templates"
