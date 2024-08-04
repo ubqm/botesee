@@ -5,7 +5,7 @@ from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.clients.models.faceit.match_stats import MatchStatistics
-from src.db import Match, Session
+from src.db import Match, session_maker
 
 
 class MatchRepository:
@@ -29,8 +29,12 @@ class MatchRepository:
         return match
 
     async def get_stats(self, match_ids: list[UUID]) -> list[MatchStatistics]:
-        stmt = select(Match.stats).where(Match.id.in_(match_ids)).order_by(Match.date.desc())
-        async with Session() as session:
+        stmt = (
+            select(Match.stats)
+            .where(Match.id.in_(match_ids))
+            .order_by(Match.date.desc())
+        )
+        async with session_maker() as session:
             match_stats = (await session.scalars(stmt)).all()
             return [MatchStatistics(**stat) for stat in match_stats]
 
