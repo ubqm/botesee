@@ -35,11 +35,9 @@ from src.web.models.events import MatchAborted, MatchFinished, MatchReady
 MINUTES_TILL_EXPIRE = 4
 
 
-class MatchBetView(discord.ui.View):
-    def __init__(self, bet_match_id: str):
-        self._bet_type: BetType | None = None
-        self._amount: int | None = None
-        self.bet_match_id = bet_match_id
+class PreBetView(discord.ui.View):
+    def __init__(self, bet_match_id: int):
+        self._bet_match_id = bet_match_id
         super().__init__()
 
     @discord.ui.button(
@@ -54,6 +52,24 @@ class MatchBetView(discord.ui.View):
                 f"Your current balance is {current_balance}",
                 ephemeral=True,
             )
+
+    @discord.ui.button(
+        label="Bet Menu", style=discord.ButtonStyle.blurple, emoji="💸", row=0
+    )
+    async def bet_menu(self, ctx: Interaction, button: discord.Button):
+        await ctx.response.send_message(
+            "Bet Menu",
+            ephemeral=True,
+            view=MatchBetView(bet_match_id=self._bet_match_id),
+        )
+
+
+class MatchBetView(discord.ui.View):
+    def __init__(self, bet_match_id: int):
+        self._bet_type: BetType | None = None
+        self._amount: int | None = None
+        self.bet_match_id: int = bet_match_id
+        super().__init__()
 
     @discord.ui.select(
         options=[
@@ -133,8 +149,7 @@ class MatchBetView(discord.ui.View):
             f"Your bet is accepted. {self._amount} points on {self._bet_type}. Match id [{self.bet_match_id}]",
             ephemeral=True,
         )
-
-        self.stop()
+        await ctx.delete_original_response()
 
 
 def get_match_finished_message_color(round: Round) -> int:
@@ -370,7 +385,7 @@ class DiscordClient(discord.Client):
         await self.faceit_channel.send(
             embed=embed_msg,
             delete_after=MINUTES_TILL_EXPIRE * 60,
-            view=MatchBetView(bet_match_id=bet_match.id, coefs=coefs),
+            view=PreBetView(bet_match.id),
         )
 
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
@@ -566,13 +581,3 @@ async def balance(ctx: Interaction) -> None:
             f"Your current balance is {current_balance}",
             ephemeral=True,
         )
-
-
-@tree.command(name="buttons", description="Command to test view with buttons")
-async def buttons(ctx: Interaction) -> None:
-    embed_msg = discord.Embed(
-        title="Bets for match",
-        description="Tets description",
-        color=1752220,  # Aqua #1ABC9C
-    )
-    await ctx.response.send_message(embed=embed_msg, view=MatchBetView("test_id"))
