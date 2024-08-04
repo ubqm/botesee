@@ -20,7 +20,7 @@ from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
 from src.clients.models.faceit.match_stats import Round
 from src.clients.redis_repo import redis_repo
-from src.db import Session
+from src.db import session_maker
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
@@ -238,7 +238,7 @@ class DiscordClient(discord.Client):
         nicks_elo_dict = nick_elo_1.get_dict() | nick_elo_2.get_dict()
         await redis_repo.save_match(match.payload.id, nicks_elo_dict)
 
-        async with Session() as session:
+        async with session_maker() as session:
             bet_match = await gambling_repo.new_match(
                 session=session,
                 match_id=match.payload.id,
@@ -279,7 +279,7 @@ class DiscordClient(discord.Client):
             raise ConnectionError("Discord is not initialized yet")
 
         statistics = (await match_repo.get_stats(match_ids=[match.payload.id]))[0]
-        async with Session() as session:
+        async with session_maker() as session:
             coefs = await gambling_repo.get_match_coefficients(
                 session, match.payload.id
             )
@@ -315,7 +315,7 @@ class DiscordClient(discord.Client):
             )
 
     async def post_faceit_message_aborted(self, match: MatchAborted) -> None:
-        async with Session() as session:
+        async with session_maker() as session:
             await gambling_repo.cancel_bets(session=session, match=match)
         await self.delete_message_by_faceit_match_id(match.payload.id)
 
@@ -417,7 +417,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
         return None
     bet_match_id = int(match[1:])
 
-    async with Session() as session:
+    async with session_maker() as session:
         bet_match = await gambling_repo.get_bet_match_by_id(
             session=session, bet_match_id=bet_match_id
         )
@@ -461,7 +461,7 @@ async def bet(ctx: Interaction, match: str, bet_type: BetType, amount: int) -> N
 
 @tree.command(name="balance", description="Display current amount of points")
 async def balance(ctx: Interaction) -> None:
-    async with Session() as session:
+    async with session_maker() as session:
         current_balance = await gambling_repo.get_balance(
             session=session, member_id=str(ctx.user.id)
         )
