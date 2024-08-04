@@ -472,9 +472,9 @@ async def balance(ctx: Interaction) -> None:
 
 class MyView(discord.ui.View):
     def __init__(self, match: str = ""):
-        self.bet_type: BetType | None = None
-        self.amount: int | None = None
-        self.match = match
+        self._bet_type: BetType | None = None
+        self._amount: int | None = None
+        self._match = match
         super().__init__()
 
     @discord.ui.button(
@@ -492,13 +492,14 @@ class MyView(discord.ui.View):
 
     @discord.ui.select(
         options=[
-            SelectOption(label="Team 1 win", value=BetType.T1_WIN, emoji="1️⃣"),
-            SelectOption(label="Team 2 win", value=BetType.T2_WIN, emoji="2️⃣"),
+            SelectOption(label="Team 1 win", value=BetType.T1_WIN),
+            SelectOption(label="Team 2 win", value=BetType.T2_WIN),
         ],
         placeholder="Please choose bet type",
+        row=1,
     )
     async def select_bet_type(self, ctx: Interaction, selected: discord.ui.Select):
-        self.bet_type = selected.values[0]
+        self._bet_type = selected.values[0]
         await ctx.response.defer()
 
     @discord.ui.select(
@@ -516,19 +517,20 @@ class MyView(discord.ui.View):
             SelectOption(label="200"),
             SelectOption(label="500"),
         ],
-        placeholder="Please choose bet type",
-        max_values=25,
+        placeholder="Please choose amount",
+        max_values=12,
+        row=2,
     )
     async def select_amount(self, ctx: Interaction, selected: discord.ui.Select):
-        self.amount = sum([int(v) for v in selected.values])
+        self._amount = sum([int(v) for v in selected.values])
         await ctx.response.defer()
 
     @discord.ui.button(
-        label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=1
+        label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=3
     )
-    async def b3(self, ctx: Interaction, button: discord.Button):
+    async def confirm_bet(self, ctx: Interaction, button: discord.Button):
         await ctx.response.send_message(
-            f"Your bet is accepted. {self.amount} points on {self.bet_type}. Match id [{self.match}]",
+            f"Your bet is accepted. {self.amount} points on {self.bet_type}. Match id [{self._match}]",
             ephemeral=True,
         )
         self.stop()
