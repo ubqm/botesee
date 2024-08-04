@@ -471,12 +471,14 @@ async def balance(ctx: Interaction) -> None:
 
 
 class MyView(discord.ui.View):
-    def __init__(self):
-        self.choice = None
+    def __init__(self, match: str = ""):
+        self.bet_type: BetType | None = None
+        self.amount: int | None = None
+        self.match = match
         super().__init__()
 
     @discord.ui.button(
-        label="Balance", style=discord.ButtonStyle.blurple, emoji="💸", row=1
+        label="Balance", style=discord.ButtonStyle.blurple, emoji="💸", row=0
     )
     async def get_current_balance(self, ctx: Interaction, button: discord.Button):
         async with session_maker() as session:
@@ -490,27 +492,45 @@ class MyView(discord.ui.View):
 
     @discord.ui.select(
         options=[
-            SelectOption(label="Team 1", value=BetType.T1_WIN, emoji="1️⃣"),
-            SelectOption(label="Team 2", value=BetType.T2_WIN, emoji="2️⃣"),
+            SelectOption(label="Team 1 win", value=BetType.T1_WIN, emoji="1️⃣"),
+            SelectOption(label="Team 2 win", value=BetType.T2_WIN, emoji="2️⃣"),
         ],
         placeholder="Please choose bet type",
     )
-    async def bet_type_select(self, ctx: Interaction, selected: discord.ui.Select):
-        logger.info(f"{selected.values = }")
-        self.choice = selected.values
+    async def select_bet_type(self, ctx: Interaction, selected: discord.ui.Select):
+        self.bet_type = selected.values[0]
         await ctx.response.defer()
 
-    @discord.ui.button(
-        label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0
+    @discord.ui.select(
+        options=[
+            SelectOption(label="1"),
+            SelectOption(label="5"),
+            SelectOption(label="10"),
+            SelectOption(label="20"),
+            SelectOption(label="30"),
+            SelectOption(label="40"),
+            SelectOption(label="50"),
+            SelectOption(label="75"),
+            SelectOption(label="100"),
+            SelectOption(label="150"),
+            SelectOption(label="200"),
+            SelectOption(label="500"),
+        ],
+        placeholder="Please choose bet type",
+        max_values=25,
     )
-    async def button_callback(self, ctx, button):
-        await ctx.response.send_message("You clicked the button!", ephemeral=True)
+    async def select_amount(self, ctx: Interaction, selected: discord.ui.Select):
+        self.amount = sum([int(v) for v in selected.values])
+        await ctx.response.defer()
 
     @discord.ui.button(
         label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=1
     )
     async def b3(self, ctx: Interaction, button: discord.Button):
-        logger.info(f"On click {self.choice}")
+        await ctx.response.send_message(
+            f"Your bet is accepted. {self.amount} points on {self.bet_type}. Match id [{self.match}]",
+            ephemeral=True,
+        )
         self.stop()
 
 
