@@ -471,46 +471,49 @@ async def balance(ctx: Interaction) -> None:
 
 
 class MyView(discord.ui.View):
-    @discord.ui.button(
-        label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0
-    )
-    async def button_callback(self, button, interaction):
-        logger.info(f"{type(button), button}")
-        logger.info(f"{type(interaction), interaction}")
+    def __init__(self):
+        self.choice = None
+        super().__init__()
 
-        await interaction.response.send_message(
-            "You clicked the button!", ephemeral=True
-        )
+    @discord.ui.button(
+        label="Balance", style=discord.ButtonStyle.blurple, emoji="💸", row=1
+    )
+    async def get_current_balance(self, ctx: Interaction, button: discord.Button):
+        async with session_maker() as session:
+            current_balance = await gambling_repo.get_balance(
+                session=session, member_id=str(ctx.user.id)
+            )
+            await ctx.response.send_message(
+                f"Your current balance is {current_balance}",
+                ephemeral=True,
+            )
 
     @discord.ui.select(
         options=[
-            SelectOption(label="Team 1", value=BetType.T1_WIN),
-            SelectOption(label="Team 2", value=BetType.T2_WIN),
-        ]
+            SelectOption(label="Team 1", value=BetType.T1_WIN, emoji="1️⃣"),
+            SelectOption(label="Team 2", value=BetType.T2_WIN, emoji="2️⃣"),
+        ],
+        placeholder="Please choose bet type",
     )
-    async def bet_type_select(self, *args, **kwargs):
-        logger.info(f"{args, kwargs = }")
+    async def bet_type_select(self, ctx: Interaction, selected: discord.ui.Select):
+        logger.info(f"{selected.values = }")
+        self.choice = selected.values
+        await ctx.response.defer()
 
     @discord.ui.button(
-        label="R1-1", style=discord.ButtonStyle.primary, emoji="😎", row=1
+        label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0
     )
-    async def b1(self, button, interaction):
-        pass
+    async def button_callback(self, ctx, button):
+        await ctx.response.send_message("You clicked the button!", ephemeral=True)
 
     @discord.ui.button(
-        label="R1-2", style=discord.ButtonStyle.primary, emoji="😎", row=1
+        label="Confirm", style=discord.ButtonStyle.green, emoji="😎", row=1
     )
-    async def b2(self, button, interaction):
-        pass
-
-    @discord.ui.button(
-        label="Confirm", style=discord.ButtonStyle.primary, emoji="😎", row=1
-    )
-    async def b3(self, button, interaction):
-        pass
+    async def b3(self, ctx: Interaction, button: discord.Button):
+        logger.info(f"On click {self.choice}")
+        self.stop()
 
 
 @tree.command(name="buttons", description="Command to test view with buttons")
 async def buttons(ctx: Interaction) -> None:
-    logger.info(f"{type(ctx) = }")
     await ctx.response.send_message(view=MyView())
