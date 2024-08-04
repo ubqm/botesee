@@ -12,7 +12,8 @@ from discord import (
     Member,
     RawReactionActionEvent,
     TextChannel,
-    app_commands, SelectOption,
+    app_commands,
+    SelectOption,
 )
 from loguru import logger
 
@@ -323,9 +324,7 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
-        async for message in self.faceit_channel.history(
-            limit=40
-        ):  # type: discord.Message
+        async for message in self.faceit_channel.history(limit=40):  # type: discord.Message
             if not message.embeds:
                 continue
 
@@ -472,26 +471,41 @@ async def balance(ctx: Interaction) -> None:
 
 
 class MyView(discord.ui.View):
-    @discord.ui.button(label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0)
+    @discord.ui.button(
+        label="Click me!", style=discord.ButtonStyle.primary, emoji="😎", row=0
+    )
     async def button_callback(self, button, interaction):
         logger.info(f"{type(button), button}")
         logger.info(f"{type(interaction), interaction}")
 
-        await interaction.response.send_message("You clicked the button!", ephemeral=True)
+        await interaction.response.send_message(
+            "You clicked the button!", ephemeral=True
+        )
 
-    @discord.ui.select(options=[SelectOption(label="Team 1", value=BetType.T1_WIN), SelectOption(label="Team 2", value=BetType.T2_WIN)])
+    @discord.ui.select(
+        options=[
+            SelectOption(label="Team 1", value=BetType.T1_WIN),
+            SelectOption(label="Team 2", value=BetType.T2_WIN),
+        ]
+    )
     async def bet_type_select(self, *args, **kwargs):
         logger.info(f"{args, kwargs = }")
 
-    @discord.ui.button(label="R1-1", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    @discord.ui.button(
+        label="R1-1", style=discord.ButtonStyle.primary, emoji="😎", row=1
+    )
     async def b1(self, button, interaction):
         pass
 
-    @discord.ui.button(label="R1-2", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    @discord.ui.button(
+        label="R1-2", style=discord.ButtonStyle.primary, emoji="😎", row=1
+    )
     async def b2(self, button, interaction):
         pass
 
-    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.primary, emoji="😎", row=1)
+    @discord.ui.button(
+        label="Confirm", style=discord.ButtonStyle.primary, emoji="😎", row=1
+    )
     async def b3(self, button, interaction):
         pass
 
