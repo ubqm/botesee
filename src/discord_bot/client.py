@@ -151,7 +151,7 @@ class MatchBetView(discord.ui.View):
             f"Your bet is accepted. {self._amount} points on {self._bet_type}. Match id [{self.bet_match_id}]",
             ephemeral=True,
         )
-        await ctx.delete_original_response()
+        self.stop()
 
 
 def get_match_finished_message_color(round: Round) -> int:
