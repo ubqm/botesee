@@ -62,7 +62,7 @@ class PreBetView(discord.ui.View):
             "Bet Menu",
             ephemeral=True,
             view=MatchBetView(bet_match_id=self._bet_match_id),
-            delete_after=self._live_until - datetime.now(),
+            delete_after=(self._live_until - datetime.now()).seconds,
         )
 
 
