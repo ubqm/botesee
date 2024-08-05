@@ -269,7 +269,6 @@ class DiscordClient(discord.Client):
             view=PreBetView(
                 bet_match.id,
                 live_until=datetime.now() + timedelta(minutes=MINUTES_TILL_EXPIRE),
-                coefs=coefs,
             ),
         )
 

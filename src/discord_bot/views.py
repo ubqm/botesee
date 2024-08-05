@@ -1,13 +1,12 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Sequence, Any
 
 import discord
 from discord import ButtonStyle, Interaction, Button, SelectOption
 from discord.ui import View, Select
 
 from src.db import session_maker
-from src.db.models.gambling import BetType, BetCoefficient
+from src.db.models.gambling import BetType
 from src.db.repositories.gambling import gambling_repo
 
 
@@ -17,25 +16,10 @@ logger = logging.getLogger(__name__)
 MINUTES_TILL_EXPIRE = 4
 
 
-class BetTypeSelect(Select):
-    def __init__(self, coefs: Sequence[BetCoefficient]):
-        options = [
-            SelectOption(label=f"Team 1 win [{coefs[0]}]", value=BetType.T1_WIN),
-            SelectOption(label=f"Team 2 win [{coefs[1]}]", value=BetType.T2_WIN),
-        ]
-        super().__init__(options=options, placeholder="Please choose bet type")
-
-    async def callback(self, ctx: Interaction) -> Any:
-        await self.view.select_bet_type(ctx, self)
-
-
 class PreBetView(View):
-    def __init__(
-        self, bet_match_id: int, live_until: datetime, coefs: Sequence[BetCoefficient]
-    ):
+    def __init__(self, bet_match_id: int, live_until: datetime):
         self._bet_match_id = bet_match_id
         self._live_until = live_until
-        self._coefs = coefs
         super().__init__()
 
     @discord.ui.button(label="Balance", style=ButtonStyle.blurple, emoji="💸", row=0)
@@ -54,19 +38,26 @@ class PreBetView(View):
         await ctx.response.send_message(
             "Bet Menu",
             ephemeral=True,
-            view=MatchBetView(bet_match_id=self._bet_match_id, coefs=self._coefs),
+            view=MatchBetView(bet_match_id=self._bet_match_id),
             delete_after=(self._live_until - datetime.now()).seconds,
         )
 
 
 class MatchBetView(View):
-    def __init__(self, bet_match_id: int, coefs: Sequence[BetCoefficient]):
+    def __init__(self, bet_match_id: int):
         self._bet_type: BetType | None = None
         self._amount: int | None = None
         self.bet_match_id: int = bet_match_id
-        self.add_item(BetTypeSelect(coefs))
         super().__init__()
 
+    @discord.ui.select(
+        options=[
+            SelectOption(label="Team 1 win", value=BetType.T1_WIN),
+            SelectOption(label="Team 2 win", value=BetType.T2_WIN),
+        ],
+        placeholder="Please choose bet type",
+        row=1,
+    )
     async def select_bet_type(self, ctx: Interaction, selected: Select):
         self._bet_type = selected.values[0]
         await ctx.response.defer()
@@ -101,7 +92,7 @@ class MatchBetView(View):
                 session=session, bet_match_id=self.bet_match_id
             )
             logger.info(f"time_between = {ctx.created_at - bet_match.created_at}")
-            if datetime.now() - bet_match.created_at > timedelta(
+            if ctx.created_at - bet_match.created_at > timedelta(
                 minutes=MINUTES_TILL_EXPIRE
             ):
                 await ctx.response.send_message(
@@ -136,6 +127,4 @@ class MatchBetView(View):
             ephemeral=True,
         )
         button.disabled = True
-        await ctx.message.edit(view=self)
-        await ctx.response.defer()
         self.stop()
