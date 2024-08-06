@@ -261,12 +261,16 @@ class CompareImCol:
             left_line,
             font=self.font,
             fill=color_left,
+            stroke_width=1,
+            stroke_fill="black",
         )
         canvas.text(
             (right_stat_x, start_y + step * idx),
             right_line,
             font=self.font,
             fill=color_right,
+            stroke_width=1,
+            stroke_fill="black",
         )
 
     def get_player_background(
@@ -289,25 +293,85 @@ class CompareImCol:
 
     def _draw_mid_text(self, canvas: ImageDraw) -> None:
         w = canvas.textlength("ELO", font=self.font)
-        canvas.text(((960 - w) / 2, 220), "ELO", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 220),
+            "ELO",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("avgK", font=self.font)
-        canvas.text(((960 - w) / 2, 250), "avgK", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 250),
+            "avgK",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("avgD", font=self.font)
-        canvas.text(((960 - w) / 2, 280), "avgD", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 280),
+            "avgD",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("K/D", font=self.font)
-        canvas.text(((960 - w) / 2, 310), "K/D", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 310),
+            "K/D",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("K/R", font=self.font)
-        canvas.text(((960 - w) / 2, 340), "K/R", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 340),
+            "K/R",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("HS", font=self.font)
-        canvas.text(((960 - w) / 2, 370), "HS", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 370),
+            "HS",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("W/L", font=self.font)
-        canvas.text(((960 - w) / 2, 400), "W/L", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 400),
+            "W/L",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("4K", font=self.font)
-        canvas.text(((960 - w) / 2, 430), "4K", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 430),
+            "4K",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("5K", font=self.font)
-        canvas.text(((960 - w) / 2, 460), "5K", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 460),
+            "5K",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         w = canvas.textlength("MVP", font=self.font)
-        canvas.text(((960 - w) / 2, 490), "MVP", font=self.font)
+        canvas.text(
+            ((960 - w) / 2, 490),
+            "MVP",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
 
     def _draw_background(self) -> None:
         for idx, nickname in enumerate(self.compared_nicknames):
@@ -330,6 +394,8 @@ class CompareImCol:
                 pos,
                 self.player_stat[nickname].player_details.nickname,
                 font=self.font_name,
+                stroke_width=1,
+                stroke_fill="black",
             )
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
@@ -342,7 +408,11 @@ class CompareImCol:
             )
             w = canvas.textlength(region_str, font=self.font)
             canvas.text(
-                (160, 70) if idx == 0 else (810 - w, 70), region_str, font=self.font
+                (160, 70) if idx == 0 else (810 - w, 70),
+                region_str,
+                font=self.font,
+                stroke_width=1,
+                stroke_fill="black",
             )
 
             country_str = (
@@ -353,13 +423,21 @@ class CompareImCol:
             )
             w = canvas.textlength(country_str, font=self.font)
             canvas.text(
-                (160, 100) if idx == 0 else (810 - w, 100), country_str, font=self.font
+                (160, 100) if idx == 0 else (810 - w, 100),
+                country_str,
+                font=self.font,
+                stroke_width=1,
+                stroke_fill="black",
             )
 
     def _draw_compare_period(self, canvas: ImageDraw) -> None:
         w = canvas.textlength(f"{self.amount} {self.output_type}", font=self.font)
         canvas.text(
-            ((960 - w) / 2, 100), f"{self.amount} {self.output_type}", font=self.font
+            ((960 - w) / 2, 100),
+            f"{self.amount} {self.output_type}",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
         )
 
     def _draw_compare_stats(
@@ -494,6 +572,8 @@ class CompareImCol:
                 left_line,
                 font=self.font,
                 fill=p1_color,
+                stroke_width=1,
+                stroke_fill="black",
             )
             w = canvas.textlength(right_line, font=self.font)
             canvas.text(
@@ -501,6 +581,8 @@ class CompareImCol:
                 right_line,
                 font=self.font,
                 fill=p2_color,
+                stroke_width=1,
+                stroke_fill="black",
             )
 
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{available_map}.jpg")
