@@ -1,6 +1,5 @@
-import random
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 from io import BytesIO
 from typing import Any, Sequence
 
@@ -25,14 +24,13 @@ from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
+from src.discord_bot.views import PreBetView, MINUTES_TILL_EXPIRE
 from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
 from src.image_collectors.match_finished import MatchFinishedImCol
 from src.utils.enums import subscribers
 from src.web.models.base import Player
 from src.web.models.events import MatchAborted, MatchFinished, MatchReady
-
-MINUTES_TILL_EXPIRE = 4
 
 
 def get_match_finished_message_color(round: Round) -> int:
@@ -256,12 +254,7 @@ class DiscordClient(discord.Client):
     async def gambling_message(
         self, match: MatchReady, bet_match: BetMatch, coefs: Sequence[BetCoefficient]
     ) -> None:
-        description = (
-            "To make a bet write command /bet. Choose a match and bet type with desired amount of points.\n"
-            f"Example: /bet m{bet_match.id} {random.choice([BetType.T1_WIN.value, BetType.T2_WIN.value])} "
-            f"{random.choice([10, 20, 30, 50])}\n"
-            f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
-        )
+        description = f"Bet is available for {MINUTES_TILL_EXPIRE} minutes.\n"
         for coef in coefs:
             description += f"{coef.bet_type} - {coef.coefficient}\n"
 
@@ -271,7 +264,12 @@ class DiscordClient(discord.Client):
             color=1752220,  # Aqua #1ABC9C
         )
         await self.faceit_channel.send(
-            embed=embed_msg, delete_after=MINUTES_TILL_EXPIRE * 60
+            embed=embed_msg,
+            delete_after=MINUTES_TILL_EXPIRE * 60,
+            view=PreBetView(
+                bet_match.id,
+                live_until=datetime.now() + timedelta(minutes=MINUTES_TILL_EXPIRE),
+            ),
         )
 
     async def post_faceit_message_finished(self, match: MatchFinished) -> None:
@@ -323,9 +321,7 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
-        async for message in self.faceit_channel.history(
-            limit=40
-        ):  # type: discord.Message
+        async for message in self.faceit_channel.history(limit=40):  # type: discord.Message
             if not message.embeds:
                 continue
 
