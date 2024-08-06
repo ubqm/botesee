@@ -49,7 +49,10 @@ class LastStatsImCol:
         games: list[GameStatLast] = []
         await self._collect_user_info()
 
-        match_ids = [match_history.match_id for match_history in self.player_stat[self.nickname].player_history.items]
+        match_ids = [
+            match_history.match_id
+            for match_history in self.player_stat[self.nickname].player_history.items
+        ]
         results = await match_repo.get_stats(match_ids=match_ids)
 
         for idx, match_stats in enumerate(results):
@@ -207,7 +210,11 @@ class LastStatsImCol:
 
             if self.player_stat[self.nickname].steam_app_stat:
                 cs2_playtime = (
-                    self.player_stat[self.nickname].steam_app_stat.playerstats.stats[2].value / 60 / 60  # type: ignore
+                    self.player_stat[self.nickname]
+                    .steam_app_stat.playerstats.stats[2]
+                    .value
+                    / 60
+                    / 60  # type: ignore
                 )
                 cs2_time_played_hrs = f"Played in CS2: {int(cs2_playtime)} hrs"
                 percentage_played = (
@@ -223,12 +230,36 @@ class LastStatsImCol:
             cs2_time_played_hrs=cs2_time_played_hrs,
         )
 
-    def _draw_steam_stats(self, canvas: ImageDraw) -> None:
+    def _draw_steam_stats(self, canvas: ImageDraw.ImageDraw) -> None:
         steam_stats = self._get_steam_stats_text()
-        canvas.text((10, 150), steam_stats.playtime_2weeks, font=self.font)
-        canvas.text((10, 180), steam_stats.cs2_time_played_hrs, font=self.font)
-        canvas.text((10, 210), steam_stats.playtime_forever, font=self.font)
-        canvas.text((10, 240), steam_stats.percentage_played, font=self.font)
+        canvas.text(
+            (10, 150),
+            steam_stats.playtime_2weeks,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 180),
+            steam_stats.cs2_time_played_hrs,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 210),
+            steam_stats.playtime_forever,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 240),
+            steam_stats.percentage_played,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
 
     def _draw_region_stats(self, canvas: ImageDraw) -> None:
         canvas.text(
@@ -238,6 +269,8 @@ class LastStatsImCol:
                 ",", "."
             ),
             font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
         )
         canvas.text(
             (270, 100),
@@ -246,6 +279,8 @@ class LastStatsImCol:
                 ",", "."
             ),
             font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
         )
 
     def _draw_faceit_elo(self, canvas: ImageDraw) -> None:
@@ -261,6 +296,8 @@ class LastStatsImCol:
             (184, 70),
             str(self.player_stat[self.nickname].player_details.games.cs2.faceit_elo),
             font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
         )
 
     @staticmethod
@@ -279,7 +316,14 @@ class LastStatsImCol:
     ) -> None:
         stat_color = self._get_player_game_stat_color(game.kd_ratio)
         kad = f"{game.kills}/{game.assists}/{game.deaths}"
-        canvas.text((665, 50 * idx_game + 30), kad, font=self.font, fill=stat_color)
+        canvas.text(
+            (665, 50 * idx_game + 30),
+            kad,
+            font=self.font,
+            fill=stat_color,
+            stroke_width=1,
+            stroke_fill="black",
+        )
 
     def _draw_game_time(
         self, canvas: ImageDraw, game: GameStatLast, idx_game: int
@@ -288,8 +332,20 @@ class LastStatsImCol:
         game_date = minsk_time.strftime("%d %b")
         game_time = minsk_time.strftime("%H:%M")
         w = canvas.textlength(game_time, font=self.font)
-        canvas.text((488, 50 * idx_game + 30), game_date, font=self.font)
-        canvas.text((648 - w, 50 * idx_game + 30), game_time, font=self.font)
+        canvas.text(
+            (488, 50 * idx_game + 30),
+            game_date,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (648 - w, 50 * idx_game + 30),
+            game_time,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
 
     def _draw_game_background(self, game: GameStatLast, idx_game: int) -> None:
         if game.result:
@@ -300,7 +356,13 @@ class LastStatsImCol:
     def _draw_game_map(
         self, canvas: ImageDraw, game: GameStatLast, idx_game: int
     ) -> None:
-        canvas.text((870, 50 * idx_game + 30), game.map_score, font=self.font)
+        canvas.text(
+            (870, 50 * idx_game + 30),
+            game.map_score,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         if game.map_name in available_maps.values:
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{game.map_name}.jpg")
         else:
@@ -312,14 +374,50 @@ class LastStatsImCol:
     def _draw_player_last_10_stats(
         self, canvas: ImageDraw, games: GameStatLastStorage
     ) -> None:
-        canvas.text((10, 310), "Last 10 games played:", font=self.font)
+        canvas.text(
+            (10, 310),
+            "Last 10 games played:",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
         kad = f"KAD: {games.mean_kills():.1f} / {games.mean_assists():.1f} / {games.mean_deaths():.1f}"
-        canvas.text((10, 340), kad, font=self.font)
-        canvas.text((10, 370), f"K/D: {games.mean_kd():.2f}", font=self.font)
-        canvas.text((10, 400), f"K/R: {games.mean_kr():.2f}", font=self.font)
-        canvas.text((10, 430), f"Total 4K: {games.total_quadro()}", font=self.font)
-        canvas.text((10, 460), f"Total 5K: {games.total_ace()}", font=self.font)
-        canvas.text((10, 490), f"HS: {games.mean_hs():.1f}%", font=self.font)
+        canvas.text((10, 340), kad, font=self.font, stroke_width=1, stroke_fill="black")
+        canvas.text(
+            (10, 370),
+            f"K/D: {games.mean_kd():.2f}",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 400),
+            f"K/R: {games.mean_kr():.2f}",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 430),
+            f"Total 4K: {games.total_quadro()}",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 460),
+            f"Total 5K: {games.total_ace()}",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+        canvas.text(
+            (10, 490),
+            f"HS: {games.mean_hs():.1f}%",
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
 
     def _draw_game(self, canvas: ImageDraw, game: GameStatLast, idx_game: int) -> None:
         self._draw_game_background(game, idx_game)
