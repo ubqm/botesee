@@ -99,6 +99,16 @@ class LastStatsImCol:
         )
         if not player_stats:
             return None
+
+        # logic to sort values for particular player in depends on winning/losing
+        map_score: str = match_round.round_stats.score
+        end_score_numbers: list[int] = [int(el.strip()) for el in map_score.split("/")]
+        sorted_score: str = (
+            f"{max(end_score_numbers)} / {min(end_score_numbers)}"
+            if player_stats.result
+            else f"{min(end_score_numbers)} / {max(end_score_numbers)}"
+        )
+
         return GameStatLast(
             result=player_stats.result,
             kills=player_stats.kills,
@@ -110,7 +120,7 @@ class LastStatsImCol:
             headshots_p=player_stats.headshots_p,
             quadro=player_stats.quadro,
             ace=player_stats.ace,
-            map_score=match_round.round_stats.score,
+            map_score=sorted_score,
             map_name=match_round.round_stats.map,
             started_at=match_h.started_at,
         )
