@@ -12,6 +12,7 @@ from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_history import MatchHistory
 from src.clients.steam import SteamClient
+from src.db.repositories.elo import elo_repo
 from src.db.repositories.match import match_repo
 from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.models.last_stat import (
@@ -59,7 +60,7 @@ class LastStatsImCol:
             if not match_stats:
                 continue
             for match_round in match_stats.rounds:
-                game = self.compile_game(
+                game = await self.compile_game(
                     match_round,
                     self.player_stat[self.nickname].player_history.items[idx],
                 )
@@ -91,7 +92,7 @@ class LastStatsImCol:
             if idx == 10:
                 break
 
-    def compile_game(
+    async def compile_game(
         self, match_round: Round, match_h: MatchHistory
     ) -> GameStatLast | None:
         player_stats = match_round.get_player_stats(
@@ -108,6 +109,7 @@ class LastStatsImCol:
             if player_stats.result
             else f"{min(end_score_numbers)} / {max(end_score_numbers)}"
         )
+        match_avg_elo = await elo_repo.get_avg_elo(match_round.match_id)
 
         return GameStatLast(
             result=player_stats.result,
@@ -123,6 +125,7 @@ class LastStatsImCol:
             map_score=sorted_score,
             map_name=match_round.round_stats.map,
             started_at=match_h.started_at,
+            match_avg_elo=match_avg_elo,
         )
 
     async def _collect_user_info(self):
@@ -357,6 +360,19 @@ class LastStatsImCol:
             stroke_fill="black",
         )
 
+    def _draw_avg_elo(
+        self, canvas: ImageDraw, game: GameStatLast, idx_game: int
+    ) -> None:
+        avg_elo_text: str = f"{game.match_avg_elo / 1000:.1f}k"
+        w = canvas.textlength(avg_elo_text, font=self.font)
+        canvas.text(
+            (478 - w, 50 * idx_game + 30),
+            avg_elo_text,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+        )
+
     def _draw_game_background(self, game: GameStatLast, idx_game: int) -> None:
         if game.result:
             self.image.paste(self.win_bg, (775, 50 * idx_game + 24), self.win_bg)
@@ -434,6 +450,7 @@ class LastStatsImCol:
         self._draw_game_map(canvas, game, idx_game)
         self._draw_game_kd(canvas, game, idx_game)
         self._draw_game_time(canvas, game, idx_game)
+        self._draw_avg_elo(canvas, game, idx_game)
 
     def _draw_avatar(self):
         self.image.paste(self.image_avatar, (10, 10))
