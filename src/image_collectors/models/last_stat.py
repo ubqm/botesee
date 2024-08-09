@@ -25,6 +25,7 @@ class GameStatLast(BaseModel):
     map_score: str
     map_name: str
     started_at: datetime
+    match_avg_elo: int = 0
 
 
 class GameStatLastStorage(BaseModel):
@@ -47,7 +48,11 @@ class GameStatLastStorage(BaseModel):
             total_games += 1
             if total_games == game_num:
                 break
-        percentage = int((total_wins / (total_wins + total_loss)) * 100) if (total_wins + total_loss) else 0
+        percentage = (
+            int((total_wins / (total_wins + total_loss)) * 100)
+            if (total_wins + total_loss)
+            else 0
+        )
         return total_wins, total_loss, percentage
 
     def mean_kills(self, game_num: int = 10) -> float:
