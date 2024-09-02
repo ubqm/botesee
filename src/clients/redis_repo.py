@@ -61,12 +61,12 @@ class RedisRepository:
         async for message in sub.listen():
             logger.info(message)
 
-    async def consume(self, discord: "DiscordClient"):
+    async def consume(self, discord: "DiscordClient") -> None:
         sleep_time = 0
         while not discord.faceit_channel:
             sleep_time += 1
             logger.info(
-                f"Waiting for discord bot to startup. Total sleep: {sleep_time} sec."
+                f"Redis waiting for discord bot to startup. Total sleep: {sleep_time} sec."
             )
             await asyncio.sleep(1)
 
