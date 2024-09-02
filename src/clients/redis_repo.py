@@ -37,7 +37,7 @@ class RedisRepository:
         queue: str = "matches",
     ):
         logger.info(f"Start consuming from REDIS. {queue = }")
-        sub = redis_client.pubsub(ignore_publish_messages=True)
+        sub = redis_client.pubsub(ignore_subscribe_messages=True)
         sub.subscribe(queue)
         async for message in sub.listen():
             # match: WebhookMatch = TypeAdapter(WebhookMatch).validate_python(
@@ -56,7 +56,7 @@ class RedisRepository:
         self, discord: "DiscordClient", queue: str = "update_score"
     ) -> None:
         logger.info(f"Start consuming from REDIS. {queue = }")
-        sub = redis_client.pubsub(ignore_publish_messages=True)
+        sub = redis_client.pubsub(ignore_subscribe_messages=True)
         sub.subscribe(queue)
         async for message in sub.listen():
             logger.info(message)
