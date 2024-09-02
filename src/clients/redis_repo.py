@@ -33,7 +33,7 @@ class RedisRepository:
 
     async def _consume_match_queue(
         self,
-        discord: DiscordClient,
+        discord: "DiscordClient",
         queue: str = "matches",
     ):
         logger.info(f"Start consuming from REDIS. {queue = }")
@@ -53,7 +53,7 @@ class RedisRepository:
             #         await discord.post_faceit_message_finished(match)
 
     async def _consume_score_queue(
-        self, discord: DiscordClient, queue: str = "update_score"
+        self, discord: "DiscordClient", queue: str = "update_score"
     ) -> None:
         logger.info(f"Start consuming from REDIS. {queue = }")
         sub = redis_client.pubsub(ignore_publish_messages=True)
@@ -61,7 +61,7 @@ class RedisRepository:
         async for message in sub.listen():
             logger.info(message)
 
-    async def consume(self, discord: DiscordClient):
+    async def consume(self, discord: "DiscordClient"):
         sleep_time = 0
         while not discord.faceit_channel:
             sleep_time += 1
