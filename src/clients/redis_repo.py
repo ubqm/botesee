@@ -38,7 +38,7 @@ class RedisRepository:
     ):
         logger.info(f"Start consuming from REDIS. {queue = }")
         sub = redis_client.pubsub(ignore_subscribe_messages=True)
-        sub.subscribe(queue)
+        await sub.subscribe(queue)
         async for message in sub.listen():
             # match: WebhookMatch = TypeAdapter(WebhookMatch).validate_python(
             #     json.loads(message.body.decode())
@@ -57,7 +57,7 @@ class RedisRepository:
     ) -> None:
         logger.info(f"Start consuming from REDIS. {queue = }")
         sub = redis_client.pubsub(ignore_subscribe_messages=True)
-        sub.subscribe(queue)
+        await sub.subscribe(queue)
         async for message in sub.listen():
             logger.info(message)
 
