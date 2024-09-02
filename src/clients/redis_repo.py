@@ -1,4 +1,5 @@
 import asyncio
+import typing
 
 from loguru import logger
 from pydantic import BaseModel
@@ -6,7 +7,9 @@ from redis.asyncio import Redis
 
 from src import conf
 from src.clients.models.rabbit.queues import QueueName
-from src.discord_bot.client import DiscordClient
+
+if typing.TYPE_CHECKING:
+    from src.discord_bot.client import DiscordClient
 
 redis_client = Redis.from_url(url=conf.redis_string)
 MATCHES_TTL = 60 * 60 * 24  # 24 hours
