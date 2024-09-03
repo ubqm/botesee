@@ -124,7 +124,8 @@ class RabbitWorker:
                 try:
                     await self._process_match(match)
                 except Exception as ex:
-                    logger.error(ex)
+                    logger.exception(str(ex), exc_info=ex)
+                    raise ex
                 else:
                     await message.ack()
 
@@ -148,7 +149,7 @@ class RabbitWorker:
                 try:
                     await self._update_score(match_details, match_ready)
                 except Exception as ex:
-                    logger.error(f"{ex}, {ex.args}")
+                    logger.exception(str(ex), exc_info=ex)
                     raise ex
                 else:
                     await message.ack()
