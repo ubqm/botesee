@@ -54,6 +54,8 @@ def get_match_finished_message_color(round: Round) -> int:
 def get_description_for_match_finish(
     match_round: Round, coefs: Sequence[BetCoefficient]
 ) -> str:
+    coef_1 = f"[{str(coefs[0].coefficient)}]" if coefs else ""
+    coef_2 = f"[{str(coefs[1].coefficient)}]" if coefs else ""
     nicknames_1 = [
         f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
         for player in match_round.teams[0].players
@@ -65,7 +67,7 @@ def get_description_for_match_finish(
     str_nick_1 = ", ".join(nicknames_1)
     str_nick_2 = ", ".join(nicknames_2)
 
-    return f"[{str(coefs[0].coefficient)}] {str_nick_1}\n[{str(coefs[1].coefficient)}] {str_nick_2}"
+    return f"{coef_1} {str_nick_1}\n{coef_2} {str_nick_2}"
 
 
 async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloStorage:
