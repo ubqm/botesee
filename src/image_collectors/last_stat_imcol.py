@@ -56,7 +56,7 @@ class LastStatsImCol:
             for match_history in self.player_stat[self.nickname].player_history.items
         ]
         if self.use_faceit_api:
-            results = asyncio.gather(
+            results = await asyncio.gather(
                 *[faceit_client.match_stats(match_id) for match_id in match_ids]
             )
         else:
