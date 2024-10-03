@@ -456,7 +456,8 @@ class LastStatsImCol:
         self._draw_game_map(canvas, game, idx_game)
         self._draw_game_kd(canvas, game, idx_game)
         self._draw_game_time(canvas, game, idx_game)
-        self._draw_avg_elo(canvas, game, idx_game)
+        if not self.use_faceit_api:
+            self._draw_avg_elo(canvas, game, idx_game)
 
     def _draw_avatar(self):
         self.image.paste(self.image_avatar, (10, 10))
