@@ -61,6 +61,7 @@ class AvailableMaps(BaseModel):
     OVERPASS: str = "de_overpass"
     VERTIGO: str = "de_vertigo"
     ANUBIS: str = "de_anubis"
+    TRAIN: str = "de_train"
 
     def __contains__(self, item: str) -> bool:
         return item in self.__dict__.values()
