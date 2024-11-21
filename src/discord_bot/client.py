@@ -74,7 +74,10 @@ async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloS
     players_storage: list[PlayerStorage] = []
     for player in roster:
         elo = await faceit_client.get_player_elo_by_player_id(player.id, game)
-        players_storage.append(PlayerStorage(nickname=player.nickname, elo=elo))
+        is_sub: bool = player.id in subscribers
+        players_storage.append(
+            PlayerStorage(nickname=player.nickname, elo=elo, subscriber=is_sub)
+        )
     return NickEloStorage(players=players_storage)
 
 

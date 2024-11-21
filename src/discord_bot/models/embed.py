@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class PlayerStorage(BaseModel):
     nickname: str
     elo: int
+    subscriber: bool = False
 
 
 class NickEloStorage(BaseModel):
@@ -11,7 +12,7 @@ class NickEloStorage(BaseModel):
 
     def get_discord_nicknames(self, sep: str = "\n") -> str:
         nicknames = [
-            f"[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+            f"{'-> ' if player.subscriber else ''}[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
             for player in self.players
         ]
         return sep.join(nicknames)
