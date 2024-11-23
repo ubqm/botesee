@@ -20,23 +20,26 @@ event_loop = asyncio.new_event_loop()
 
 async def _score_update(match_ready: MatchReady) -> None:
     rabbit = await get_rabbit()
-    while True:
-        await asyncio.sleep(20)
-        try:
-            match_details = await faceit_client.match_details(match_ready.payload.id)
-        except httpx.PoolTimeout as e:
-            logger.exception(f"{e}", exc_info=e)
-        else:
-            if match_details.finished_at:
-                break
+    async with rabbit:
+        while True:
+            await asyncio.sleep(20)
+            try:
+                match_details = await faceit_client.match_details(
+                    match_ready.payload.id
+                )
+            except httpx.PoolTimeout as e:
+                logger.exception(f"{e}", exc_info=e)
+            else:
+                if match_details.finished_at:
+                    break
 
-            details_match_dict: DetailsMatchDict = DetailsMatchDict(
-                match_details=match_details, match_ready=match_ready
-            )
-            await rabbit.publish(
-                json.dumps(details_match_dict.model_dump_json()),
-                routing_key=QueueName.UPDATE_SCORE,
-            )
+                details_match_dict: DetailsMatchDict = DetailsMatchDict(
+                    match_details=match_details, match_ready=match_ready
+                )
+                await rabbit.publish(
+                    json.dumps(details_match_dict.model_dump_json()),
+                    routing_key=QueueName.UPDATE_SCORE,
+                )
 
 
 @app.task
@@ -51,7 +54,10 @@ async def _match_finished(match: MatchFinished) -> None:
     statistics = await faceit_client.match_stats(match.payload.id)
     await db_match_finished(match, statistics)
     rabbit: RabbitClient = await get_rabbit()
-    await rabbit.publish(message=match.model_dump_json(), routing_key=QueueName.MATCHES)
+    async with rabbit:
+        await rabbit.publish(
+            message=match.model_dump_json(), routing_key=QueueName.MATCHES
+        )
 
 
 @app.task
