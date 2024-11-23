@@ -1,8 +1,10 @@
 import asyncio
 import json
 from asyncio import AbstractEventLoop
+from typing import Self
 
 import aio_pika
+from aio_pika import RobustConnection
 from aio_pika.abc import AbstractRobustConnection
 from aio_pika.pool import Pool
 from loguru import logger
@@ -17,23 +19,26 @@ from src.web.models.events import WebhookMatch, MatchReady
 
 
 class RabbitClient:
-    def __init__(self, host: str, port: int, user: str, password: str):
+    def __init__(
+        self, host: str, port: int, user: str, password: str, loop: AbstractEventLoop
+    ):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
-        self.loop: AbstractEventLoop = asyncio.get_event_loop()
+        self.loop: AbstractEventLoop = loop
         self.connection_pool: Pool = Pool(
-            self._get_connection, max_size=2, loop=self.loop
+            self._get_connection, max_size=1, loop=self.loop
         )
 
-    async def _get_connection(self) -> AbstractRobustConnection:
-        return await aio_pika.connect_robust(
+    async def _get_connection(self) -> RobustConnection:
+        return await aio_pika.connect_robust(  # noqa
             host=self.host,
             port=self.port,
             login=self.user,
             password=self.password,
             loop=self.loop,
+            timeout=30,
         )
 
     async def publish(
@@ -45,6 +50,12 @@ class RabbitClient:
                 aio_pika.Message(body=message.encode()),
                 routing_key=routing_key,
             )
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.connection_pool.close()
 
 
 class RabbitWorker:

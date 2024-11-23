@@ -50,7 +50,7 @@ async def validation_exception_handler(
 
 
 async def faceit_webhook_auth(
-    token: str = Header(None, alias="Webhook-Authorization")
+    token: str = Header(None, alias="Webhook-Authorization"),
 ) -> str:
     if token != conf.FACEIT_WEBHOOK_AUTH:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authorization required")
@@ -68,12 +68,13 @@ async def health() -> OKResponse:
     return OKResponse()
 
 
-@app.post("/webhooks/faceit", tags=["Webhooks"])
+@app.post(
+    "/webhooks/faceit", tags=["Webhooks"], dependencies=[Depends(faceit_webhook_auth)]
+)
 async def faceit_webhook(
     match: WebhookMatch,
     background_tasks: BackgroundTasks,
     rabbit: RabbitClient = Depends(get_rabbit),
-    token: str = Depends(faceit_webhook_auth),
 ) -> OKResponse:
     logger.info(f"{match.json()}")
 
