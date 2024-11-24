@@ -32,7 +32,7 @@ class RabbitClient:
         )
 
     async def _get_connection(self) -> RobustConnection:
-        return await aio_pika.connect_robust(  # noqa
+        return await aio_pika.connect(  # noqa
             host=self.host,
             port=self.port,
             login=self.user,
