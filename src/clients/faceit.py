@@ -3,7 +3,7 @@ import time
 from uuid import UUID
 
 import httpx
-from httpx import USE_CLIENT_DEFAULT
+from httpx import USE_CLIENT_DEFAULT, URL
 from httpx._client import UseClientDefault
 from loguru import logger
 
@@ -38,6 +38,7 @@ class FaceitClient(httpx.AsyncClient):
     ) -> dict:
         for i in range(retry_attempts):
             try:
+                logger.info(f"{URL(url, params=params)}")
                 response = await self.request(
                     method, url, params=params, json=json, timeout=timeout
                 )

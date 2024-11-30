@@ -12,7 +12,10 @@ class NickEloStorage(BaseModel):
 
     def get_discord_nicknames(self, sep: str = "\n") -> str:
         nicknames = [
-            f"{'[sub] ' if player.subscriber else ''}[{player.nickname}](https://www.faceit.com/en/players/{player.nickname})"
+            (
+                f"{'[sub] ' if player.subscriber else ''}[{player.nickname}]"
+                f"(https://www.faceit.com/en/players/{player.nickname})"
+            )
             for player in self.players
         ]
         return sep.join(nicknames)
