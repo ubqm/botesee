@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 
 import httpx
 from celery import Celery
@@ -15,9 +14,9 @@ from src.utils.shared_models import DetailsMatchDict
 from src.web.dependencies import get_rabbit
 from src.web.models.events import MatchFinished, MatchReady
 
+
 app = Celery(broker=conf.redis_string)
 event_loop = asyncio.new_event_loop()
-logging.getLogger("httpx").propagate = True
 
 
 async def _score_update(match_ready: MatchReady) -> None:
