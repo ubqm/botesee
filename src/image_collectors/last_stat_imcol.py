@@ -1,7 +1,6 @@
 import asyncio
 from io import BytesIO
 
-import aiohttp
 import pytz
 from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
@@ -11,7 +10,7 @@ from src import redis_cache
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_history import MatchHistory
-from src.clients.steam import SteamClient
+from src.clients.steam import steam_client
 from src.db.repositories.elo import elo_repo
 from src.db.repositories.match import match_repo
 from src.image_collectors import TEMPLATE_PATH
@@ -130,26 +129,31 @@ class LastStatsImCol:
 
     async def _collect_user_info(self):
         player_details = await faceit_client.player_details(self.nickname)
-        player_history = await faceit_client.player_history(player_details.player_id)
-        player_region_stats = await faceit_client.region_stats(
-            player_id=player_details.player_id,
-            region=player_details.games.cs2.region,
-        )
-        player_country_stats = await faceit_client.region_stats(
-            player_id=player_details.player_id,
-            region=player_details.games.cs2.region,
-            country=player_details.country,
-        )
 
-        async with aiohttp.ClientSession() as session:
-            steam_app_stat = await SteamClient.user_app_stat(
-                session,
+        (
+            player_history,
+            player_region_stats,
+            player_country_stats,
+            steam_app_stat,
+            steam_recently_stat,
+        ) = await asyncio.gather(
+            faceit_client.player_history(player_details.player_id),
+            faceit_client.region_stats(
+                player_id=player_details.player_id,
+                region=player_details.games.cs2.region,
+            ),
+            faceit_client.region_stats(
+                player_id=player_details.player_id,
+                region=player_details.games.cs2.region,
+                country=player_details.country,
+            ),
+            steam_client.user_app_stat(
                 player_details.steam_id_64 or player_details.games.cs2.game_player_id,
-            )
-            steam_recently_stat = await SteamClient.user_rec_played_stat(
-                session,
+            ),
+            steam_client.user_rec_played_stat(
                 player_details.steam_id_64 or player_details.games.cs2.game_player_id,
-            )
+            ),
+        )
 
         self.player_stat[self.nickname] = FullPlayerStat(
             player_details=player_details,
