@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 from uuid import UUID
 
@@ -150,6 +151,11 @@ class FaceitClient(httpx.AsyncClient):
 
 
 faceit_client = FaceitClient(conf.FACEIT_TOKEN)
+
+httpx_logger = logging.getLogger("httpx")
+httpx_logger.disabled = True
+httpx_logger.propagate = False
+
 
 if __name__ == "__main__":
 
