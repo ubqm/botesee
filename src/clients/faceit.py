@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 from uuid import UUID
 
 import httpx
@@ -46,7 +45,7 @@ class FaceitClient(httpx.AsyncClient):
                 response.raise_for_status()
             except httpx.HTTPStatusError as e:
                 logger.info(f"Retrying {url} for {i} time. {e}")
-                time.sleep(0.5 * 2**i)
+                await asyncio.sleep(0.5 * 2**i)
             else:
                 return response.json()
         raise httpx.ReadTimeout(
