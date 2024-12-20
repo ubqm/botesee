@@ -10,18 +10,30 @@ class LifetimeStats(BaseModel):
     avg_hs: int = Field(alias="Average Headshots %", description="From 0 to 100")
     avg_kd: float = Field(alias="Average K/D Ratio")
     total_wins: int = Field(alias="Wins", description="Total number of wins")
-    total_headshots: int = Field(alias="Total Headshots %", description="Total number of Headshots (Not percentage)")
+    total_headshots: int = Field(
+        alias="Total Headshots %",
+        description="Total number of Headshots (Not percentage)",
+    )
     winrate: int = Field(alias="Win Rate %", description="from 0 to 100")
     current_win_streak: int = Field(alias="Current Win Streak")
-    total_kd_p: float = Field(alias="K/D Ratio", description="Strange number, don't use it")
+    total_kd_p: float = Field(
+        alias="K/D Ratio", description="Strange number, don't use it"
+    )
 
 
 class SegmentStats(BaseModel):
-    avg_hs_frags_per_match: float = Field(alias="Headshots per Match", description="Avg HS frags per match")
+    avg_hs_frags_per_match: float = Field(
+        alias="Headshots per Match", description="Avg HS frags per match"
+    )
     total_deaths: int = Field(alias="Deaths")
-    total_kr: float = Field(alias="K/R Ratio", description="Strange number, don't use it")
+    total_kr: float = Field(
+        alias="K/R Ratio", description="Strange number, don't use it"
+    )
     total_triple: int = Field(alias="Triple Kills")
-    total_hs_p: int = Field(alias="Total Headshots %", description="Total number of Headshots (Not percentage)")
+    total_hs_p: int = Field(
+        alias="Total Headshots %",
+        description="Total number of Headshots (Not percentage)",
+    )
     total_kills: int = Field(alias="Kills")
     total_rounds: int = Field(alias="Rounds")
     total_wins: int = Field(alias="Wins")
@@ -38,7 +50,9 @@ class SegmentStats(BaseModel):
     total_matches: int = Field(alias="Matches")
     avg_mvp: float = Field(alias="Average MVPs")
     avg_assists: float = Field(alias="Average Assists")
-    kd_ratio_p: float = Field(alias="K/D Ratio", description="Strange number, don't use it")
+    kd_ratio_p: float = Field(
+        alias="K/D Ratio", description="Strange number, don't use it"
+    )
     total_quadro: int = Field(alias="Quadro Kills")
     avg_deaths: float = Field(alias="Average Deaths")
     avg_hs: int = Field(alias="Average Headshots %", description="From 0 to 100")
