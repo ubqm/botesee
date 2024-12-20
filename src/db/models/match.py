@@ -19,11 +19,17 @@ class Match(Base):
     date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.now(tz=UTC), server_default=func.now()
     )
-    game: Mapped[str] = mapped_column(String(length=64), default="csgo", server_default="csgo")
-    stats: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True, default=None, server_default=None)
+    game: Mapped[str] = mapped_column(
+        String(length=64), default="csgo", server_default="csgo"
+    )
+    stats: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB, nullable=True, default=None, server_default=None
+    )
 
     elos: Mapped[list["Elo"]] = relationship("Elo", back_populates="match")
-    players: Mapped[list["Player"]] = relationship("Player", secondary="elos", back_populates="matches", viewonly=True)
+    players: Mapped[list["Player"]] = relationship(
+        "Player", secondary="elos", back_populates="matches", viewonly=True
+    )
     # bet_match: Mapped["BetMatch"] = relationship("BetMatch", back_populates="match")
 
     def __str__(self) -> str:
