@@ -17,7 +17,9 @@ class Player(Base):
     id: Mapped[UUID] = mapped_column(UUID_SA(as_uuid=True), primary_key=True)
 
     elos: Mapped[list["Elo"]] = relationship("Elo", back_populates="player")
-    matches: Mapped[list["Match"]] = relationship("Match", secondary="elos", back_populates="players", viewonly=True)
+    matches: Mapped[list["Match"]] = relationship(
+        "Match", secondary="elos", back_populates="players", viewonly=True
+    )
 
     def __str__(self) -> str:
         return f"<Player {str(self.id)}>"

@@ -7,7 +7,9 @@ from src.db import Player
 
 
 class PlayerRepository:
-    async def get_or_create(self, session: AsyncSession, player_uuid: str | UUID) -> Player:
+    async def get_or_create(
+        self, session: AsyncSession, player_uuid: str | UUID
+    ) -> Player:
         stmt = select(Player).where(Player.id == str(player_uuid))
 
         result: Result = await session.execute(stmt)
