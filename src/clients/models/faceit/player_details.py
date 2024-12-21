@@ -1,13 +1,12 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Extra, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 
 class Platforms(BaseModel):
     steam: str | None = None
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class Game(BaseModel):
@@ -26,8 +25,7 @@ class Games(BaseModel):
     valorant: Game | None = None
     cs2: Game | None = None
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class Settings(BaseModel):

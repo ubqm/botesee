@@ -2,7 +2,7 @@ from datetime import datetime
 
 from PIL import Image
 from PIL.Image import Image as ImageClass
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.clients.models.faceit.player_details import PlayerDetails
 from src.clients.models.faceit.player_history import PlayerHistory
@@ -195,5 +195,4 @@ class FullPlayerStat(BaseModel):
     avatar: ImageClass | None = None
     background: ImageClass = Image.new(mode="RGBA", size=(960, 540), color="black")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

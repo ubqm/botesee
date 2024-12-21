@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class EventEnum(str, Enum):
@@ -68,5 +68,4 @@ class BaseMatch(BaseModel):
     retry_count: int
     version: int
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
