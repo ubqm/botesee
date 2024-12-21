@@ -2,7 +2,7 @@ from datetime import timedelta
 from enum import StrEnum
 
 from aiohttp_client_cache import RedisBackend
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EnvType(StrEnum):
@@ -41,9 +41,7 @@ class Settings(BaseSettings):
     def redis_string(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 conf = Settings()
