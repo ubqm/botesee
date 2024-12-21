@@ -35,7 +35,8 @@ class GameStatLastStorage(BaseModel):
         return iter(self.games)
 
     def map_stats(self, search_map: str, game_num: int = 10) -> tuple[int, int, float]:
-        """Returns total wins, total loss and win percentage on a map in a last amount of games"""
+        """Returns total wins, total loss and win percentage
+        on a map in a last amount of games"""
         total_games = 0
         total_wins = 0
         total_loss = 0

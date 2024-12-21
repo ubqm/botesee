@@ -72,7 +72,11 @@ class BetEvent(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<BetEvent state={self.state}, bet_type={self.bet_type}, member={self.member_id}>"
+        return (
+            f"<BetEvent state={self.state}, "
+            f"bet_type={self.bet_type}, "
+            f"member={self.member_id}>"
+        )
 
 
 class BetTransactions(Base):
@@ -94,7 +98,12 @@ class BetTransactions(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<BetTransaction id={self.id}, event={self.event}, member={self.member_id}, amount={self.amount}>"
+        return (
+            f"<BetTransaction id={self.id}, "
+            f"event={self.event}, "
+            f"member={self.member_id}, "
+            f"amount={self.amount}>"
+        )
 
 
 class BetCoefficient(Base):
