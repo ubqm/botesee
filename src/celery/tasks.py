@@ -2,9 +2,9 @@ import asyncio
 import json
 
 import httpx
-from celery import Celery
 from loguru import logger
 
+from celery import Celery
 from src import conf
 from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
@@ -13,7 +13,6 @@ from src.db.script import db_match_finished
 from src.utils.shared_models import DetailsMatchDict
 from src.web.dependencies import get_rabbit
 from src.web.models.events import MatchFinished, MatchReady
-
 
 app = Celery(broker=conf.redis_string)
 event_loop = asyncio.new_event_loop()

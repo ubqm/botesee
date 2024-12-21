@@ -2,13 +2,12 @@ import logging
 from datetime import datetime, timedelta
 
 import discord
-from discord import ButtonStyle, Interaction, Button, SelectOption
-from discord.ui import View, Select
+from discord import Button, ButtonStyle, Interaction, SelectOption
+from discord.ui import Select, View
 
 from src.db import session_maker
 from src.db.models.gambling import BetType
 from src.db.repositories.gambling import gambling_repo
-
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +122,8 @@ class MatchBetView(View):
             await session.commit()
 
         await ctx.response.send_message(
-            f"Your bet is accepted. {self._amount} points on {self._bet_type}. Match id [{self.bet_match_id}]",
+            f"Your bet is accepted. {self._amount} points on "
+            f"{self._bet_type}. Match id [{self.bet_match_id}]",
             ephemeral=True,
         )
         button.disabled = True

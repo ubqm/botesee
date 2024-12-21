@@ -1,8 +1,8 @@
 import asyncio
 
 import httpx
-from httpx import AsyncClient, AsyncHTTPTransport, URL
-from httpx._client import UseClientDefault, USE_CLIENT_DEFAULT
+from httpx import URL, AsyncClient, AsyncHTTPTransport
+from httpx._client import USE_CLIENT_DEFAULT, UseClientDefault
 from loguru import logger
 
 from src import conf

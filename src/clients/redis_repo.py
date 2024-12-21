@@ -2,7 +2,6 @@ from redis.asyncio import Redis
 
 from src import conf
 
-
 redis_client = Redis.from_url(url=conf.redis_string)
 MATCHES_TTL = 60 * 60 * 24  # 24 hours
 

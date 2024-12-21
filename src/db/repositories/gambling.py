@@ -1,6 +1,6 @@
 from decimal import Decimal
 from math import ceil
-from typing import Sequence, Final
+from typing import Final, Sequence
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession

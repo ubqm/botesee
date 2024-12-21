@@ -22,7 +22,7 @@ from src.image_collectors.models.last_stat import (
     GameStatLast,
     GameStatLastStorage,
 )
-from src.utils.enums import ColorTuple, ColorEvaluation, available_maps
+from src.utils.enums import ColorEvaluation, ColorTuple, available_maps
 
 
 class CompareImCol:

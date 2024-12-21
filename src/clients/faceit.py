@@ -3,7 +3,7 @@ import logging
 from uuid import UUID
 
 import httpx
-from httpx import USE_CLIENT_DEFAULT, URL
+from httpx import URL, USE_CLIENT_DEFAULT
 from httpx._client import UseClientDefault
 from loguru import logger
 
