@@ -3,8 +3,8 @@ from io import BytesIO
 
 import pytz
 from aiohttp import ClientSession
-from PIL import Image, ImageDraw, ImageFont
 from aiohttp_client_cache import CachedSession
+from PIL import Image, ImageDraw, ImageFont
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
@@ -213,7 +213,8 @@ class LastStatsImCol:
     def _get_steam_stats_text(self) -> SteamStatLast:
         if not self.player_stat[self.nickname].steam_recently_stat:
             raise Exception(
-                f"Steam recent stats not found for {self.nickname} {self.player_stat[self.nickname]}"
+                f"Steam recent stats not found for "
+                f"{self.nickname} {self.player_stat[self.nickname]}"
             )
         cs2_stats = self.player_stat[self.nickname].steam_recently_stat.get_cs()  # type: ignore
         playtime_2weeks = "Last 2 weeks: Unknown"
@@ -411,7 +412,10 @@ class LastStatsImCol:
             stroke_width=1,
             stroke_fill="black",
         )
-        kad = f"KAD: {games.mean_kills():.1f} / {games.mean_assists():.1f} / {games.mean_deaths():.1f}"
+        kad = (
+            f"KAD: {games.mean_kills():.1f} / {games.mean_assists():.1f}"
+            f" / {games.mean_deaths():.1f}"
+        )
         canvas.text((10, 340), kad, font=self.font, stroke_width=1, stroke_fill="black")
         canvas.text(
             (10, 370),
@@ -463,9 +467,7 @@ class LastStatsImCol:
 if __name__ == "__main__":
 
     async def main():
-        # async with aiohttp.ClientSession(headers=conf.FACEIT_HEADERS) as session:
         # player_details = await faceit_client.player_details("Ayudesee")
-        # steam_app_stat = await SteamClient.user_app_stat(session, player_details.steam_id_64)
 
         # print(steam_app_stat)
         last_imcol = LastStatsImCol("-NAPAD")

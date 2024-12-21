@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Sequence
 
@@ -24,7 +24,7 @@ from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
-from src.discord_bot.views import PreBetView, MINUTES_TILL_EXPIRE
+from src.discord_bot.views import MINUTES_TILL_EXPIRE, PreBetView
 from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
 from src.image_collectors.match_finished import MatchFinishedImCol
@@ -218,7 +218,8 @@ class DiscordClient(discord.Client):
                 )
 
         logger.info(
-            f"[{upvotes}/{downvotes}] {payload.emoji} {payload.event_type} by {payload.member} | "
+            f"[{upvotes}/{downvotes}] {payload.emoji} {payload.event_type}"
+            f" by {payload.member} | "
             f"Message by {message.author}: {message.content}"
         )
         if upvotes < downvotes - 2:
@@ -293,7 +294,8 @@ class DiscordClient(discord.Client):
             embed_msg = discord.Embed(
                 description=str_nick,
                 type="rich",
-                title=f"{match_round.round_stats.map} [{match.payload.game}] - {match.payload.entity.name}",
+                title=f"{match_round.round_stats.map} [{match.payload.game}]"
+                f" - {match.payload.entity.name}",
                 color=my_color,
                 url=f"https://www.faceit.com/en/cs2/room/{match.payload.id}",
             )

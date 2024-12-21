@@ -29,5 +29,4 @@ jobs:
         pre-commit run -a
     - name: Test with pytest
       run: |
-        export PYTHONPATH=.
         pytest

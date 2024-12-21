@@ -15,7 +15,7 @@ from src.clients.models.rabbit.queues import QueueName
 from src.discord_bot.client import DiscordClient
 from src.utils.shared_models import DetailsMatchDict
 from src.web.models.base import EventEnum
-from src.web.models.events import WebhookMatch, MatchReady
+from src.web.models.events import MatchReady, WebhookMatch
 
 
 class RabbitClient:

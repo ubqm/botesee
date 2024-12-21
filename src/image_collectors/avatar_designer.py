@@ -1,7 +1,7 @@
 from io import BytesIO
 
-from PIL import Image, ImageDraw, ImageFont
 from aiohttp_client_cache import CachedSession
+from PIL import Image, ImageDraw, ImageFont
 
 from src import redis_cache
 from src.image_collectors import TEMPLATE_PATH

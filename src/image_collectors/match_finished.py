@@ -2,8 +2,8 @@ import asyncio
 from asyncio import Task
 from typing import Literal
 
-from PIL.ImageFont import FreeTypeFont
 from PIL import Image, ImageDraw, ImageFont
+from PIL.ImageFont import FreeTypeFont
 
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Player, Round
