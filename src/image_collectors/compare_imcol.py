@@ -5,7 +5,6 @@ from typing import Any, Literal, Self
 
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
-from loguru import logger
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
@@ -16,7 +15,6 @@ from src.clients.models.faceit.player_details import PlayerDetails
 from src.clients.models.faceit.player_history import MatchHistory
 from src.db.repositories.match import match_repo
 from src.image_collectors import TEMPLATE_PATH
-from src.image_collectors._exceptions import BadAPICallException
 from src.image_collectors.models.last_stat import (
     FullPlayerStat,
     GameStatLast,
@@ -76,17 +74,13 @@ class CompareImCol:
 
     async def collect_image(self) -> Image:
         async with CachedSession(cache=redis_cache) as session:
-            try:
-                player1_stats, player2_stats = await asyncio.gather(
-                    self.collect_stat(session, self.nickname1),
-                    self.collect_stat(session, self.nickname2),
-                )
-            except BadAPICallException as e:
-                logger.warning(e)
-            else:
-                if player1_stats and player2_stats:
-                    self.draw_image(player1_stats, player2_stats)
-                    return self.image
+            player1_stats, player2_stats = await asyncio.gather(
+                self.collect_stat(session, self.nickname1),
+                self.collect_stat(session, self.nickname2),
+            )
+            if player1_stats and player2_stats:
+                self.draw_image(player1_stats, player2_stats)
+                return self.image
 
     async def _collect_user_info(self, session: ClientSession, nickname: str) -> None:
         player_details = await faceit_client.player_details(nickname)
