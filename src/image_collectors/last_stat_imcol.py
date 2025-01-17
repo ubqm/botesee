@@ -32,8 +32,9 @@ class LastStatsImCol:
         f"{TEMPLATE_PATH}/background_features/dark-right-side-for-stat.png"
     )
 
-    def __init__(self, nickname: str):
-        self.nickname = nickname
+    def __init__(self, nickname: str, use_faceit_api: bool = False):
+        self.nickname: str = nickname
+        self.use_faceit_api: bool = use_faceit_api
         self.player_stat: dict[str, FullPlayerStat] = {}
         self.avatar: Image = Image.new(mode="RGBA", size=(130, 130), color="black")
         self.image: Image = Image.new(mode="RGBA", size=(960, 540), color="black")
@@ -53,7 +54,12 @@ class LastStatsImCol:
             match_history.match_id
             for match_history in self.player_stat[self.nickname].player_history.items
         ]
-        results = await match_repo.get_stats(match_ids=match_ids)
+        if self.use_faceit_api:
+            results = await asyncio.gather(
+                *[faceit_client.match_stats(match_id) for match_id in match_ids]
+            )
+        else:
+            results = await match_repo.get_stats(match_ids=match_ids)
 
         for idx, match_stats in enumerate(results):
             if not match_stats:
@@ -458,7 +464,8 @@ class LastStatsImCol:
         self._draw_game_map(canvas, game, idx_game)
         self._draw_game_kd(canvas, game, idx_game)
         self._draw_game_time(canvas, game, idx_game)
-        self._draw_avg_elo(canvas, game, idx_game)
+        if not self.use_faceit_api:
+            self._draw_avg_elo(canvas, game, idx_game)
 
     def _draw_avatar(self):
         self.image.paste(self.image_avatar, (10, 10))

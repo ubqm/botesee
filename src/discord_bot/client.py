@@ -379,11 +379,11 @@ tree = app_commands.CommandTree(discord_client)
 
 
 @tree.command(name="stats", description="Show last 10 matches stats from a player")
-async def stats(ctx: Interaction, player: str) -> None:
+async def stats(ctx: Interaction, player: str, use_faceit: bool = False) -> None:
     await ctx.response.send_message(
         "Retrieving stats...", ephemeral=True, delete_after=5.0
     )
-    imgclst = LastStatsImCol(player)
+    imgclst = LastStatsImCol(nickname=player, use_faceit_api=use_faceit)
     image = await imgclst.collect_image()
     await discord_client.faceit_channel.send(
         file=discord_client.compile_binary_image(image)
