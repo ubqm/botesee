@@ -75,6 +75,19 @@ class Round(BaseModel):
                     return player.player_stats
         return None
 
+    def get_enemy_players(self, player_id: UUID) -> list[Player]:
+        enemy_team_idx: int | None = (
+            0
+            if player_id
+            in [player.player_id for team in self.teams[0] for player in team]
+            else 1
+        )
+
+        if not enemy_team_idx:
+            return []
+
+        return self.teams[enemy_team_idx].players
+
 
 class MatchStatistics(BaseModel):
     rounds: list[Round] = Field(default_factory=list)
