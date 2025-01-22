@@ -108,7 +108,14 @@ class LastStatsImCol:
             if player_stats.result
             else f"{min(end_score_numbers)} / {max(end_score_numbers)}"
         )
-        match_avg_elo = await elo_repo.get_avg_elo(match_round.match_id)
+
+        enemy_players = match_round.get_enemy_players(
+            self.player_stat[self.nickname].player_details.player_id
+        )
+        enemy_players_uuids = [player.player_id for player in enemy_players]
+        match_avg_elo = await elo_repo.get_avg_elo(
+            match_round.match_id, enemy_players_uuids
+        )
 
         return GameStatLast(
             result=player_stats.result,
