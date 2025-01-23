@@ -173,7 +173,7 @@ class LastStatsImCol:
             player_history=player_history,
             player_region_stats=player_region_stats,
             player_country_stats=player_country_stats,
-            steam_app_stat=steam_app_stat,
+            steam_app_stat=steam_app_stat if steam_app_stat.playerstats else None,
             steam_recently_stat=steam_recently_stat,
         )
         async with CachedSession(cache=redis_cache) as session:
@@ -229,7 +229,7 @@ class LastStatsImCol:
                 f"Steam recent stats not found for "
                 f"{self.nickname} {self.player_stat[self.nickname]}"
             )
-        cs2_stats = self.player_stat[self.nickname].steam_recently_stat.get_cs()  # type: ignore
+        cs2_stats = self.player_stat[self.nickname].steam_recently_stat.get_cs()
         playtime_2weeks = "Last 2 weeks: Unknown"
         playtime_forever = "Summary in CS2: Unknown"
         percentage_played = "Activity: Unknown"
@@ -245,7 +245,7 @@ class LastStatsImCol:
                     .steam_app_stat.playerstats.stats[2]
                     .value
                     / 60
-                    / 60  # type: ignore
+                    / 60
                 )
                 cs2_time_played_hrs = f"Played in CS2: {int(cs2_playtime)} hrs"
                 percentage_played = (
