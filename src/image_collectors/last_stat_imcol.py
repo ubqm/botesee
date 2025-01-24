@@ -4,7 +4,6 @@ from io import BytesIO
 import pytz
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
-from loguru import logger
 from PIL import Image, ImageDraw, ImageFont
 
 from src import redis_cache
@@ -169,8 +168,6 @@ class LastStatsImCol:
             ),
         )
 
-        logger.info(f"{steam_app_stat=}")
-        logger.info(f"{steam_recently_stat=}")
         self.player_stat[self.nickname] = FullPlayerStat(
             player_details=player_details,
             player_history=player_history,
@@ -233,7 +230,6 @@ class LastStatsImCol:
                 f"{self.nickname} {self.player_stat[self.nickname]}"
             )
         cs2_stats = self.player_stat[self.nickname].steam_recently_stat.get_cs()
-        logger.info(f"{cs2_stats=}")
         playtime_2weeks = "Last 2 weeks: Unknown"
         playtime_forever = "Summary in CS2: Unknown"
         percentage_played = "Activity: Unknown"
@@ -243,7 +239,6 @@ class LastStatsImCol:
             playtime_2weeks = f"Last 2 weeks: {int(cs2_stats.playtime_2weeks / 60)} hrs"
             playtime_forever = f"Summary in CS2: {int(cs2_playtime_hours)} hrs"
 
-            logger.info(f"{self.player_stat[self.nickname].steam_app_stat=}")
             if self.player_stat[self.nickname].steam_app_stat:
                 cs2_playtime = (
                     self.player_stat[self.nickname]
@@ -268,7 +263,6 @@ class LastStatsImCol:
 
     def _draw_steam_stats(self, canvas: ImageDraw.ImageDraw) -> None:
         steam_stats = self._get_steam_stats_text()
-        logger.info(f"{steam_stats=}")
         canvas.text(
             (10, 150),
             steam_stats.playtime_2weeks,
@@ -490,7 +484,7 @@ if __name__ == "__main__":
         # player_details = await faceit_client.player_details("Ayudesee")
 
         # print(steam_app_stat)
-        last_imcol = LastStatsImCol("-NAPAD")
+        last_imcol = LastStatsImCol("-NAPAD", True)
         imgs = await last_imcol.collect_image()
         imgs.show()
 

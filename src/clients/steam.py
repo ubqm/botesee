@@ -36,7 +36,6 @@ class SteamClient(AsyncClient):
                 response.raise_for_status()
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 403:
-                    logger.info(f"HTTP 403 for {e.response.url}")
                     return {}
                 logger.info(f"Retrying {url} for {i} time. {e}")
                 await asyncio.sleep(0.5 * 2**i)
