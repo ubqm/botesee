@@ -72,9 +72,11 @@ steam_client = SteamClient(conf.STEAM_TOKEN)
 if __name__ == "__main__":
 
     async def main():
-        res = await steam_client.user_app_stat("76561198030140352")
+        # ubqm = "76561198030140352"
+        napad = "76561198061461007"
+        res = await steam_client.user_app_stat(napad)
         print(res)
-        res = await steam_client.user_rec_played_stat("76561198030140352")
+        res = await steam_client.user_rec_played_stat(napad)
         print(res)
 
     asyncio.run(main())

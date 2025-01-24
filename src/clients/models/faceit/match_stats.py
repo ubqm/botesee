@@ -75,13 +75,9 @@ class Round(BaseModel):
                     return player.player_stats
         return None
 
-    def get_enemy_players(self, player_id: UUID) -> list[Player]:
-        enemy_team_idx: int | None = (
-            0
-            if player_id
-            in [player.player_id for team in self.teams[0] for player in team]
-            else 1
-        )
+    def get_enemy_players(self, current_player_id: UUID) -> list[Player]:
+        team0_player_ids = [player.player_id for player in self.teams[0].players]
+        enemy_team_idx: int = 0 if current_player_id in team0_player_ids else 1
 
         if not enemy_team_idx:
             return []

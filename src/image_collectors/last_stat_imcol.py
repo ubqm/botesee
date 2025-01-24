@@ -484,7 +484,7 @@ if __name__ == "__main__":
         # player_details = await faceit_client.player_details("Ayudesee")
 
         # print(steam_app_stat)
-        last_imcol = LastStatsImCol("-NAPAD")
+        last_imcol = LastStatsImCol("-NAPAD", True)
         imgs = await last_imcol.collect_image()
         imgs.show()
 
