@@ -45,7 +45,11 @@ class AvatarDesigner:
         if response.status != 200:
             return unknown_avatar
 
-        actual_avatar = Image.open(BytesIO(await response.read()))
+        try:
+            actual_avatar = Image.open(BytesIO(await response.read()))
+        except Exception:
+            return unknown_avatar
+
         actual_avatar = actual_avatar.convert("RGB")
         actual_avatar = actual_avatar.resize(avatar_size)
         return actual_avatar
