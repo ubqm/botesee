@@ -159,7 +159,8 @@ httpx_logger.propagate = False
 if __name__ == "__main__":
 
     async def main():
-        res = await faceit_client.player_details("Fr1ze")
+        # res = await faceit_client.player_details("Fr1ze")
+        res = await faceit_client.match_stats("1-9321d9eb-7d29-4202-9084-91298d5bf45e")
         # res = await faceit_client.player_history(
         #     UUID("278790a2-1f08-4350-bd96-427f7dcc8722")
         # )
