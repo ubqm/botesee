@@ -108,9 +108,9 @@ class MatchFinishedImCol:
                 match player.player_stats.adr:
                     case adr if adr >= 100:
                         return ColorTuple.GREEN
-                    case adr if 60 <= adr < 70:
+                    case adr if 50 <= adr < 60:
                         return ColorTuple.ORANGE
-                    case adr if adr < 60:
+                    case adr if adr < 50:
                         return ColorTuple.RED
                     case _:
                         return ColorTuple.WHITE
