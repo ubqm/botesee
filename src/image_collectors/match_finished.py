@@ -90,24 +90,36 @@ class MatchFinishedImCol:
 
     @staticmethod
     def _get_color_for_stat(
-        player: Player, stat: Literal["kad", "mvp", "kr", "kd"]
+        player: Player, stat: Literal["kad", "mvp", "adr", "kd"]
     ) -> ColorTuple:
-        if stat != "kd":
-            return ColorTuple.WHITE
-
-        match player.player_stats.kd_ratio:
-            case kd if kd >= 1.3:
-                return ColorTuple.GREEN
-            case kd if 0.6 <= kd < 0.8:
-                return ColorTuple.ORANGE
-            case kd if kd < 0.6:
-                return ColorTuple.RED
+        # TODO: refactor
+        match stat:
+            case "kd":
+                match player.player_stats.kd_ratio:
+                    case kd if kd >= 1.3:
+                        return ColorTuple.GREEN
+                    case kd if 0.6 <= kd < 0.8:
+                        return ColorTuple.ORANGE
+                    case kd if kd < 0.6:
+                        return ColorTuple.RED
+                    case _:
+                        return ColorTuple.WHITE
+            case "adr":
+                match player.player_stats.adr:
+                    case adr if adr >= 100:
+                        return ColorTuple.GREEN
+                    case adr if 60 <= adr < 70:
+                        return ColorTuple.ORANGE
+                    case adr if adr < 60:
+                        return ColorTuple.RED
+                    case _:
+                        return ColorTuple.WHITE
             case _:
                 return ColorTuple.WHITE
 
     def _draw_player_stat(
         self,
-        stat: Literal["kad", "mvp", "kr", "kd"],
+        stat: Literal["kad", "mvp", "adr", "kd"],
         player: Player,
         canvas: Image.Image,
         idx_team: int,
@@ -119,7 +131,7 @@ class MatchFinishedImCol:
             f"{player.player_stats.assists}/"
             f"{player.player_stats.deaths}",
             "mvp": f"MVP: {player.player_stats.mvps}",
-            "kr": f"K/R: {player.player_stats.kr_ratio:.2f}",
+            "adr": f"ADR: {player.player_stats.adr:.1f}",
             "kd": f"K/D: {player.player_stats.kd_ratio:.2f}",
         }
         text = stat_dict[stat]
@@ -127,10 +139,10 @@ class MatchFinishedImCol:
             text,
             font=self._get_font_for_stat(stat),
         )
-        stat_pos_dict: dict[Literal["kad", "mvp", "kr", "kd"], tuple[int, int]] = {
+        stat_pos_dict: dict[Literal["kad", "mvp", "adr", "kd"], tuple[int, int]] = {
             "kad": (130 + (162 - w) / 2 + idx_player * 162, 150 + 200 * idx_team),
             "mvp": (156 + idx_player * 162, 240 + 36 * idx_team),
-            "kr": (156 + idx_player * 162, 220 + 76 * idx_team),
+            "adr": (156 + idx_player * 162, 220 + 76 * idx_team),
             "kd": (156 + idx_player * 162, 200 + 116 * idx_team),
         }
         stat_color = self._get_color_for_stat(player, stat)
@@ -145,7 +157,7 @@ class MatchFinishedImCol:
         )
 
     def _get_font_for_stat(
-        self, stat: Literal["kad", "mvp", "kr", "kd"]
+        self, stat: Literal["kad", "mvp", "adr", "kd"]
     ) -> FreeTypeFont:
         return (
             self.fonts["player_score"] if stat == "kad" else self.fonts["player_stats"]
@@ -156,9 +168,9 @@ class MatchFinishedImCol:
     ) -> None:
         kad: Literal["kad"] = "kad"
         mvp: Literal["mvp"] = "mvp"
-        kr: Literal["kr"] = "kr"
+        adr: Literal["adr"] = "adr"
         kd: Literal["kd"] = "kd"
-        for stat in (kad, mvp, kr, kd):
+        for stat in (kad, mvp, adr, kd):
             self._draw_player_stat(stat, player, canvas, idx_team, idx_player)
 
     async def _draw_player_avatar(
