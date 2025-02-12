@@ -96,7 +96,7 @@ class MatchFinishedImCol:
         match stat:
             case "kd":
                 match player.player_stats.kd_ratio:
-                    case kd if kd >= 1.3:
+                    case kd if kd >= 1.5:
                         return ColorTuple.GREEN
                     case kd if 0.6 <= kd < 0.8:
                         return ColorTuple.ORANGE
