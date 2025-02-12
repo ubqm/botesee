@@ -114,6 +114,14 @@ class MatchFinishedImCol:
                         return ColorTuple.RED
                     case _:
                         return ColorTuple.WHITE
+            case "mvp":
+                match player.player_stats.mvps:
+                    case mvp if mvp == 0:
+                        return ColorTuple.RED
+                    case mvp if mvp >= 5:
+                        return ColorTuple.GREEN
+                    case _:
+                        return ColorTuple.WHITE
             case _:
                 return ColorTuple.WHITE
 
