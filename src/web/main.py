@@ -21,7 +21,7 @@ from src.web.dependencies import get_rabbit
 from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
 
-logger.add("errors.log", level="ERROR", rotation="1 week")
+logger.add("events.log", rotation="1 week")
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,

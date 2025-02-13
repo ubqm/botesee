@@ -16,10 +16,10 @@ distribution = false
 
 [project]
 name = "botesee"
-version = "1.3.0"
+version = "1.4.0"
 description = "Discord bot that handles FaceIT webhooks"
 authors = [
-    {name = "ubiqum-dev", email = "sharaevvlad@mail.ru"},
+    {name = "ubqm", email = "sharaevvlad@mail.ru"},
 ]
 dependencies = [
     "fastapi==0.115.6",
