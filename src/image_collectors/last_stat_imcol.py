@@ -20,6 +20,7 @@ from src.image_collectors.models.last_stat import (
     GameStatLastStorage,
     SteamStatLast,
 )
+from src.utils.comparators import kd_comparator
 from src.utils.enums import ColorTuple, available_maps
 
 
@@ -333,14 +334,7 @@ class LastStatsImCol:
 
     @staticmethod
     def _get_player_game_stat_color(kd_ratio: float) -> ColorTuple:
-        if kd_ratio >= 1.3:
-            return ColorTuple.GREEN
-        elif kd_ratio < 0.6:
-            return ColorTuple.RED
-        elif 0.8 > kd_ratio >= 0.6:
-            return ColorTuple.ORANGE
-        else:
-            return ColorTuple.WHITE
+        return kd_comparator.get_stat_color(kd_ratio)
 
     def _draw_game_kd(
         self, canvas: ImageDraw, game: GameStatLast, idx_game: int
