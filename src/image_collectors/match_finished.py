@@ -10,6 +10,7 @@ from src.clients.models.faceit.match_stats import Player, Round
 from src.discord_bot.models.embed import NickEloStorage
 from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.avatar_designer import AvatarDesigner
+from src.utils.comparators import adr_comparator, kd_comparator, mvp_comparator
 from src.utils.enums import ColorTuple, available_maps, subscribers
 from src.web.models.events import MatchFinished
 
@@ -92,36 +93,13 @@ class MatchFinishedImCol:
     def _get_color_for_stat(
         player: Player, stat: Literal["kad", "mvp", "adr", "kd"]
     ) -> ColorTuple:
-        # TODO: refactor
         match stat:
             case "kd":
-                match player.player_stats.kd_ratio:
-                    case kd if kd >= 1.5:
-                        return ColorTuple.GREEN
-                    case kd if 0.6 <= kd < 0.8:
-                        return ColorTuple.ORANGE
-                    case kd if kd < 0.6:
-                        return ColorTuple.RED
-                    case _:
-                        return ColorTuple.WHITE
+                return kd_comparator.get_stat_color(player.player_stats.kd_ratio)
             case "adr":
-                match player.player_stats.adr:
-                    case adr if adr >= 100:
-                        return ColorTuple.GREEN
-                    case adr if 50 <= adr < 60:
-                        return ColorTuple.ORANGE
-                    case adr if adr < 50:
-                        return ColorTuple.RED
-                    case _:
-                        return ColorTuple.WHITE
+                return adr_comparator.get_stat_color(player.player_stats.adr)
             case "mvp":
-                match player.player_stats.mvps:
-                    case mvp if mvp == 0:
-                        return ColorTuple.RED
-                    case mvp if mvp >= 5:
-                        return ColorTuple.GREEN
-                    case _:
-                        return ColorTuple.WHITE
+                return mvp_comparator.get_stat_color(player.player_stats.mvps)
             case _:
                 return ColorTuple.WHITE
 
