@@ -75,7 +75,7 @@ async def _weekly_stats() -> None:
     info = await WeeklyStatistics().get_weekly_stats()
     async with rabbit:
         await rabbit.publish(
-            message=str(TypeAdapter(list[WeeklyStats]).dump_json(info)),
+            message=TypeAdapter(list[WeeklyStats]).dump_json(info).decode(),
             routing_key=QueueName.WEEKLY_STATS,
         )
 
