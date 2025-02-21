@@ -105,7 +105,7 @@ class RabbitWorker:
             match_details=match_details, match_ready=match_ready
         )
 
-    async def _weekly_stats(self, stats: WeeklyStats) -> None:
+    async def _weekly_stats(self, stats: list[WeeklyStats]) -> None:
         await self.discord.post_weekly_stats(stats=stats)
 
     async def _wait_discord_startup(self):
@@ -172,9 +172,9 @@ class RabbitWorker:
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
-                stats: WeeklyStats = TypeAdapter(WeeklyStats).validate_python(
-                    json.loads(message.body.decode())
-                )
+                stats: list[WeeklyStats] = TypeAdapter(
+                    list[WeeklyStats]
+                ).validate_python(json.loads(message.body.decode()))
                 try:
                     await self._weekly_stats(stats)
                 except Exception as ex:

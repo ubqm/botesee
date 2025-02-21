@@ -372,7 +372,7 @@ class DiscordClient(discord.Client):
             await message.edit(embeds=message.embeds)
             break
 
-    async def post_weekly_stats(self, stats: WeeklyStats) -> None:
+    async def post_weekly_stats(self, stats: list[WeeklyStats]) -> None:
         logger.info("Posting WEEKLY STATS")
         logger.info(stats)
 
