@@ -30,8 +30,8 @@ class AvgPeriodStat(BaseModel):
 class WeeklyStats(BaseModel):
     latest_period_avg_stats: AvgPeriodStat
     prev_period_avg_stats: AvgPeriodStat
-    elo_prev: float
-    elo_current: float
+    elo_prev: int
+    elo_current: int
     nickname: str
 
 
