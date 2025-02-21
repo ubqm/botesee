@@ -23,6 +23,7 @@ from src.db import session_maker
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
+from src.db.repositories.statistics import WeeklyStats
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.discord_bot.views import MINUTES_TILL_EXPIRE, PreBetView
 from src.image_collectors.compare_imcol import CompareImCol
@@ -370,6 +371,10 @@ class DiscordClient(discord.Client):
                 )
             await message.edit(embeds=message.embeds)
             break
+
+    async def post_weekly_stats(self, stats: WeeklyStats) -> None:
+        logger.info("Posting WEEKLY STATS")
+        logger.info(stats)
 
 
 discord_client = DiscordClient(

@@ -28,7 +28,7 @@ class MatchRepository:
             session.add(match)
         return match
 
-    async def get_stats(self, match_ids: list[UUID]) -> list[MatchStatistics]:
+    async def get_stats(self, match_ids: list[str]) -> list[MatchStatistics]:
         stmt = (
             select(Match.stats)
             .where(Match.id.in_(match_ids))
@@ -37,6 +37,19 @@ class MatchRepository:
         async with session_maker() as session:
             match_stats = (await session.scalars(stmt)).all()
             return [MatchStatistics(**stat) for stat in match_stats]
+
+    async def get_player_matches(
+        self, player_id: UUID, from_dt: datetime, to_dt: datetime
+    ) -> list[Match]:
+        stmt = (
+            select(Match)
+            .where(Match.players.any(id=player_id))
+            .where(Match.date >= from_dt)
+            .where(Match.date <= to_dt)
+            .order_by(Match.date.asc())
+        )
+        async with session_maker() as session:
+            return (await session.scalars(stmt)).all()
 
 
 match_repo = MatchRepository()

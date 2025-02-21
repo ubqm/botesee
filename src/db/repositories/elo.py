@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import Integer, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +26,17 @@ class EloRepository:
             res = (await session.execute(stmt)).scalar_one()
 
         return res
+
+    async def get_player_elo_for_match(
+        self, player_id: UUID, match_id: str
+    ) -> int | None:
+        stmt = (
+            select(Elo.elo)
+            .where(Elo.player_id == player_id)
+            .where(Elo.match_id == match_id)
+        )
+        async with session_maker() as session:
+            return (await session.execute(stmt)).scalar_one()
 
 
 elo_repo = EloRepository()
