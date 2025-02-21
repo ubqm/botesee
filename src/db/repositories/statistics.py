@@ -68,10 +68,10 @@ class WeeklyStatistics:
                 player, prev_period_last_match.id
             )
 
-            avg_stats_latest_period = self.get_avg_stats_for_period(
+            avg_stats_latest_period = await self.get_avg_stats_for_period(
                 player, latest_period_stat
             )
-            avg_stats_prev_period = self.get_avg_stats_for_period(
+            avg_stats_prev_period = await self.get_avg_stats_for_period(
                 player, prev_period_stat
             )
 
@@ -109,7 +109,7 @@ class WeeklyStatistics:
             )
         )
 
-    def get_avg_stats_for_period(
+    async def get_avg_stats_for_period(
         self, player_id: UUID, period_stat: list[MatchStatistics]
     ) -> AvgPeriodStat:
         match_rounds: list[Round] = [
@@ -126,7 +126,7 @@ class WeeklyStatistics:
         avg_enemy_elo = (
             sum(
                 [
-                    elo_repo.get_avg_elo(match.match_id, enemy_players)
+                    await elo_repo.get_avg_elo(match.match_id, enemy_players)
                     for match, enemy_players in zip(
                         match_rounds, enemy_players_collection
                     )
