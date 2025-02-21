@@ -127,7 +127,7 @@ class RabbitWorker:
             )
 
     async def _consume_match_queue(self, channel: aio_pika.Channel):
-        logger.info(f"Start consuming from RABBIT. {QueueName.MATCHES = }")
+        logger.info(f"Start consuming from RABBIT queue {QueueName.MATCHES}")
         queue = await channel.declare_queue(QueueName.MATCHES, durable=True)
 
         async with queue.iterator() as queue_iter:
@@ -144,7 +144,7 @@ class RabbitWorker:
                     await message.ack()
 
     async def _consume_score_queue(self, channel: aio_pika.Channel):
-        logger.info(f"Start consuming from RABBIT. {QueueName.UPDATE_SCORE = }")
+        logger.info(f"Start consuming from RABBIT queue {QueueName.UPDATE_SCORE}")
         queue = await channel.declare_queue(QueueName.UPDATE_SCORE, durable=True)
 
         async with queue.iterator() as queue_iter:
@@ -167,18 +167,24 @@ class RabbitWorker:
                     await message.ack()
 
     async def _consume_weekly_stats_queue(self, channel: aio_pika.Channel):
-        logger.info(f"Start consuming from RABBIT. {QueueName.WEEKLY_STATS = }")
+        logger.info(f"Start consuming from RABBIT queue {QueueName.WEEKLY_STATS}")
         queue = await channel.declare_queue(QueueName.WEEKLY_STATS, durable=True)
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
-                stats: list[WeeklyStats] = TypeAdapter(
-                    list[WeeklyStats]
-                ).validate_python(json.loads(message.body.decode()))
                 try:
+                    message_body = message.body.decode()
+                    logger.info(f"{message_body=}")
+                    json_obj = json.loads(message_body)
+                    logger.info(json_obj)
+                    stats: list[WeeklyStats] = TypeAdapter(
+                        list[WeeklyStats]
+                    ).validate_python(json_obj)
+
                     await self._weekly_stats(stats)
                 except Exception as ex:
                     logger.exception(str(ex), exc_info=ex)
-                    raise ex
+                    # raise ex
+                    await message.ack()
                 else:
                     await message.ack()
