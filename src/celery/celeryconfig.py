@@ -5,7 +5,7 @@ celery_config = {
     "beat_schedule": {
         "src.celery.tasks.weekly_stats": {
             "task": "src.celery.tasks.weekly_stats",
-            "schedule": crontab(hour="6", day_of_week="1"),
+            "schedule": crontab(hour="23", minute="59", day_of_week="7"),
         },
     },
 }
