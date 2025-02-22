@@ -202,32 +202,32 @@ class WeeklyStatistics:
 
         return AvgPeriodStat(
             adr=Decimal(
-                f"{sum(stat.adr for stat in stats_collection) / match_amount}:.1f"
+                f"{sum(stat.adr for stat in stats_collection) / match_amount:.1f}"
             ),
             kills=Decimal(
-                f"{sum(stat.kills for stat in stats_collection) / match_amount}:.1f"
+                f"{sum(stat.kills for stat in stats_collection) / match_amount:.1f}"
             ),
             deaths=Decimal(
-                f"{sum(stat.deaths for stat in stats_collection) / match_amount}:.1f"
+                f"{sum(stat.deaths for stat in stats_collection) / match_amount:.1f}"
             ),
             mvps=Decimal(
-                f"{sum(stat.mvps for stat in stats_collection) / match_amount}:.1f"
+                f"{sum(stat.mvps for stat in stats_collection) / match_amount:.1f}"
             ),
             headshots_p=Decimal(
                 f"{sum(stat.headshots_p for stat in stats_collection)
-            / match_amount}:.1f"
+            / match_amount:.1f}"
             ),
             clutches_p=Decimal(
                 f"{sum(stat.match_1v1_winrate for stat in stats_collection)
-            / match_amount}:.1f"
+            / match_amount:.1f}"
             ),
-            enemy_elo=Decimal(f"{avg_enemy_elo}:.1f"),
+            enemy_elo=Decimal(f"{avg_enemy_elo:.1f}"),
             matches_played=match_amount,
             kd_ratio=Decimal(
-                f"{sum(stat.kd_ratio for stat in stats_collection) / match_amount}:.2f"
+                f"{sum(stat.kd_ratio for stat in stats_collection) / match_amount:.2f}"
             ),
             entry_success_rate=Decimal(
                 f"{sum(stat.match_entry_success_rate for stat in stats_collection)
-            / match_amount}:.1f"
+            / match_amount:.1f}"
             ),
         )
