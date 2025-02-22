@@ -12,6 +12,7 @@ from pydantic import TypeAdapter
 
 from src.clients.models.faceit.match_details import MatchDetails
 from src.clients.models.rabbit.queues import QueueName
+from src.db.repositories.statistics import WeeklyStats
 from src.discord_bot.client import DiscordClient
 from src.utils.shared_models import DetailsMatchDict
 from src.web.models.base import EventEnum
@@ -104,6 +105,9 @@ class RabbitWorker:
             match_details=match_details, match_ready=match_ready
         )
 
+    async def _weekly_stats(self, stats: list[WeeklyStats]) -> None:
+        await self.discord.post_weekly_stats(stats=stats)
+
     async def _wait_discord_startup(self):
         sleep_time = 0
         while not self.discord.faceit_channel:
@@ -117,15 +121,14 @@ class RabbitWorker:
         await self._wait_discord_startup()
         async with self.channel_pool.acquire() as channel:  # type: aio_pika.Channel
             await asyncio.gather(
-                self._consume_match_queue(channel, "matches"),
-                self._consume_score_queue(channel, "update_score"),
+                self._consume_match_queue(channel),
+                self._consume_score_queue(channel),
+                self._consume_weekly_stats_queue(channel),
             )
 
-    async def _consume_match_queue(
-        self, channel: aio_pika.Channel, queue_name: str = "matches"
-    ):
-        logger.info(f"Start consuming from RABBIT. {queue_name = }")
-        queue = await channel.declare_queue(queue_name, durable=True)
+    async def _consume_match_queue(self, channel: aio_pika.Channel):
+        logger.info(f"Start consuming from RABBIT queue {QueueName.MATCHES}")
+        queue = await channel.declare_queue(QueueName.MATCHES, durable=True)
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
@@ -140,11 +143,9 @@ class RabbitWorker:
                 else:
                     await message.ack()
 
-    async def _consume_score_queue(
-        self, channel: aio_pika.Channel, queue_name: str = "update_score"
-    ):
-        logger.info(f"Start consuming from RABBIT. {queue_name = }")
-        queue = await channel.declare_queue(queue_name, durable=True)
+    async def _consume_score_queue(self, channel: aio_pika.Channel):
+        logger.info(f"Start consuming from RABBIT queue {QueueName.UPDATE_SCORE}")
+        queue = await channel.declare_queue(QueueName.UPDATE_SCORE, durable=True)
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
@@ -162,5 +163,26 @@ class RabbitWorker:
                 except Exception as ex:
                     logger.exception(str(ex), exc_info=ex)
                     raise ex
+                else:
+                    await message.ack()
+
+    async def _consume_weekly_stats_queue(self, channel: aio_pika.Channel):
+        logger.info(f"Start consuming from RABBIT queue {QueueName.WEEKLY_STATS}")
+        queue = await channel.declare_queue(QueueName.WEEKLY_STATS, durable=True)
+
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
+                try:
+                    message_body = message.body.decode()
+                    json_obj = json.loads(message_body)
+                    stats: list[WeeklyStats] = TypeAdapter(
+                        list[WeeklyStats]
+                    ).validate_python(json_obj)
+
+                    await self._weekly_stats(stats)
+                except Exception as ex:
+                    logger.exception(str(ex), exc_info=ex)
+                    # raise ex
+                    await message.ack()
                 else:
                     await message.ack()
