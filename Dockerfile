@@ -34,4 +34,4 @@ ENTRYPOINT ["./web.sh"]
 
 # Celery
 FROM final AS celery
-CMD ["celery", "-A", "src.celery.tasks.app", "worker", "-l", "INFO"]
+CMD ["celery", "-A", "src.celery.tasks.app", "worker", "-B", "-l", "INFO"]

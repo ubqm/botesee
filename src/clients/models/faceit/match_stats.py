@@ -125,6 +125,13 @@ class Round(BaseModel):
 
         return self.teams[enemy_team_idx].players
 
+    def get_nickname(self, player_id: UUID) -> str | None:
+        for team in self.teams:
+            for player in team.players:
+                if player.player_id == player_id:
+                    return player.nickname
+        return None
+
 
 class MatchStatistics(BaseModel):
     rounds: list[Round] = Field(default_factory=list)

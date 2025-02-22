@@ -14,6 +14,7 @@ from discord import (
     app_commands,
 )
 from loguru import logger
+from pytz import timezone
 
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
@@ -23,11 +24,13 @@ from src.db import session_maker
 from src.db.models.gambling import BetCoefficient, BetMatch, BetType
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
+from src.db.repositories.statistics import WeeklyStats
 from src.discord_bot.models.embed import NickEloStorage, PlayerStorage
 from src.discord_bot.views import MINUTES_TILL_EXPIRE, PreBetView
 from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
 from src.image_collectors.match_finished import MatchFinishedImCol
+from src.image_collectors.weekly_stats import WeeklyStatsDesigner
 from src.utils.enums import subscribers
 from src.web.models.base import Player
 from src.web.models.events import MatchAborted, MatchFinished, MatchReady
@@ -370,6 +373,18 @@ class DiscordClient(discord.Client):
                 )
             await message.edit(embeds=message.embeds)
             break
+
+    async def post_weekly_stats(self, stats: list[WeeklyStats]) -> None:
+        now = datetime.now(tz=timezone("Europe/Minsk"))
+        now_7day = now - timedelta(days=7)
+        weekly_message = f"Weekly Period stats ({now_7day:%b %d} - {now:%b %d})"
+
+        wsd = WeeklyStatsDesigner(stats)
+        image = await wsd.collect_image()
+        await self.faceit_channel.send(
+            weekly_message,
+            file=self.compile_binary_image(image),
+        )
 
 
 discord_client = DiscordClient(
