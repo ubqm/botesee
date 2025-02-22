@@ -230,7 +230,7 @@ class WeeklyStatistics:
                 f"{sum(stat.mvps for stat in stats_collection) / match_amount:.1f}"
             ),
             headshots_p=Decimal(
-                f"{sum(stat.headshots_p for stat in stats_collection) * 100
+                f"{sum(stat.headshots_p for stat in stats_collection)
             / match_amount:.1f}"
             ),
             clutches_p=Decimal(
