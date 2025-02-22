@@ -14,6 +14,7 @@ from discord import (
     app_commands,
 )
 from loguru import logger
+from pytz import timezone
 
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_details import MatchDetails
@@ -374,17 +375,16 @@ class DiscordClient(discord.Client):
             break
 
     async def post_weekly_stats(self, stats: list[WeeklyStats]) -> None:
-        # now = datetime.now(tz=timezone("Europe/Minsk"))
-        # now_7day = now - timedelta(days=7)
-        # weekly_message = f"Weekly Period stats for {now_7day:%b %d} - {now:%b %d}"
+        now = datetime.now(tz=timezone("Europe/Minsk"))
+        now_7day = now - timedelta(days=7)
+        weekly_message = f"Weekly Period stats ({now_7day:%b %d} - {now:%b %d})"
 
         wsd = WeeklyStatsDesigner(stats)
         image = await wsd.collect_image()
-        image.save("temp.jpg")
-        # await self.faceit_channel.send(
-        #     weekly_message,
-        #     file=self.compile_binary_image(image),
-        # )
+        await self.faceit_channel.send(
+            weekly_message,
+            file=self.compile_binary_image(image),
+        )
 
 
 discord_client = DiscordClient(

@@ -12,6 +12,7 @@ from PIL.ImageEnhance import Brightness
 from src import redis_cache
 from src.db.repositories.statistics import WeeklyStats
 from src.image_collectors import TEMPLATE_PATH
+from src.utils.enums import ColorTuple
 
 
 class WeeklyStatsDesigner:
@@ -125,87 +126,75 @@ class WeeklyStatsDesigner:
             stroke_fill="black",
         )
 
-        elo_text = self._get_stat_text(player_stat.elo_current, player_stat.elo_prev)
-        w = im.textlength(elo_text, font=self.font)
-        im.text(
-            (215 - w / 2, 80 + idx * 60),
-            elo_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
+        self._draw_player_stat_value(
+            player_stat.elo_current, player_stat.elo_prev, 215, 80 + idx * 60
         )
-
-        kd_ratio_text = self._get_stat_text(
-            player_stat.get_kd_ratio("latest"), player_stat.get_kd_ratio("prev")
+        self._draw_player_stat_value(
+            player_stat.get_kd_ratio("latest"),
+            player_stat.get_kd_ratio("prev"),
+            335,
+            80 + idx * 60,
         )
-        w = im.textlength(kd_ratio_text, font=self.font)
-        im.text(
-            (335 - w / 2, 80 + idx * 60),
-            kd_ratio_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
+        self._draw_player_stat_value(
+            player_stat.get_adr("latest"),
+            player_stat.get_adr("prev"),
+            455,
+            80 + idx * 60,
         )
-
-        adr_text = self._get_stat_text(
-            player_stat.get_adr("latest"), player_stat.get_adr("prev")
+        self._draw_player_stat_value(
+            player_stat.get_headshots_p("latest"),
+            player_stat.get_headshots_p("prev"),
+            565,
+            80 + idx * 60,
         )
-        w = im.textlength(adr_text, font=self.font)
-        im.text(
-            (455 - w / 2, 80 + idx * 60),
-            adr_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
+        self._draw_player_stat_value(
+            player_stat.get_clutches_p("latest"),
+            player_stat.get_clutches_p("prev"),
+            675,
+            80 + idx * 60,
         )
-
-        headshots_p_text = self._get_stat_text(
-            player_stat.get_headshots_p("latest"), player_stat.get_headshots_p("prev")
+        self._draw_player_stat_value(
+            player_stat.get_entry_p("latest"),
+            player_stat.get_entry_p("prev"),
+            790,
+            80 + idx * 60,
         )
-        w = im.textlength(headshots_p_text, font=self.font)
-        im.text(
-            (565 - w / 2, 80 + idx * 60),
-            headshots_p_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
-        )
-
-        clutches_p_text = self._get_stat_text(
-            player_stat.get_clutches_p("latest"), player_stat.get_clutches_p("prev")
-        )
-        w = im.textlength(clutches_p_text, font=self.font)
-        im.text(
-            (675 - w / 2, 80 + idx * 60),
-            clutches_p_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
-        )
-
-        entry_p_text = self._get_stat_text(
-            player_stat.get_entry_p("latest"), player_stat.get_entry_p("prev")
-        )
-        w = im.textlength(entry_p_text, font=self.font)
-        im.text(
-            (790 - w / 2, 80 + idx * 60),
-            entry_p_text,
-            font=self.font,
-            stroke_width=1,
-            stroke_fill="black",
-        )
-
-        matches_played_text = self._get_stat_text(
+        self._draw_player_stat_value(
             player_stat.get_amount_matches("latest"),
             player_stat.get_amount_matches("prev"),
+            905,
+            80 + idx * 60,
         )
-        w = im.textlength(matches_played_text, font=self.font)
+
+    def _draw_player_stat_value(
+        self,
+        current_value: Decimal | int,
+        prev_value: Decimal | int | None,
+        center_x: int,
+        y: int,
+    ) -> None:
+        im = Draw(self.image)
+        value_delta_text = self._get_delta_text(current_value, prev_value)
+        value_delta_color = self._get_delta_color(current_value, prev_value)
+        value_text = f"{current_value}{value_delta_text}"
+        w = im.textlength(value_text, font=self.font)
+        start_pos = center_x - w / 2
+        current_value_len = im.textlength(str(current_value), font=self.font)
+        start_pos_delta = start_pos + current_value_len
         im.text(
-            (905 - w / 2, 80 + idx * 60),
-            matches_played_text,
+            (start_pos, y),
+            str(current_value),
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
+        )
+        im.text(
+            (start_pos_delta, y),
+            value_delta_text,
+            font=self.font,
+            stroke_width=1,
+            stroke_fill="black",
+            fill=value_delta_color,
         )
 
     async def _set_player_background(self, idx: int, player_stat: WeeklyStats) -> None:
@@ -237,3 +226,31 @@ class WeeklyStatsDesigner:
             return f"{latest_period_stat}({delta_stat})"
         else:
             return f"{latest_period_stat}(+{delta_stat})"
+
+    def _get_delta_text(
+        self, latest_period_stat: Decimal | int, prev_period_stat: Decimal | int | None
+    ) -> str:
+        if prev_period_stat is None:
+            return ""
+
+        delta_stat = latest_period_stat - prev_period_stat
+        if delta_stat == 0:
+            return ""
+        elif delta_stat < 0:
+            return f"({delta_stat})"
+        else:
+            return f"(+{delta_stat})"
+
+    def _get_delta_color(
+        self, latest_period_stat: Decimal | int, prev_period_stat: Decimal | int | None
+    ) -> ColorTuple:
+        if prev_period_stat is None:
+            return ColorTuple.WHITE
+
+        delta_stat = latest_period_stat - prev_period_stat
+        if delta_stat == 0:
+            return ColorTuple.WHITE
+        elif delta_stat < 0:
+            return ColorTuple.RED
+        else:
+            return ColorTuple.GREEN
