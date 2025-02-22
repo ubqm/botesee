@@ -174,9 +174,7 @@ class RabbitWorker:
             async for message in queue_iter:  # type: aio_pika.abc.AbstractIncomingMessage
                 try:
                     message_body = message.body.decode()
-                    logger.info(f"{message_body=}")
                     json_obj = json.loads(message_body)
-                    logger.info(json_obj)
                     stats: list[WeeklyStats] = TypeAdapter(
                         list[WeeklyStats]
                     ).validate_python(json_obj)
