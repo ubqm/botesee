@@ -7,6 +7,7 @@ from pydantic import TypeAdapter
 
 from celery import Celery
 from src import conf
+from src.celery.celeryconfig import celery_config
 from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
@@ -17,6 +18,7 @@ from src.web.dependencies import get_rabbit
 from src.web.models.events import MatchFinished, MatchReady
 
 app = Celery(broker=conf.redis_string)
+app.config_from_object(celery_config)
 event_loop = asyncio.new_event_loop()
 
 
