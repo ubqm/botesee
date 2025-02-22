@@ -124,7 +124,7 @@ class WeeklyStatistics:
                 if all_prev_period_week_matches.get(player)
                 else all_latest_week_matches[player][0]
             )
-            latest_elo = await elo_repo.get_player_elo_for_match(player, matches[0].id)
+            latest_elo = await elo_repo.get_player_elo_for_match(player, matches[-1].id)
             prev_period_elo = await elo_repo.get_player_elo_for_match(
                 player, prev_period_last_match.id
             )
