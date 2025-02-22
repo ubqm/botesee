@@ -29,6 +29,7 @@ from src.discord_bot.views import MINUTES_TILL_EXPIRE, PreBetView
 from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
 from src.image_collectors.match_finished import MatchFinishedImCol
+from src.image_collectors.weekly_stats import WeeklyStatsDesigner
 from src.utils.enums import subscribers
 from src.web.models.base import Player
 from src.web.models.events import MatchAborted, MatchFinished, MatchReady
@@ -373,8 +374,17 @@ class DiscordClient(discord.Client):
             break
 
     async def post_weekly_stats(self, stats: list[WeeklyStats]) -> None:
-        logger.info("Posting WEEKLY STATS")
-        logger.info(stats)
+        # now = datetime.now(tz=timezone("Europe/Minsk"))
+        # now_7day = now - timedelta(days=7)
+        # weekly_message = f"Weekly Period stats for {now_7day:%b %d} - {now:%b %d}"
+
+        wsd = WeeklyStatsDesigner(stats)
+        image = await wsd.collect_image()
+        image.save("temp.jpg")
+        # await self.faceit_channel.send(
+        #     weekly_message,
+        #     file=self.compile_binary_image(image),
+        # )
 
 
 discord_client = DiscordClient(
