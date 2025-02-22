@@ -110,31 +110,26 @@ class WeeklyStatistics:
         )
 
         for player, matches in all_latest_week_matches.items():
+            # Stats for both periods
+            avg_stats_latest_period = await self._get_latest_period_avg_stats(
+                player, matches
+            )
+            avg_stats_prev_period = await self._get_prev_period_avg_stats(
+                player, all_prev_period_week_matches.get(player, [])
+            )
+
+            # Calculate elo change
             prev_period_last_match = (
                 all_prev_period_week_matches[player][-1]
                 if all_prev_period_week_matches.get(player)
                 else all_latest_week_matches[player][0]
             )
-
-            latest_period_stat = await match_repo.get_stats(
-                [match.id for match in matches]
-            )
-            prev_period_stat = await match_repo.get_stats(
-                [match.id for match in matches]
-            )
-
             latest_elo = await elo_repo.get_player_elo_for_match(player, matches[0].id)
             prev_period_elo = await elo_repo.get_player_elo_for_match(
                 player, prev_period_last_match.id
             )
 
-            avg_stats_latest_period = await self.get_avg_stats_for_period(
-                player, latest_period_stat
-            )
-            avg_stats_prev_period = await self.get_avg_stats_for_period(
-                player, prev_period_stat
-            )
-
+            # player info for nickname, avatar and cover_image
             player_info = await faceit_client.player_details_by_id(player)
             weekly_stats_list.append(
                 WeeklyStats(
@@ -148,6 +143,27 @@ class WeeklyStatistics:
                 )
             )
         return weekly_stats_list
+
+    async def _get_latest_period_avg_stats(
+        self, player: UUID, matches: list[Match]
+    ) -> AvgPeriodStat:
+        latest_period_stat = await match_repo.get_stats([match.id for match in matches])
+        avg_stats_latest_period = await self.get_avg_stats_for_period(
+            player, latest_period_stat
+        )
+        return avg_stats_latest_period
+
+    async def _get_prev_period_avg_stats(
+        self, player: UUID, matches: list[Match]
+    ) -> AvgPeriodStat | None:
+        if not matches:
+            return None
+
+        prev_period_stat = await match_repo.get_stats([match.id for match in matches])
+        avg_stats_prev_period = await self.get_avg_stats_for_period(
+            player, prev_period_stat
+        )
+        return avg_stats_prev_period
 
     async def get_matches(
         self,
@@ -214,11 +230,11 @@ class WeeklyStatistics:
                 f"{sum(stat.mvps for stat in stats_collection) / match_amount:.1f}"
             ),
             headshots_p=Decimal(
-                f"{sum(stat.headshots_p for stat in stats_collection)
+                f"{sum(stat.headshots_p for stat in stats_collection) * 100
             / match_amount:.1f}"
             ),
             clutches_p=Decimal(
-                f"{sum(stat.match_1v1_winrate for stat in stats_collection)
+                f"{sum(stat.match_1v1_winrate for stat in stats_collection) * 100
             / match_amount:.1f}"
             ),
             enemy_elo=Decimal(f"{avg_enemy_elo:.1f}"),
@@ -227,7 +243,7 @@ class WeeklyStatistics:
                 f"{sum(stat.kd_ratio for stat in stats_collection) / match_amount:.2f}"
             ),
             entry_success_rate=Decimal(
-                f"{sum(stat.match_entry_success_rate for stat in stats_collection)
+                f"{sum(stat.match_entry_success_rate for stat in stats_collection) * 100
             / match_amount:.1f}"
             ),
         )
