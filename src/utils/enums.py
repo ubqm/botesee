@@ -51,6 +51,6 @@ class AvailableMaps(StrEnum):
     MIRAGE = "de_mirage"
     NUKE = "de_nuke"
     OVERPASS = "de_overpass"
-    VERTIGO = "de_vertigo"
     ANUBIS = "de_anubis"
     TRAIN = "de_train"
+    VERTIGO = "de_vertigo"
