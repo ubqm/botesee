@@ -11,7 +11,7 @@ from src.discord_bot.models.embed import NickEloStorage
 from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.avatar_designer import AvatarDesigner
 from src.utils.comparators import adr_comparator, kd_comparator, mvp_comparator
-from src.utils.enums import ColorTuple, available_maps, subscribers
+from src.utils.enums import AvailableMaps, ColorTuple, SubscribedPlayer
 from src.web.models.events import MatchFinished
 
 
@@ -177,7 +177,7 @@ class MatchFinishedImCol:
         avatar_designer = AvatarDesigner(req_player, player_elo, elo_diff)
         image_avatar = await avatar_designer.get_avatar(req_player, idx_team)
 
-        if player.player_id in subscribers:
+        if player.player_id in SubscribedPlayer:
             fade_image = self.fade_for_bottom_pfp if idx_team else self.fade_for_top_pfp
             fade_pos = (
                 (146 + idx_player * 162, 390 - self.fade_for_bottom_pfp.height)
@@ -270,7 +270,7 @@ class MatchFinishedImCol:
         return image_topcolor, image_botcolor
 
     async def _get_background(self, round_: Round) -> Image.Image:
-        if round_.round_stats.map not in available_maps.values:
+        if round_.round_stats.map not in AvailableMaps:
             image_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_undefined_map.jpg")
             image_map = image_map.resize((960, 540))
             return image_map

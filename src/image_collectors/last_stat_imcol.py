@@ -21,7 +21,7 @@ from src.image_collectors.models.last_stat import (
     SteamStatLast,
 )
 from src.utils.comparators import kd_comparator
-from src.utils.enums import ColorTuple, available_maps
+from src.utils.enums import AvailableMaps, ColorTuple
 
 
 class LastStatsImCol:
@@ -401,7 +401,7 @@ class LastStatsImCol:
             stroke_width=1,
             stroke_fill="black",
         )
-        if game.map_name in available_maps.values:
+        if game.map_name in AvailableMaps:
             current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{game.map_name}.jpg")
         else:
             current_map = Image.new(mode="RGBA", size=(90, 50), color="black")

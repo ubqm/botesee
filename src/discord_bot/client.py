@@ -31,7 +31,7 @@ from src.image_collectors.compare_imcol import CompareImCol
 from src.image_collectors.last_stat_imcol import LastStatsImCol
 from src.image_collectors.match_finished import MatchFinishedImCol
 from src.image_collectors.weekly_stats import WeeklyStatsDesigner
-from src.utils.enums import subscribers
+from src.utils.enums import SubscribedPlayer
 from src.web.models.base import Player
 from src.web.models.events import MatchAborted, MatchFinished, MatchReady
 
@@ -41,7 +41,7 @@ def get_match_finished_message_color(round: Round) -> int:
     teams_subscribers_found = [False, False]  # Team1 and Team2 boolean
     for idx_team, team in enumerate(round.teams):
         for player in team.players:
-            if player.player_id in subscribers:
+            if player.player_id in SubscribedPlayer:
                 teams_subscribers_found[idx_team] = True
     if all(teams_subscribers_found):
         return gray
@@ -77,7 +77,7 @@ async def get_nicks_and_elo(roster: list[Player], game: str = "cs2") -> NickEloS
     players_storage: list[PlayerStorage] = []
     for player in roster:
         elo = await faceit_client.get_player_elo_by_player_id(player.id, game)
-        is_sub: bool = player.id in subscribers
+        is_sub: bool = player.id in SubscribedPlayer
         players_storage.append(
             PlayerStorage(nickname=player.nickname, elo=elo, subscriber=is_sub)
         )
