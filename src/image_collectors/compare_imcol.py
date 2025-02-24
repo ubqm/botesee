@@ -353,10 +353,10 @@ class CompareImCol:
             stroke_width=1,
             stroke_fill="black",
         )
-        w = canvas.textlength("ACE", font=self.font)
+        w = canvas.textlength("FSR", font=self.font)
         canvas.text(
             ((960 - w) / 2, 460),
-            "ACE",
+            "FSR",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
@@ -512,13 +512,13 @@ class CompareImCol:
                 "type": "1f",
                 "format": "{value:.1f}",
             },
-            "ace": {
+            "fsr": {
                 "value": (
-                    player1_stats.total_ace(self.amount),
-                    player2_stats.total_ace(self.amount),
+                    player1_stats.mean_util_flash_sr(self.amount),
+                    player2_stats.mean_util_flash_sr(self.amount),
                 ),
-                "type": "total",
-                "format": "{value}",
+                "type": "%",
+                "format": "{value:.1f}%",
             },
             "mvp": {
                 "value": (
