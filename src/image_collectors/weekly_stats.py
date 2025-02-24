@@ -86,10 +86,10 @@ class WeeklyStatsDesigner:
             stroke_width=1,
             stroke_fill="black",
         )
-        w = im.textlength("1v1 %", font=self.font)
+        w = im.textlength("Flash SR%", font=self.font)
         im.text(
             (675 - w / 2, 28),
-            "1v1 %",
+            "Flash SR%",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
@@ -148,8 +148,8 @@ class WeeklyStatsDesigner:
             80 + idx * 60,
         )
         self._draw_player_stat_value(
-            player_stat.get_clutches_p("latest"),
-            player_stat.get_clutches_p("prev"),
+            player_stat.get_flash_sr_p("latest"),
+            player_stat.get_flash_sr_p("prev"),
             675,
             80 + idx * 60,
         )
