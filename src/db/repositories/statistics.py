@@ -15,7 +15,7 @@ from src.clients.models.faceit.match_stats import (
 from src.db import Match
 from src.db.repositories.elo import elo_repo
 from src.db.repositories.match import match_repo
-from src.utils.enums import subscribers
+from src.utils.enums import SubscribedPlayer
 
 
 class AvgPeriodStat(BaseModel):
@@ -99,12 +99,12 @@ class WeeklyStatistics:
     async def get_weekly_stats(self) -> list[WeeklyStats]:
         weekly_stats_list: list[WeeklyStats] = []
         all_latest_week_matches = await self.get_matches(
-            [uuid for name, uuid in subscribers],
+            [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=7),
             datetime.now(tz=UTC),
         )
         all_prev_period_week_matches = await self.get_matches(
-            [uuid for name, uuid in subscribers],
+            [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=14),
             datetime.now(tz=UTC) - timedelta(days=7),
         )
