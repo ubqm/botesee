@@ -139,6 +139,9 @@ class LastStatsImCol:
             map_name=match_round.round_stats.map,
             started_at=match_h.started_at,
             match_avg_elo=match_avg_elo,
+            adr=player_stats.adr,
+            utility_dpr=player_stats.utility_damage_per_round,
+            flash_sr=player_stats.flash_success_rate,
         )
 
     async def _collect_user_info(self):
@@ -433,21 +436,21 @@ class LastStatsImCol:
         )
         canvas.text(
             (10, 400),
-            f"K/R: {games.mean_kr():.2f}",
+            f"ADR: {games.mean_adr():.1f}",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
         )
         canvas.text(
             (10, 430),
-            f"Total 4K: {games.total_quadro()}",
+            f"Util DPR: {games.mean_util_dpr():.1f}",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
         )
         canvas.text(
             (10, 460),
-            f"Total 5K: {games.total_ace()}",
+            f"Flash Success Rate: {games.mean_util_flash_sr():.1f}%",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
