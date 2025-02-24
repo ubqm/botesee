@@ -180,6 +180,9 @@ class CompareImCol:
             map_score=match_round.round_stats.score,
             map_name=match_round.round_stats.map,
             started_at=match_h.started_at,
+            adr=player_stats.adr,
+            utility_dpr=player_stats.utility_damage_per_round,
+            flash_sr=player_stats.flash_success_rate,
         )
 
     @classmethod
@@ -318,10 +321,10 @@ class CompareImCol:
             stroke_width=1,
             stroke_fill="black",
         )
-        w = canvas.textlength("K/R", font=self.font)
+        w = canvas.textlength("ADR", font=self.font)
         canvas.text(
             ((960 - w) / 2, 340),
-            "K/R",
+            "ADR",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
@@ -342,18 +345,18 @@ class CompareImCol:
             stroke_width=1,
             stroke_fill="black",
         )
-        w = canvas.textlength("4K", font=self.font)
+        w = canvas.textlength("UDPR", font=self.font)
         canvas.text(
             ((960 - w) / 2, 430),
-            "4K",
+            "UDPR",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
         )
-        w = canvas.textlength("5K", font=self.font)
+        w = canvas.textlength("ACE", font=self.font)
         canvas.text(
             ((960 - w) / 2, 460),
-            "5K",
+            "ACE",
             font=self.font,
             stroke_width=1,
             stroke_fill="black",
@@ -477,13 +480,13 @@ class CompareImCol:
                 "type": "2f",
                 "format": "{value:.2f}",
             },
-            "kr": {
+            "adr": {
                 "value": (
-                    player1_stats.mean_kr(self.amount),
-                    player2_stats.mean_kr(self.amount),
+                    player1_stats.mean_adr(self.amount),
+                    player2_stats.mean_adr(self.amount),
                 ),
-                "type": "2f",
-                "format": "{value:.2f}",
+                "type": "1f",
+                "format": "{value:.1f}",
             },
             "hs": {
                 "value": (
@@ -501,13 +504,13 @@ class CompareImCol:
                 "type": "%",
                 "format": "{value}%",
             },
-            "quadro": {
+            "util_dpr": {
                 "value": (
-                    player1_stats.total_quadro(self.amount),
-                    player2_stats.total_quadro(self.amount),
+                    player1_stats.mean_util_dpr(self.amount),
+                    player2_stats.mean_util_dpr(self.amount),
                 ),
-                "type": "total",
-                "format": "{value}",
+                "type": "1f",
+                "format": "{value:.1f}",
             },
             "ace": {
                 "value": (

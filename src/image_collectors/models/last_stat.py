@@ -2,7 +2,7 @@ from datetime import datetime
 
 from PIL import Image
 from PIL.Image import Image as ImageClass
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.clients.models.faceit.player_details import PlayerDetails
 from src.clients.models.faceit.player_history import PlayerHistory
@@ -26,10 +26,13 @@ class GameStatLast(BaseModel):
     map_name: str
     started_at: datetime
     match_avg_elo: int = 0
+    adr: float = 0.0
+    utility_dpr: float = 0.0
+    flash_sr: float = 0.0
 
 
 class GameStatLastStorage(BaseModel):
-    games: list[GameStatLast]
+    games: list[GameStatLast] = Field(min_length=1)
 
     def __iter__(self):
         return iter(self.games)
@@ -154,6 +157,18 @@ class GameStatLastStorage(BaseModel):
             if total_games == game_num:
                 break
         return total_mvp / total_games
+
+    def mean_adr(self, game_num: int = 10) -> float:
+        games = self.games[:game_num]
+        return sum(game.adr for game in games) / len(games)
+
+    def mean_util_dpr(self, game_num: int = 10) -> float:
+        games = self.games[:game_num]
+        return sum(game.utility_dpr for game in games) / len(games)
+
+    def mean_util_flash_sr(self, game_num: int = 10) -> float:
+        games = self.games[:game_num]
+        return sum(game.flash_sr for game in games) / len(games) * 100
 
     def total_winrate(self, game_num: int = 10) -> int:
         games_won = 0
