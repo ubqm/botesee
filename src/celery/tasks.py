@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import httpx
+from httpx import ReadTimeout
 from loguru import logger
 from pydantic import TypeAdapter
 
@@ -46,7 +47,7 @@ async def _score_update(match_ready: MatchReady) -> None:
                 )
 
 
-@app.task
+@app.task(autoretry_for=(ReadTimeout,), retry_kwargs={"max_retries": 5})
 def match_score_update(match_ready_dict: dict) -> None:
     match_ready = MatchReady(**match_ready_dict)
     logger.info(f"Started score fetching for {match_ready.payload.id}")
