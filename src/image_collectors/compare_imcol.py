@@ -20,7 +20,7 @@ from src.image_collectors.models.last_stat import (
     GameStatLast,
     GameStatLastStorage,
 )
-from src.utils.enums import ColorEvaluation, ColorTuple, available_maps
+from src.utils.enums import AvailableMaps, ColorEvaluation, ColorTuple
 
 
 class CompareImCol:
@@ -545,7 +545,7 @@ class CompareImCol:
         left_stat_x = 110
         right_stat_x = 850
 
-        for idx, available_map in enumerate(available_maps.values):
+        for idx, available_map in enumerate(AvailableMaps):
             p1_won, p1_lost, p1_percentage = player1_stats.map_stats(
                 available_map, self.amount
             )
