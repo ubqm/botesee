@@ -28,6 +28,7 @@ class AvgPeriodStat(BaseModel):
     enemy_elo: Decimal = Field(decimal_places=1)
     kd_ratio: Decimal = Field(decimal_places=2)
     entry_success_rate: Decimal = Field(decimal_places=1)
+    flash_sr_p: Decimal = Field(decimal_places=1)
     matches_played: int
 
 
@@ -91,6 +92,15 @@ class WeeklyStats(BaseModel):
 
         if self.prev_period_avg_stats:
             return self.prev_period_avg_stats.clutches_p
+
+        return None
+
+    def get_flash_sr_p(self, mode: Literal["latest", "prev"]) -> Decimal | None:
+        if mode == "latest":
+            return self.latest_period_avg_stats.flash_sr_p
+
+        if self.prev_period_avg_stats:
+            return self.prev_period_avg_stats.flash_sr_p
 
         return None
 
@@ -245,5 +255,9 @@ class WeeklyStatistics:
             entry_success_rate=Decimal(
                 f"{sum(stat.match_entry_success_rate for stat in stats_collection) * 100
             / match_amount:.1f}"
+            ),
+            flash_sr_p=Decimal(
+                f"{sum(stat.flash_success_rate for stat in stats_collection) * 100
+                   / match_amount:.1f}"
             ),
         )
