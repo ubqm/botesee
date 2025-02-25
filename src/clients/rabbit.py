@@ -139,6 +139,7 @@ class RabbitWorker:
                     await self._process_match(match)
                 except Exception as ex:
                     logger.exception(str(ex), exc_info=ex)
+                    await message.nack()
                     raise ex
                 else:
                     await message.ack()
@@ -162,6 +163,7 @@ class RabbitWorker:
                     await self._update_score(match_details, match_ready)
                 except Exception as ex:
                     logger.exception(str(ex), exc_info=ex)
+                    await message.nack()
                     raise ex
                 else:
                     await message.ack()
@@ -182,7 +184,7 @@ class RabbitWorker:
                     await self._weekly_stats(stats)
                 except Exception as ex:
                     logger.exception(str(ex), exc_info=ex)
-                    # raise ex
-                    await message.ack()
+                    await message.nack()
+                    raise ex
                 else:
                     await message.ack()
