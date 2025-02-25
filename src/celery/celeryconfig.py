@@ -9,6 +9,5 @@ celery_config = {
         },
     },
     "task_reject_on_worker_lost": True,
-    "task_acks_late": True,
     "broker_connection_retry_on_startup": True,
 }
