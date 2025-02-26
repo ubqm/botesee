@@ -117,6 +117,7 @@ class WeeklyStatistics:
             [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=14),
             datetime.now(tz=UTC) - timedelta(days=7),
+            0,
         )
 
         for player, matches in all_latest_week_matches.items():
@@ -180,6 +181,7 @@ class WeeklyStatistics:
         player_ids: Iterable[UUID],
         from_dt: datetime,
         to_dt: datetime,
+        min_matches: int = 5,
     ) -> dict[UUID, list[Match]]:
         all_players_matches: dict[UUID, list[Match]] = {}
         for player_uuid in player_ids:
@@ -188,7 +190,7 @@ class WeeklyStatistics:
                 from_dt=from_dt,
                 to_dt=to_dt,
             )
-            if len(matches) >= 5:  # min matches required for weekly stats
+            if len(matches) >= min_matches:  # min matches required for weekly stats
                 all_players_matches[player_uuid] = matches
 
         return dict(
