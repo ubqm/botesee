@@ -47,7 +47,11 @@ async def _score_update(match_ready: MatchReady) -> None:
                 )
 
 
-@app.task(autoretry_for=(ReadTimeout,), retry_kwargs={"max_retries": 5, "countdown": 5})
+@app.task(
+    name="match_score_update",
+    autoretry_for=(ReadTimeout,),
+    retry_kwargs={"max_retries": 5, "countdown": 5},
+)
 def match_score_update(match_ready_dict: dict) -> None:
     match_ready = MatchReady(**match_ready_dict)
     logger.info(f"Started score fetching for {match_ready.payload.id}")
@@ -66,6 +70,7 @@ async def _match_finished(match: MatchFinished) -> None:
 
 
 @app.task(
+    name="match_finished",
     autoretry_for=(ReadTimeout,),
     retry_kwargs={"max_retries": 5, "countdown": 5},
     acks_late=True,
@@ -88,6 +93,7 @@ async def _weekly_stats() -> None:
 
 
 @app.task(
+    name="weekly_stats",
     autoretry_for=(ReadTimeout,),
     retry_kwargs={"max_retries": 5, "countdown": 5},
     acks_late=True,
