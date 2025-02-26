@@ -65,7 +65,11 @@ async def _match_finished(match: MatchFinished) -> None:
         )
 
 
-@app.task(autoretry_for=(ReadTimeout,), retry_kwargs={"max_retries": 5, "countdown": 5})
+@app.task(
+    autoretry_for=(ReadTimeout,),
+    retry_kwargs={"max_retries": 5, "countdown": 5},
+    acks_late=True,
+)
 def match_finished(match_finished_dict: dict) -> None:
     match = MatchFinished(**match_finished_dict)
     logger.info(f"Match finished {match.payload.id}")
@@ -83,7 +87,11 @@ async def _weekly_stats() -> None:
         )
 
 
-@app.task(autoretry_for=(ReadTimeout,), retry_kwargs={"max_retries": 5, "countdown": 5})
+@app.task(
+    autoretry_for=(ReadTimeout,),
+    retry_kwargs={"max_retries": 5, "countdown": 5},
+    acks_late=True,
+)
 def weekly_stats() -> None:
     logger.info("Weekly stats started")
     event_loop.run_until_complete(_weekly_stats())
