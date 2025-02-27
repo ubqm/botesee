@@ -9,9 +9,11 @@ from fastapi import (
 )
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
+from starlette.staticfiles import StaticFiles
 
 from src import conf
 from src.celery.tasks import match_finished, match_score_update
@@ -22,7 +24,12 @@ from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
 
 logger.add("events.log", rotation="1 week")
-app = FastAPI()
+app = FastAPI(
+    title="botesee",
+    version="1.5.0",
+    docs_url=None,
+    redoc_url=None,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,6 +37,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 
 @app.exception_handler(RequestValidationError)
@@ -59,6 +67,16 @@ async def faceit_webhook_auth(
 
 class OKResponse(BaseModel):
     status: str = "ok"
+
+
+@app.get("/swagger", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI",
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+    )
 
 
 @app.get("/", tags=["health"])
