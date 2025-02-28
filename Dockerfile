@@ -29,6 +29,7 @@ CMD ["python3", "src/discord_bot/main.py"]
 FROM final AS web
 COPY alembic.ini alembic.ini
 COPY web.sh web.sh
+COPY uvicorn_log_conf.json uvicorn_log_conf.json
 RUN chmod +x web.sh
 ENTRYPOINT ["./web.sh"]
 
