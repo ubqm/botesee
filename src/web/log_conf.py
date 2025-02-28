@@ -13,9 +13,7 @@ class TimeColorizedFormatter(AccessFormatter):
         recordcopy = copy(record)
         asctime = self.get_asctime(recordcopy.asctime)
 
-        levelname = self.color_level_name(
-            f"{recordcopy.levelname:<8}", recordcopy.levelno
-        )
+        levelname = click.style(f"{recordcopy.levelname:<8}", bold=True)
 
         recordcopy.__dict__.update(
             {
