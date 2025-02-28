@@ -117,7 +117,7 @@ class WeeklyStatistics:
             [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=14),
             datetime.now(tz=UTC) - timedelta(days=7),
-            0,
+            1,
         )
 
         for player, matches in all_latest_week_matches.items():
