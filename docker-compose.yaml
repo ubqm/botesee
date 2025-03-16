@@ -78,6 +78,8 @@ services:
     depends_on:
       botesee_rabbit:
         condition: service_healthy
+      botesee_redis:
+        condition: service_healthy
     tty: true
 
   botesee_flower:
