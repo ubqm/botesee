@@ -35,4 +35,4 @@ ENTRYPOINT ["./web.sh"]
 
 # Celery
 FROM final AS celery
-CMD ["celery", "-A", "src.celery.tasks.app", "worker", "-B", "-l", "INFO"]
+CMD ["celery", "-A", "src.celery.tasks.app", "worker", "-B", "-l", "INFO", "--autoscale=20,4"]
