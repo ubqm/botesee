@@ -7,9 +7,17 @@ from src.db import Elo, Match, Player, session_maker
 
 
 class EloRepository:
-    async def create(
+    async def get_or_create(
         self, session: AsyncSession, player: Player, match: Match, elo: int
     ) -> Elo:
+        stmt = (
+            select(Elo)
+            .where(Elo.match_id == match.id)
+            .where(Elo.player_id == player.id)
+        )
+        if db_elo := await session.scalar(stmt):
+            return db_elo
+
         elo_obj: Elo = Elo(match=match, player=player, elo=elo)
         session.add(elo_obj)
         return elo_obj
