@@ -26,7 +26,7 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
                         date=match.timestamp,
                         game=match.payload.game,
                     )
-                    await elo_repo.create(
+                    await elo_repo.get_or_create(
                         session=sa_session,
                         player=db_player,
                         match=db_match,
