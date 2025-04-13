@@ -68,4 +68,4 @@ class BaseMatch(BaseModel):
     retry_count: int
     version: int
 
-    model_config = ConfigDict(use_enum_values=True)
+    model_config = ConfigDict(use_enum_values=True, extra="allow")
