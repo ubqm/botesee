@@ -193,7 +193,7 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image_avatar = Image.open(BytesIO(await response.read()))
                 else:
-                    logger.warning(f"[{response.status}] code for avatar {response.url}. {response.text}")
+                    logger.warning(f"[{response.status}] code for avatar {response.url}. {await response.text()}")
                     self.image_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
                     self.image_avatar = self.image_avatar.resize((130, 130))
             self.image_avatar = self.image_avatar.convert("RGB")
@@ -210,7 +210,7 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image = Image.open(BytesIO(await response.read()))
                 else:
-                    logger.warning(f"[{response.status}] code for background {response.url}. {response.text}")
+                    logger.warning(f"[{response.status}] code for background {response.url}. {await response.text()}")
                     self.image = Image.new("RGB", size=(960, 540), color="black")
         else:
             logger.warning(f"No background found for player {self.player_stat[self.nickname]}. Setting default black")
