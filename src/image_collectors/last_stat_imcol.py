@@ -5,6 +5,7 @@ import pytz
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
 from PIL import Image, ImageDraw, ImageFont
+from loguru import logger
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
@@ -192,7 +193,9 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image_avatar = Image.open(BytesIO(await response.read()))
                 else:
-                    self.image_avatar = Image.new("RGB", size=(130, 130), color="black")
+                    logger.warning(f"[{response.status}] code for avatar {response.url}. {response.text}")
+                    self.image_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
+                    self.image_avatar = self.image_avatar.resize((130, 130))
             self.image_avatar = self.image_avatar.convert("RGB")
             self.image_avatar = self.image_avatar.resize((130, 130))
         else:
@@ -207,9 +210,12 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image = Image.open(BytesIO(await response.read()))
                 else:
-                    self.image_avatar = Image.new("RGB", size=(960, 540), color="black")
+                    logger.warning(f"[{response.status}] code for background {response.url}. {response.text}")
+                    self.image = Image.new("RGB", size=(960, 540), color="black")
         else:
+            logger.warning(f"No background found for player {self.player_stat[self.nickname]}. Setting default black")
             self.image = Image.new(mode="RGBA", size=(960, 540), color="black")
+
         self._resize_background()
         self.image.paste(self.bg_dark_right, (0, 0), self.bg_dark_right)
 
