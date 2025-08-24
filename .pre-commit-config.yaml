@@ -23,3 +23,9 @@ repos:
     require_serial: true
     args: []
     language: python
+  - id: bump-version
+    name: Bump version
+    entry: bash -c 'bump-my-version bump patch'
+    language: system
+    files: ^pyporject\.toml$
+    require_serial: true

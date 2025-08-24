@@ -4,8 +4,8 @@ from io import BytesIO
 import pytz
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession
-from PIL import Image, ImageDraw, ImageFont
 from loguru import logger
+from PIL import Image, ImageDraw, ImageFont
 
 from src import redis_cache
 from src.clients.faceit import faceit_client
@@ -193,8 +193,13 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image_avatar = Image.open(BytesIO(await response.read()))
                 else:
-                    logger.warning(f"[{response.status}] code for avatar {response.url}. {await response.text()}")
-                    self.image_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
+                    logger.warning(
+                        f"[{response.status}] code for avatar {response.url}. "
+                        f"{await response.text()}"
+                    )
+                    self.image_avatar = Image.open(
+                        f"{TEMPLATE_PATH}/question-mark-icon.jpg"
+                    )
                     self.image_avatar = self.image_avatar.resize((130, 130))
             self.image_avatar = self.image_avatar.convert("RGB")
             self.image_avatar = self.image_avatar.resize((130, 130))
@@ -210,10 +215,16 @@ class LastStatsImCol:
                 if response.status == 200:
                     self.image = Image.open(BytesIO(await response.read()))
                 else:
-                    logger.warning(f"[{response.status}] code for background {response.url}. {await response.text()}")
+                    logger.warning(
+                        f"[{response.status}] code for background {response.url}. "
+                        f"{await response.text()}"
+                    )
                     self.image = Image.new("RGB", size=(960, 540), color="black")
         else:
-            logger.warning(f"No background found for player {self.player_stat[self.nickname]}. Setting default black")
+            logger.warning(
+                f"No background found for player {self.player_stat[self.nickname]}. "
+                f"Setting default black"
+            )
             self.image = Image.new(mode="RGBA", size=(960, 540), color="black")
 
         self._resize_background()

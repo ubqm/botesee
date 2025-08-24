@@ -26,8 +26,8 @@ from src.web.models.events import WebhookMatch
 logger.add("events.log", rotation="1 week")
 app = FastAPI(
     title="botesee",
-    version="1.5.0",
-    docs_url=None,
+    version=conf.project_version,
+    docs_url="/server-docs",
     redoc_url=None,
 )
 app.add_middleware(
