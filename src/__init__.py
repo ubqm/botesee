@@ -1,5 +1,7 @@
 from datetime import timedelta
 from enum import StrEnum
+from pathlib import Path
+import tomllib as tl
 
 from aiohttp_client_cache import RedisBackend
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -40,6 +42,12 @@ class Settings(BaseSettings):
     @property
     def redis_string(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+
+    @property
+    def project_version(self) -> str:
+        with Path("pyproject.toml").open("rb") as pyproj_file:
+            data = tl.load(pyproj_file)
+            return data.get("project", {}).get("version", "0.0.1")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
