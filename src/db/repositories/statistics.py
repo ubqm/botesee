@@ -242,12 +242,15 @@ class WeeklyStatistics:
                 f"{sum(stat.mvps for stat in stats_collection) / match_amount:.1f}"
             ),
             headshots_p=Decimal(
-                f"{sum(stat.headshots_p for stat in stats_collection)
-            / match_amount:.1f}"
+                f"{
+                    sum(stat.headshots_p for stat in stats_collection)
+                    / match_amount:.1f}"
             ),
             clutches_p=Decimal(
-                f"{sum(stat.match_1v1_winrate for stat in stats_collection) * 100
-            / match_amount:.1f}"
+                f"{
+                    sum(stat.match_1v1_winrate for stat in stats_collection)
+                    * 100
+                    / match_amount:.1f}"
             ),
             enemy_elo=Decimal(f"{avg_enemy_elo:.1f}"),
             matches_played=match_amount,
@@ -255,11 +258,15 @@ class WeeklyStatistics:
                 f"{sum(stat.kd_ratio for stat in stats_collection) / match_amount:.2f}"
             ),
             entry_success_rate=Decimal(
-                f"{sum(stat.match_entry_success_rate for stat in stats_collection) * 100
-            / match_amount:.1f}"
+                f"{
+                    sum(stat.match_entry_success_rate for stat in stats_collection)
+                    * 100
+                    / match_amount:.1f}"
             ),
             flash_sr_p=Decimal(
-                f"{sum(stat.flash_success_rate for stat in stats_collection) * 100
-                   / match_amount:.1f}"
+                f"{
+                    sum(stat.flash_success_rate for stat in stats_collection)
+                    * 100
+                    / match_amount:.1f}"
             ),
         )
