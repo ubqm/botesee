@@ -16,7 +16,7 @@ distribution = false
 
 [project]
 name = "botesee"
-version = "1.6.1"
+version = "1.7.0"
 description = "Discord bot that handles FaceIT webhooks"
 authors = [
     {name = "ubqm", email = "sharaevvlad@mail.ru"},
