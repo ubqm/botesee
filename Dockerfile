@@ -4,12 +4,12 @@ RUN apt-get update
 RUN apt-get install build-essential curl -y
 
 RUN pip install -U pip setuptools wheel
-RUN pip install pdm
+COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /uvx /bin/
 
-COPY pyproject.toml pdm.lock /botesee/
+COPY pyproject.toml uv.lock /botesee/
 
 WORKDIR /botesee
-RUN mkdir __pypackages__ && pdm sync --prod --no-editable
+RUN uv sync --locked
 
 COPY src/ /botesee/src
 
@@ -18,8 +18,8 @@ FROM python:3.12.8-slim AS final
 COPY --from=base /botesee /botesee/
 
 WORKDIR /botesee
-ENV PATH "${PATH}:/botesee/__pypackages__/3.12/bin/"
-ENV PYTHONPATH "/botesee:/botesee/__pypackages__/3.12/lib:${PYTHONPATH}"
+ENV PATH "${PATH}:/botesee/.venv/bin/"
+ENV PYTHONPATH "/botesee:/botesee/.venv/lib:${PYTHONPATH}"
 
 # Discord bot
 FROM final AS discord-bot
@@ -35,4 +35,4 @@ ENTRYPOINT ["./web.sh"]
 
 # Celery
 FROM final AS celery
-CMD ["celery", "-A", "src.celery.tasks.app", "worker", "-B", "-l", "INFO", "--autoscale=20,4"]
+CMD ["celery", "-A", "src.celery_app.tasks.app", "worker", "-B", "-l", "INFO", "--autoscale=20,4"]

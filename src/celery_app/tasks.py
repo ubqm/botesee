@@ -2,13 +2,13 @@ import asyncio
 import json
 
 import httpx
+from celery import Celery
 from httpx import ReadTimeout
 from loguru import logger
 from pydantic import TypeAdapter
 
-from celery import Celery
 from src import conf
-from src.celery.celeryconfig import celery_config
+from src.celery_app.celeryconfig import celery_config
 from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
