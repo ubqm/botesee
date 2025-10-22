@@ -18,7 +18,7 @@ FROM python:3.12.8-slim AS final
 COPY --from=base /botesee /botesee/
 
 WORKDIR /botesee
-ENV PATH "${PATH}:/botesee/.venv/bin/"
+ENV PATH "/botesee/.venv/bin/:${PATH}"
 ENV PYTHONPATH "/botesee:/botesee/.venv/lib:${PYTHONPATH}"
 
 # Discord bot
