@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        cd src/
         uv sync --group dev
     - name: Lint
       run: |
