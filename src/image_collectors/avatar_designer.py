@@ -3,8 +3,7 @@ from io import BytesIO
 from aiohttp_client_cache import CachedSession
 from PIL import Image, ImageDraw, ImageFont
 
-from src import redis_cache
-from src.image_collectors import TEMPLATE_PATH
+from src import conf, redis_cache
 from src.web.models.base import Player
 
 
@@ -12,12 +11,14 @@ class AvatarDesigner:
     font_folder = "jetbrains_mono"
     font_file = "JetBrainsMono-ExtraBold.ttf"
     image_dark_avatar_bot = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_bot.png"
+        f"{conf.TEMPLATE_PATH}/background_features/for_avatar_bot.png"
     )
     image_dark_avatar_top = Image.open(
-        f"{TEMPLATE_PATH}/background_features/for_avatar_top.png"
+        f"{conf.TEMPLATE_PATH}/background_features/for_avatar_top.png"
     )
-    font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18)
+    font = ImageFont.truetype(
+        f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
+    )
 
     def __init__(self, player: Player, player_elo: int, elo_diff: str):
         self.player = player
@@ -34,7 +35,7 @@ class AvatarDesigner:
     @staticmethod
     async def _download_player_avatar(req_player: Player) -> Image.Image:
         avatar_size = (130, 130)
-        unknown_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
+        unknown_avatar = Image.open(f"{conf.TEMPLATE_PATH}/question-mark-icon.jpg")
         unknown_avatar = unknown_avatar.resize(avatar_size)
         if not req_player.avatar:
             return unknown_avatar
@@ -81,7 +82,7 @@ class AvatarDesigner:
 
         faceit_lvl = player.game_skill_level
         faceit_lvl_icon = Image.open(
-            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceit_lvl}.png"
+            f"{conf.TEMPLATE_PATH}/faceit_icons/faceit{faceit_lvl}.png"
         ).convert("RGBA")
         faceit_lvl_icon_pos = (0, 0 + 106 * idx_team)
         image_avatar.paste(faceit_lvl_icon, faceit_lvl_icon_pos, faceit_lvl_icon)

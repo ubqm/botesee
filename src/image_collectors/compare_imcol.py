@@ -8,13 +8,12 @@ from aiohttp_client_cache import CachedSession
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
-from src import redis_cache
+from src import conf, redis_cache
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_details import PlayerDetails
 from src.clients.models.faceit.player_history import MatchHistory
 from src.db.repositories.match import match_repo
-from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.models.last_stat import (
     FullPlayerStat,
     GameStatLast,
@@ -40,13 +39,13 @@ class CompareImCol:
         self.image: Image = Image.new("RGBA", size=(960, 540))
         self.dark_bg: Image = Image.new("RGB", size=(960, 540), color="black")
         self.dark_middle: Image = Image.open(
-            f"{TEMPLATE_PATH}/background_features/dark-middle-compare.png"
+            f"{conf.TEMPLATE_PATH}/background_features/dark-middle-compare.png"
         )
         self.font: FreeTypeFont = ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26
+            f"{conf.TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26
         )
         self.font_name: FreeTypeFont = ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36
+            f"{conf.TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36
         )
 
     @staticmethod
@@ -117,7 +116,7 @@ class CompareImCol:
                 image_avatar = image_avatar.convert("RGB")
                 image_avatar = image_avatar.resize((130, 130))
         else:
-            image_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
+            image_avatar = Image.open(f"{conf.TEMPLATE_PATH}/question-mark-icon.jpg")
             image_avatar = image_avatar.resize((130, 130))
         return image_avatar
 
@@ -582,7 +581,9 @@ class CompareImCol:
                 stroke_fill="black",
             )
 
-            current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{available_map}.jpg")
+            current_map = Image.open(
+                f"{conf.TEMPLATE_PATH}/maps/cs2_{available_map}.jpg"
+            )
             current_map = current_map.resize((map_w, map_h))
             self.image.paste(current_map, (10, map_h * idx + map_y_start))
             self.image.paste(current_map, (860, map_h * idx + map_y_start))

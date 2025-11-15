@@ -9,16 +9,17 @@ from PIL.Image import open as image_open
 from PIL.ImageDraw import Draw
 from PIL.ImageEnhance import Brightness
 
-from src import redis_cache
+from src import conf, redis_cache
 from src.db.repositories.statistics import WeeklyStats
-from src.image_collectors import TEMPLATE_PATH
 from src.utils.enums import ColorTuple
 
 
 class WeeklyStatsDesigner:
     font_folder = "phagspa"
     font_file = "phagspab_0.ttf"
-    font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18)
+    font = ImageFont.truetype(
+        f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
+    )
 
     def __init__(self, stats: list[WeeklyStats]):
         self.stats = stats
@@ -32,12 +33,12 @@ class WeeklyStatsDesigner:
 
     async def _set_background(self) -> None:
         self.image = image_open(
-            f"{TEMPLATE_PATH}/background_features/background_weekly.jpg"
+            f"{conf.TEMPLATE_PATH}/background_features/background_weekly.jpg"
         ).convert("RGB")
         self.image = self.image.resize((960, 540))
 
         column_shadow = image_open(
-            f"{TEMPLATE_PATH}/background_features/gradient_table_shadow.png"
+            f"{conf.TEMPLATE_PATH}/background_features/gradient_table_shadow.png"
         )
         self.image.paste(column_shadow, (160, 0), column_shadow)
         self.image.paste(column_shadow, (400, 0), column_shadow)
