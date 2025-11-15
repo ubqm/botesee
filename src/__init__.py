@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = ""
     REDIS_PORT: int = 6379
     START_BALANCE: int = 100
+    TEMPLATE_PATH: str = "./src/image_collectors/templates"
 
     @property
     def db_string(self) -> str:

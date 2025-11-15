@@ -7,14 +7,13 @@ from aiohttp_client_cache import CachedSession
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFont
 
-from src import redis_cache
+from src import conf, redis_cache
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Round
 from src.clients.models.faceit.player_history import MatchHistory
 from src.clients.steam import steam_client
 from src.db.repositories.elo import elo_repo
 from src.db.repositories.match import match_repo
-from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.models.last_stat import (
     FullPlayerStat,
     GameStatLast,
@@ -26,12 +25,16 @@ from src.utils.enums import AvailableMaps, ColorTuple
 
 
 class LastStatsImCol:
-    font = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
-    font_name = ImageFont.truetype(f"{TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36)
-    lose_bg = Image.open(f"{TEMPLATE_PATH}/background_features/right-side-lose.png")
-    win_bg = Image.open(f"{TEMPLATE_PATH}/background_features/right-side-win.png")
+    font = ImageFont.truetype(f"{conf.TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 26)
+    font_name = ImageFont.truetype(
+        f"{conf.TEMPLATE_PATH}/fonts/Outfit/Outfit-Bold.ttf", 36
+    )
+    lose_bg = Image.open(
+        f"{conf.TEMPLATE_PATH}/background_features/right-side-lose.png"
+    )
+    win_bg = Image.open(f"{conf.TEMPLATE_PATH}/background_features/right-side-win.png")
     bg_dark_right = Image.open(
-        f"{TEMPLATE_PATH}/background_features/dark-right-side-for-stat.png"
+        f"{conf.TEMPLATE_PATH}/background_features/dark-right-side-for-stat.png"
     )
 
     def __init__(self, nickname: str, use_faceit_api: bool = False):
@@ -86,6 +89,8 @@ class LastStatsImCol:
             (160, 20),
             self.player_stat[self.nickname].player_details.nickname,
             font=self.font_name,
+            stroke_width=2,
+            stroke_fill="black",
         )
 
         self._draw_avatar()
@@ -198,13 +203,15 @@ class LastStatsImCol:
                         f"{await response.text()}"
                     )
                     self.image_avatar = Image.open(
-                        f"{TEMPLATE_PATH}/question-mark-icon.jpg"
+                        f"{conf.TEMPLATE_PATH}/question-mark-icon.jpg"
                     )
                     self.image_avatar = self.image_avatar.resize((130, 130))
             self.image_avatar = self.image_avatar.convert("RGB")
             self.image_avatar = self.image_avatar.resize((130, 130))
         else:
-            self.image_avatar = Image.open(f"{TEMPLATE_PATH}/question-mark-icon.jpg")
+            self.image_avatar = Image.open(
+                f"{conf.TEMPLATE_PATH}/question-mark-icon.jpg"
+            )
             self.image_avatar = self.image_avatar.resize((130, 130))
 
     async def _set_background(self, session: ClientSession) -> None:
@@ -340,7 +347,7 @@ class LastStatsImCol:
             self.nickname
         ].player_details.games.cs2.skill_level
         image_lvl = Image.open(
-            f"{TEMPLATE_PATH}/faceit_icons/faceit{faceit_lvl}.png"
+            f"{conf.TEMPLATE_PATH}/faceit_icons/faceit{faceit_lvl}.png"
         ).convert("RGBA")
         image_lvl = image_lvl.resize((24, 24))
         self.image.paste(image_lvl, (155, 74), image_lvl)
@@ -422,7 +429,9 @@ class LastStatsImCol:
             stroke_fill="black",
         )
         if game.map_name in AvailableMaps:
-            current_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{game.map_name}.jpg")
+            current_map = Image.open(
+                f"{conf.TEMPLATE_PATH}/maps/cs2_{game.map_name}.jpg"
+            )
         else:
             current_map = Image.new(mode="RGBA", size=(90, 50), color="black")
 
@@ -498,7 +507,7 @@ if __name__ == "__main__":
         # player_details = await faceit_client.player_details("Ayudesee")
 
         # print(steam_app_stat)
-        last_imcol = LastStatsImCol("-NAPAD", True)
+        last_imcol = LastStatsImCol("NAPAD", True)
         imgs = await last_imcol.collect_image()
         imgs.show()
 
