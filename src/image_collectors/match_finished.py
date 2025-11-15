@@ -5,10 +5,10 @@ from typing import Literal
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
+from src import conf
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import Player, Round
 from src.discord_bot.models.embed import NickEloStorage
-from src.image_collectors import TEMPLATE_PATH
 from src.image_collectors.avatar_designer import AvatarDesigner
 from src.utils.comparators import adr_comparator, kd_comparator, mvp_comparator
 from src.utils.enums import AvailableMaps, ColorTuple, SubscribedPlayer
@@ -21,26 +21,26 @@ class MatchFinishedImCol:
     font_file_mainscore = "phagspab_0.ttf"
     fonts: dict[str, FreeTypeFont] = {
         "mainscore": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50
+            f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file_mainscore}", 50
         ),
         "avatar": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
+            f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 18
         ),
         "player_score": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32
+            f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 32
         ),
         "player_stats": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
+            f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
         ),
         "halftime": ImageFont.truetype(
-            f"{TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
+            f"{conf.TEMPLATE_PATH}/fonts/{font_folder}/{font_file}", 22
         ),
     }
     fade_for_top_pfp = Image.open(
-        f"{TEMPLATE_PATH}/background_features/fade_for_top_pfp.png"
+        f"{conf.TEMPLATE_PATH}/background_features/fade_for_top_pfp.png"
     )
     fade_for_bottom_pfp = Image.open(
-        f"{TEMPLATE_PATH}/background_features/fade_for_bottom_pfp.png"
+        f"{conf.TEMPLATE_PATH}/background_features/fade_for_bottom_pfp.png"
     )
 
     def __init__(
@@ -242,7 +242,7 @@ class MatchFinishedImCol:
     ) -> Image.Image:
         top_image, bot_image = await self._get_win_feature_images(round_)
         dark_middle = Image.open(
-            f"{TEMPLATE_PATH}/background_features/dark-middle2.png"
+            f"{conf.TEMPLATE_PATH}/background_features/dark-middle2.png"
         )
         canvas.paste(top_image, (0, 0), top_image)
         canvas.paste(bot_image, (0, 0), bot_image)
@@ -262,19 +262,21 @@ class MatchFinishedImCol:
             else second_team_win_values
         )
         image_topcolor = Image.open(
-            f"{TEMPLATE_PATH}/background_features/{actual_values[0]}-topleft.png"
+            f"{conf.TEMPLATE_PATH}/background_features/{actual_values[0]}-topleft.png"
         )
         image_botcolor = Image.open(
-            f"{TEMPLATE_PATH}/background_features/{actual_values[1]}-botleft.png"
+            f"{conf.TEMPLATE_PATH}/background_features/{actual_values[1]}-botleft.png"
         )
         return image_topcolor, image_botcolor
 
     async def _get_background(self, round_: Round) -> Image.Image:
         if round_.round_stats.map not in AvailableMaps:
-            image_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_undefined_map.jpg")
+            image_map = Image.open(f"{conf.TEMPLATE_PATH}/maps/cs2_undefined_map.jpg")
             image_map = image_map.resize((960, 540))
             return image_map
 
-        image_map = Image.open(f"{TEMPLATE_PATH}/maps/cs2_{round_.round_stats.map}.jpg")
+        image_map = Image.open(
+            f"{conf.TEMPLATE_PATH}/maps/cs2_{round_.round_stats.map}.jpg"
+        )
         image_map = image_map.resize((960, 540))
         return image_map
