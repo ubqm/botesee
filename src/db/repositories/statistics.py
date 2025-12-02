@@ -112,12 +112,13 @@ class WeeklyStatistics:
             [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=7),
             datetime.now(tz=UTC),
+            min_matches=1,
         )
         all_prev_period_week_matches = await self.get_matches(
             [player.value for player in SubscribedPlayer],
             datetime.now(tz=UTC) - timedelta(days=14),
             datetime.now(tz=UTC) - timedelta(days=7),
-            1,
+            min_matches=1,
         )
 
         for player, matches in all_latest_week_matches.items():
@@ -181,8 +182,8 @@ class WeeklyStatistics:
         player_ids: Iterable[UUID],
         from_dt: datetime,
         to_dt: datetime,
-        min_matches: int = 5,
-    ) -> dict[UUID, list[Match]]:
+        min_matches: int = 1,
+    ) -> dict[UUID, list[Match]]:  # PlayerID : list[Match]
         all_players_matches: dict[UUID, list[Match]] = {}
         for player_uuid in player_ids:
             matches = await match_repo.get_player_matches(
