@@ -80,18 +80,43 @@ services:
         condition: service_healthy
     tty: true
 
-  botesee_flower:
-    image: mher/flower
-    container_name: botesee_flower
-    command: celery flower --persistent=True
-    environment:
-      - CELERY_BROKER_URL=redis://${REDIS_HOST}:${REDIS_PORT}
-      - FLOWER_PORT=5555
-    ports:
-    - "5555:5555"
+  botesee_taskiq:
+    container_name: botesee_taskiq
+    build:
+      context: .
+      target: taskiq
+    command: "taskiq worker src.worker.tasks:broker"
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./src
+        target: /botesee/src
+    env_file:
+      - ".env"
     depends_on:
       botesee_rabbit:
         condition: service_healthy
+      botesee_redis:
+        condition: service_healthy
+    tty: true
+
+  botesee_scheduler:
+    container_name: botesee_scheduler
+    build:
+      context: .
+      target: taskiq
+    command: "taskiq scheduler src.worker.tasks:scheduler"
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./src
+        target: /botesee/src
+    env_file:
+      - ".env"
+    depends_on:
+      botesee_redis:
+        condition: service_healthy
+    tty: true
 
   botesee_redis:
     image: redis:7.2.1

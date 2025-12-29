@@ -2,13 +2,15 @@ import asyncio
 import json
 
 import httpx
-from celery import Celery
 from httpx import ReadTimeout
 from loguru import logger
 from pydantic import TypeAdapter
+from taskiq import TaskiqScheduler
+from taskiq.middlewares import SmartRetryMiddleware
+from taskiq.schedule_sources import LabelScheduleSource
+from taskiq_redis import RedisStreamBroker
 
 from src import conf
-from src.celery_app.celeryconfig import celery_config
 from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
@@ -18,13 +20,24 @@ from src.utils.shared_models import DetailsMatchDict
 from src.web.dependencies import get_rabbit
 from src.web.models.events import MatchFinished, MatchReady
 
-app = Celery(broker=conf.redis_string)
-app.config_from_object(celery_config)
-event_loop = asyncio.new_event_loop()
+broker = RedisStreamBroker(
+    url=conf.redis_string,
+).with_middlewares(
+    SmartRetryMiddleware(
+        default_retry_count=5,
+        default_delay=5,
+        use_jitter=True,
+        use_delay_exponent=True,
+        max_delay_exponent=60,
+        types_of_exceptions=(ReadTimeout,),
+    ),
+)
+scheduler = TaskiqScheduler(broker, sources=[LabelScheduleSource(broker)])
 
 
-async def _score_update(match_ready: MatchReady) -> None:
-    rabbit = await get_rabbit()
+@broker.task()
+async def match_score_update(match_ready: MatchReady) -> None:
+    rabbit: RabbitClient = await get_rabbit()
     async with rabbit:
         while True:
             await asyncio.sleep(20)
@@ -47,19 +60,8 @@ async def _score_update(match_ready: MatchReady) -> None:
                 )
 
 
-@app.task(
-    name="match_score_update",
-    autoretry_for=(ReadTimeout,),
-    retry_kwargs={"max_retries": 5, "countdown": 5},
-)
-def match_score_update(match_ready_dict: dict) -> None:
-    match_ready = MatchReady(**match_ready_dict)
-    logger.info(f"Started score fetching for {match_ready.payload.id}")
-    event_loop.run_until_complete(_score_update(match_ready))
-    logger.info(f"Stopped score fetching for {match_ready.payload.id}")
-
-
-async def _match_finished(match: MatchFinished) -> None:
+@broker.task()
+async def match_finished(match: MatchFinished) -> None:
     statistics = await faceit_client.match_stats(match.payload.id)
     await db_match_finished(match, statistics)
     rabbit: RabbitClient = await get_rabbit()
@@ -69,18 +71,7 @@ async def _match_finished(match: MatchFinished) -> None:
         )
 
 
-@app.task(
-    name="match_finished",
-    autoretry_for=(ReadTimeout,),
-    retry_kwargs={"max_retries": 5, "countdown": 5},
-    acks_late=True,
-)
-def match_finished(match_finished_dict: dict) -> None:
-    match = MatchFinished(**match_finished_dict)
-    logger.info(f"Match finished {match.payload.id}")
-    event_loop.run_until_complete(_match_finished(match))
-
-
+@broker.task(schedule=[{"cron": "59 23 * * sun", "cron_offset": "Europe/Minsk"}])
 async def _weekly_stats() -> None:
     rabbit: RabbitClient = await get_rabbit()
 
@@ -90,15 +81,3 @@ async def _weekly_stats() -> None:
             message=TypeAdapter(list[WeeklyStats]).dump_json(info).decode(),
             routing_key=QueueName.WEEKLY_STATS,
         )
-
-
-@app.task(
-    name="weekly_stats",
-    autoretry_for=(ReadTimeout,),
-    retry_kwargs={"max_retries": 5, "countdown": 5},
-    acks_late=True,
-)
-def weekly_stats() -> None:
-    logger.info("Weekly stats started")
-    event_loop.run_until_complete(_weekly_stats())
-    logger.info("Weekly stats finished")

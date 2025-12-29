@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -36,6 +36,6 @@ class MatchReady(BaseMatch):
 
 
 WebhookMatch = Annotated[
-    Union[MatchAborted, MatchCancelled, MatchFinished, MatchReady],
+    MatchAborted | MatchCancelled | MatchFinished | MatchReady,
     Field(discriminator="event"),
 ]

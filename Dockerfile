@@ -33,6 +33,5 @@ COPY uvicorn_log_conf.json uvicorn_log_conf.json
 RUN chmod +x web.sh
 ENTRYPOINT ["./web.sh"]
 
-# Celery
-FROM final AS celery
-CMD ["celery", "-A", "src.celery_app.tasks.app", "worker", "-B", "-l", "INFO", "--autoscale=20,4"]
+# taskiq
+FROM final AS taskiq

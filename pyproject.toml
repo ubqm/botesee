@@ -35,6 +35,8 @@ dependencies = [
     "pydantic-settings>=2.11.0",
     "pytz>=2025.2",
     "sqlalchemy>=2.0.44",
+    "taskiq>=0.12.1",
+    "taskiq-redis>=1.2.1",
     "uvicorn>=0.38.0",
 ]
 
