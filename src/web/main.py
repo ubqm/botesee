@@ -16,12 +16,12 @@ from pydantic import BaseModel
 from starlette.staticfiles import StaticFiles
 
 from src import conf
-from src.celery_app.tasks import match_finished, match_score_update
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.rabbit import RabbitClient
 from src.web.dependencies import get_rabbit
 from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
+from src.worker.tasks import match_finished, match_score_update
 
 logger.add("events.log", rotation="1 week")
 app = FastAPI(
@@ -98,12 +98,12 @@ async def faceit_webhook(
 
     match match.event:
         case EventEnum.CONFIGURING:
-            match_score_update.delay(match.dict())
+            await match_score_update.kiq(match)
             background_tasks.add_task(
                 rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
             )
         case EventEnum.FINISHED:
-            match_finished.delay(match.dict())
+            await match_finished.kiq(match)
         case _:
             background_tasks.add_task(
                 rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
