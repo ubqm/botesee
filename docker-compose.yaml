@@ -65,21 +65,6 @@ services:
         target: /botesee/src
     tty: true
 
-  botesee_celery:
-    container_name: botesee_celery
-    build:
-      context: .
-      target: celery
-    restart: on-failure
-    env_file:
-      - ".env"
-    depends_on:
-      botesee_rabbit:
-        condition: service_healthy
-      botesee_redis:
-        condition: service_healthy
-    tty: true
-
   botesee_taskiq:
     container_name: botesee_taskiq
     build:
