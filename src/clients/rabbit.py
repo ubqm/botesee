@@ -1,6 +1,5 @@
 import asyncio
 import json
-from asyncio import AbstractEventLoop
 from typing import Self
 
 import aio_pika
@@ -20,17 +19,12 @@ from src.web.models.events import MatchReady, WebhookMatch
 
 
 class RabbitClient:
-    def __init__(
-        self, host: str, port: int, user: str, password: str, loop: AbstractEventLoop
-    ):
+    def __init__(self, host: str, port: int, user: str, password: str):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
-        self.loop: AbstractEventLoop = loop
-        self.connection_pool: Pool = Pool(
-            self._get_connection, max_size=1, loop=self.loop
-        )
+        self.connection_pool: Pool = Pool(self._get_connection, max_size=1)
 
     async def _get_connection(self) -> RobustConnection:
         return await aio_pika.connect(  # noqa
@@ -38,7 +32,6 @@ class RabbitClient:
             port=self.port,
             login=self.user,
             password=self.password,
-            loop=self.loop,
             timeout=30,
         )
 
@@ -67,16 +60,14 @@ class RabbitWorker:
         user: str,
         password: str,
         discord: DiscordClient,
-        loop: AbstractEventLoop,
     ):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
         self.discord = discord
-        self.loop: AbstractEventLoop = loop
-        self.connection_pool: Pool = Pool(self._get_connection, max_size=2, loop=loop)
-        self.channel_pool: Pool = Pool(self._get_channel, max_size=2, loop=loop)
+        self.connection_pool: Pool = Pool(self._get_connection, max_size=2)
+        self.channel_pool: Pool = Pool(self._get_channel, max_size=2)
 
     async def _get_connection(self) -> AbstractRobustConnection:
         return await aio_pika.connect_robust(
@@ -84,7 +75,6 @@ class RabbitWorker:
             port=self.port,
             login=self.user,
             password=self.password,
-            loop=self.loop,
         )
 
     async def _get_channel(self) -> aio_pika.Channel:
