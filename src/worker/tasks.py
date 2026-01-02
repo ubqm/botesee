@@ -65,10 +65,7 @@ async def match_finished(match: MatchFinished) -> None:
     statistics = await faceit_client.match_stats(match.payload.id)
     await db_match_finished(match, statistics)
     rabbit: RabbitClient = await get_rabbit()
-    async with rabbit:
-        await rabbit.publish(
-            message=match.model_dump_json(), routing_key=QueueName.MATCHES
-        )
+    await rabbit.publish(message=match.model_dump_json(), routing_key=QueueName.MATCHES)
 
 
 @broker.task(schedule=[{"cron": "59 23 * * sun", "cron_offset": "Europe/Minsk"}])
@@ -76,8 +73,7 @@ async def _weekly_stats() -> None:
     rabbit: RabbitClient = await get_rabbit()
 
     info = await WeeklyStatistics().get_weekly_stats()
-    async with rabbit:
-        await rabbit.publish(
-            message=TypeAdapter(list[WeeklyStats]).dump_json(info).decode(),
-            routing_key=QueueName.WEEKLY_STATS,
-        )
+    await rabbit.publish(
+        message=TypeAdapter(list[WeeklyStats]).dump_json(info).decode(),
+        routing_key=QueueName.WEEKLY_STATS,
+    )
