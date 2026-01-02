@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from taskiq import TaskiqScheduler
 from taskiq.middlewares import SmartRetryMiddleware
 from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_redis import RedisStreamBroker
+from taskiq_redis import ListQueueBroker
 
 from src import conf
 from src.clients.faceit import faceit_client
@@ -20,7 +20,7 @@ from src.utils.shared_models import DetailsMatchDict
 from src.web.dependencies import get_rabbit
 from src.web.models.events import MatchFinished, MatchReady
 
-broker = RedisStreamBroker(
+broker = ListQueueBroker(
     url=conf.redis_string,
 ).with_middlewares(
     SmartRetryMiddleware(
