@@ -22,6 +22,7 @@ from src.web.models.events import MatchFinished, MatchReady
 
 broker = RedisStreamBroker(
     url=conf.redis_string,
+    task_max_retries=0,
 ).with_middlewares(
     SmartRetryMiddleware(
         default_retry_count=5,
@@ -35,9 +36,7 @@ broker = RedisStreamBroker(
 scheduler = TaskiqScheduler(broker, sources=[LabelScheduleSource(broker)])
 
 
-@broker.task(
-    task_timeout=5400,  # 1.5 hour timeout
-)
+@broker.task()
 async def match_score_update(match_ready: MatchReady) -> None:
     rabbit: RabbitClient = await get_rabbit()
     async with rabbit:
