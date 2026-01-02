@@ -35,7 +35,9 @@ broker = RedisStreamBroker(
 scheduler = TaskiqScheduler(broker, sources=[LabelScheduleSource(broker)])
 
 
-@broker.task()
+@broker.task(
+    task_timeout=5400,  # 1.5 hour timeout
+)
 async def match_score_update(match_ready: MatchReady) -> None:
     rabbit: RabbitClient = await get_rabbit()
     async with rabbit:
