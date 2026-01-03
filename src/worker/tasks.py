@@ -38,26 +38,24 @@ scheduler = TaskiqScheduler(broker, sources=[LabelScheduleSource(broker)])
 @broker.task(max_retries=0)
 async def match_score_update(match_ready: MatchReady) -> None:
     rabbit: RabbitClient = await get_rabbit()
-    async with rabbit:
-        while True:
-            await asyncio.sleep(20)
-            try:
-                match_details = await faceit_client.match_details(
-                    match_ready.payload.id
-                )
-            except httpx.PoolTimeout as e:
-                logger.exception(f"{e}", exc_info=e)
-            else:
-                if match_details.finished_at:
-                    break
 
-                details_match_dict: DetailsMatchDict = DetailsMatchDict(
-                    match_details=match_details, match_ready=match_ready
-                )
-                await rabbit.publish(
-                    json.dumps(details_match_dict.model_dump_json()),
-                    routing_key=QueueName.UPDATE_SCORE,
-                )
+    while True:
+        await asyncio.sleep(20)
+        try:
+            match_details = await faceit_client.match_details(match_ready.payload.id)
+        except httpx.PoolTimeout as e:
+            logger.exception(f"{e}", exc_info=e)
+        else:
+            if match_details.finished_at:
+                break
+
+            details_match_dict: DetailsMatchDict = DetailsMatchDict(
+                match_details=match_details, match_ready=match_ready
+            )
+            await rabbit.publish(
+                json.dumps(details_match_dict.model_dump_json()),
+                routing_key=QueueName.UPDATE_SCORE,
+            )
 
 
 @broker.task()
