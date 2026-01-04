@@ -117,9 +117,9 @@ class LastStatsImCol:
         map_score: str = match_round.round_stats.score
         end_score_numbers: list[int] = [int(el.strip()) for el in map_score.split("/")]
         sorted_score: str = (
-            f"{max(end_score_numbers)} / {min(end_score_numbers)}"
+            f"{max(end_score_numbers)} — {min(end_score_numbers)}"
             if player_stats.result
-            else f"{min(end_score_numbers)} / {max(end_score_numbers)}"
+            else f"{min(end_score_numbers)} — {max(end_score_numbers)}"
         )
 
         enemy_players = match_round.get_enemy_players(

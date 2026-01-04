@@ -221,12 +221,7 @@ class WeeklyStatsDesigner:
             return f"{latest_period_stat}"
 
         delta_stat = latest_period_stat - prev_period_stat
-        if delta_stat == 0:
-            return f"{latest_period_stat}"
-        elif delta_stat < 0:
-            return f"{latest_period_stat}({delta_stat})"
-        else:
-            return f"{latest_period_stat}(+{delta_stat})"
+        return f"{latest_period_stat}({delta_stat:+})"
 
     def _get_delta_text(
         self, latest_period_stat: Decimal | int, prev_period_stat: Decimal | int | None
@@ -235,12 +230,7 @@ class WeeklyStatsDesigner:
             return ""
 
         delta_stat = latest_period_stat - prev_period_stat
-        if delta_stat == 0:
-            return ""
-        elif delta_stat < 0:
-            return f"({delta_stat})"
-        else:
-            return f"(+{delta_stat})"
+        return f"({delta_stat:+})"
 
     def _get_delta_color(
         self, latest_period_stat: Decimal | int, prev_period_stat: Decimal | int | None
