@@ -1,6 +1,7 @@
 from taskiq import TaskiqScheduler
 from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_faststream import BrokerWrapper
+from taskiq_faststream.types import ScheduledTask
 
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.redis_broker import redis_broker
@@ -11,9 +12,10 @@ taskiq_broker.task(
     message=None,
     channel=QueueName.WEEKLY_STATS,
     schedule=[
-        {
-            "cron": "59 23 * * sun",
-        }
+        ScheduledTask(
+            cron="59 23 * * sun",
+            cron_offset="Europe/Minsk",
+        ),
     ],
     task_name="weekly_stats_cron",
 )
