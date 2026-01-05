@@ -1,2 +1,0 @@
-class StartMessageNotFoundException(Exception):
-    pass

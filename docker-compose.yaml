@@ -18,19 +18,6 @@ services:
       timeout: 60s
       retries: 60
 
-  botesee_rabbit:
-    container_name: botesee_rabbit
-    image: rabbitmq:3.11.8-management
-    restart: on-failure
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_listener 5672
-      interval: 3s
-      timeout: 60s
-      retries: 20
-
   botesee_discord:
     container_name: botesee_discord
     build:
@@ -40,8 +27,6 @@ services:
     env_file:
       - ".env"
     depends_on:
-      botesee_rabbit:
-        condition: service_healthy
       botesee_redis:
         condition: service_healthy
     tty: true
@@ -65,32 +50,12 @@ services:
         target: /botesee/src
     tty: true
 
-  botesee_taskiq:
-    container_name: botesee_taskiq
-    build:
-      context: .
-      target: taskiq
-    command: "taskiq worker src.worker.tasks:broker"
-    restart: on-failure
-    volumes:
-      - type: bind
-        source: ./src
-        target: /botesee/src
-    env_file:
-      - ".env"
-    depends_on:
-      botesee_rabbit:
-        condition: service_healthy
-      botesee_redis:
-        condition: service_healthy
-    tty: true
-
   botesee_scheduler:
     container_name: botesee_scheduler
     build:
       context: .
       target: taskiq
-    command: "taskiq scheduler src.worker.tasks:scheduler"
+    command: "taskiq scheduler src.cronjobs.tasks:scheduler"
     restart: on-failure
     volumes:
       - type: bind
@@ -109,7 +74,11 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: [ "CMD", "redis-cli","ping" ]
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 60s
+      retries: 60
+
 
 volumes:
   botesee_postgres:

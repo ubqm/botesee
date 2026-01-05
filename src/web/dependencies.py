@@ -1,8 +1,7 @@
-from src import conf
-from src.clients.rabbit import RabbitClient
+from faststream.redis import RedisBroker
+
+from src.clients.redis_broker import redis_broker
 
 
-async def get_rabbit() -> RabbitClient:
-    return RabbitClient(
-        conf.RABBIT_HOST, conf.RABBIT_PORT, conf.RABBIT_USER, conf.RABBIT_PASSWORD
-    )
+async def get_broker() -> RedisBroker:
+    return redis_broker

@@ -8,9 +8,10 @@ from src.discord_bot.client import DiscordClient, discord_client
 class MockedDiscordClient(DiscordClient):
     def __init__(self):
         super().__init__(faceit_channel_id=1, intents=discord.Intents.all())
-        self.faceit_channel = True
+        self.faceit_channel = False
 
     async def on_ready(self, *args, **kwargs):
+        self.faceit_channel = True
         logger.info("on_ready Mocked Discord Client")
 
     @staticmethod
@@ -56,8 +57,13 @@ class MockedDiscordClient(DiscordClient):
     async def update_score_for_match(self, *args, **kwargs):
         logger.info("update_score_for_match Mocked Discord Client")
 
+    async def send_test_message(self):
+        logger.info("send_test_message Mocked Discord Client")
+
 
 def discord_factory(env: EnvType) -> DiscordClient:
+    logger.info(f"Instantiating Discord Client for {env}")
+
     match env:
         case EnvType.PROD:
             return discord_client

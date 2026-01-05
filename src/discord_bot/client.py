@@ -14,6 +14,7 @@ from discord import (
     app_commands,
 )
 from loguru import logger
+from PIL.Image import Image
 from pytz import timezone
 
 from src.clients.faceit import faceit_client
@@ -140,13 +141,12 @@ class DiscordClient(discord.Client):
         self.faceit_channel = self.get_channel(self.faceit_channel_id)
 
     @staticmethod
-    def compile_binary_image(image):
-        if image is not None:
-            with BytesIO() as image_binary:
-                image.save(image_binary, "PNG")
-                image_binary.seek(0)
-                binary_image = discord.File(fp=image_binary, filename="image.png")
-                return binary_image
+    def compile_binary_image(image: Image) -> discord.File:
+        with BytesIO() as image_binary:
+            image.save(image_binary, "PNG")
+            image_binary.seek(0)
+            binary_image = discord.File(fp=image_binary, filename="image.png")
+            return binary_image
 
     @staticmethod
     def is_contains_media(message: discord.Message) -> bool:
@@ -158,14 +158,6 @@ class DiscordClient(discord.Client):
                 message.embeds,
             )
         )
-
-    @staticmethod
-    def is_stats_request(content: list) -> bool:
-        return bool(re.search("^[.]stats?$", content[0]) and len(content) == 2)
-
-    @staticmethod
-    def is_compare_request(content: list) -> bool:
-        return bool(re.search(r"^[.]compare$", content[0])) and (len(content) in (3, 5))
 
     async def on_message(self, message) -> None:
         if not self.faceit_channel:
@@ -189,7 +181,7 @@ class DiscordClient(discord.Client):
     async def on_raw_reaction_remove(self, payload: RawReactionActionEvent) -> None:
         await self._handle_reaction_event(payload)
 
-    async def _handle_reaction_event(self, payload: RawReactionActionEvent):
+    async def _handle_reaction_event(self, payload: RawReactionActionEvent) -> None:
         upvotes = downvotes = 0
         if payload.emoji.name not in ("👍", "👎"):
             return

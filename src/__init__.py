@@ -50,7 +50,7 @@ class Settings(BaseSettings):
             data = tl.load(pyproj_file)
             return data.get("project", {}).get("version", "0.0.1")
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 conf = Settings()
