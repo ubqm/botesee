@@ -21,6 +21,7 @@ from src import conf
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.redis_broker import redis_broker
 from src.web.dependencies import get_broker
+from src.web.models.base import EventEnum
 from src.web.models.events import WebhookMatch
 
 # from src.worker.tasks import match_finished, match_score_update
@@ -107,5 +108,8 @@ async def faceit_webhook(
     logger.info(f"{match.json()}")
 
     await broker.publish(match, channel=QueueName.MATCHES)
+
+    if match.event == EventEnum.CONFIGURING:
+        await broker.publish(match, channel=QueueName.UPDATE_SCORE)
 
     return OKResponse()

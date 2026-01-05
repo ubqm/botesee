@@ -196,7 +196,7 @@ class MatchFinishedImCol:
             else 0
         )
 
-        return f"({elo_change:+}"
+        return f"({elo_change:+})"
 
     async def _draw_game_score(self, round_: Round, canvas: Image.Image) -> None:
         await self._draw_final_score(round_, canvas)

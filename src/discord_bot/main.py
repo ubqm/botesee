@@ -10,9 +10,8 @@ from src.clients.redis_broker import redis_broker
 from src.db.repositories.statistics import WeeklyStatistics
 from src.db.script import db_match_finished
 from src.discord_bot.discord_factory import discord_factory
-from src.utils.shared_models import DetailsMatchDict
 from src.web.models.base import EventEnum
-from src.web.models.events import WebhookMatch
+from src.web.models.events import MatchReady, WebhookMatch
 
 faststream_app = FastStream(redis_broker)
 discord_client = discord_factory(conf.ENV)
@@ -30,13 +29,13 @@ async def setup():
 
 
 @redis_broker.subscriber(QueueName.UPDATE_SCORE)
-async def process_match_ready(details_and_match: DetailsMatchDict) -> None:
-    match_details = details_and_match.match_details
-    match_ready = details_and_match.match_ready
-
-    while not match_details.finished_at:
+async def process_match_ready(match_ready: MatchReady) -> None:
+    while True:
         await asyncio.sleep(20)
         match_details = await faceit_client.match_details(match_ready.payload.id)
+
+        if match_details.finished_at:
+            return
 
         await discord_client.update_score_for_match(
             match_details=match_details, match_ready=match_ready
