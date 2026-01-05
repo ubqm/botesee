@@ -1,5 +1,6 @@
+from contextlib import asynccontextmanager
+
 from fastapi import (
-    BackgroundTasks,
     Depends,
     FastAPI,
     Header,
@@ -11,17 +12,26 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
+from faststream.redis import RedisBroker
 from loguru import logger
 from pydantic import BaseModel
 from starlette.staticfiles import StaticFiles
 
 from src import conf
 from src.clients.models.rabbit.queues import QueueName
-from src.clients.rabbit import RabbitClient
-from src.web.dependencies import get_rabbit
-from src.web.models.base import EventEnum
+from src.clients.redis_broker import redis_broker
+from src.web.dependencies import get_broker
 from src.web.models.events import WebhookMatch
-from src.worker.tasks import match_finished, match_score_update
+
+# from src.worker.tasks import match_finished, match_score_update
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await redis_broker.connect()
+    yield
+    await redis_broker.stop()
+
 
 logger.add("events.log", rotation="1 week")
 app = FastAPI(
@@ -29,6 +39,7 @@ app = FastAPI(
     version=conf.project_version,
     docs_url="/server-docs",
     redoc_url=None,
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -91,22 +102,10 @@ async def health() -> OKResponse:
 )
 async def faceit_webhook(
     match: WebhookMatch,
-    background_tasks: BackgroundTasks,
-    rabbit: RabbitClient = Depends(get_rabbit),
+    broker: RedisBroker = Depends(get_broker),
 ) -> OKResponse:
     logger.info(f"{match.json()}")
 
-    match match.event:
-        case EventEnum.CONFIGURING:
-            await match_score_update.kiq(match)
-            background_tasks.add_task(
-                rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
-            )
-        case EventEnum.FINISHED:
-            await match_finished.kiq(match)
-        case _:
-            background_tasks.add_task(
-                rabbit.publish, message=match.json(), routing_key=QueueName.MATCHES
-            )
+    await broker.publish(match, channel=QueueName.MATCHES)
 
     return OKResponse()
