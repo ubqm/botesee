@@ -57,7 +57,7 @@ async def process_match(match: WebhookMatch) -> None:
         case EventEnum.CANCELLED | EventEnum.ABORTED:
             await discord_client.post_faceit_message_aborted(match)
         case EventEnum.FINISHED:
-            if db_match_exists(match.payload.id):
+            if await db_match_exists(match.payload.id):
                 logger.info(
                     "Skipped processing of EventEnum.FINISHED "
                     "because Match is already in Database"
