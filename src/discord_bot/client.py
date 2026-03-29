@@ -229,7 +229,7 @@ class DiscordClient(discord.Client):
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
 
-        if redis_repo.db_match_exists():
+        if redis_repo.match_exists(match.payload.id):
             logger.info(
                 "Skipped processing of EventEnum.READY "
                 "because Match is already in Redis"
