@@ -228,6 +228,14 @@ class DiscordClient(discord.Client):
     async def post_faceit_message_ready(self, match: MatchReady) -> None:
         if not self.faceit_channel:
             raise ConnectionError("Discord is not initialized yet")
+
+        if redis_repo.db_match_exists():
+            logger.info(
+                "Skipped processing of EventEnum.READY "
+                "because Match is already in Redis"
+            )
+            return None
+
         nick_elo_1 = await get_nicks_and_elo(
             match.payload.teams[0].roster, game=match.payload.game
         )

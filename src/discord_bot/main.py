@@ -8,7 +8,7 @@ from src.clients.faceit import faceit_client
 from src.clients.models.rabbit.queues import QueueName
 from src.clients.redis_broker import redis_broker
 from src.db.repositories.statistics import WeeklyStatistics
-from src.db.script import db_match_finished
+from src.db.script import db_match_exists, db_match_finished
 from src.discord_bot.discord_factory import discord_factory
 from src.web.models.base import EventEnum
 from src.web.models.events import MatchReady, WebhookMatch
@@ -57,6 +57,13 @@ async def process_match(match: WebhookMatch) -> None:
         case EventEnum.CANCELLED | EventEnum.ABORTED:
             await discord_client.post_faceit_message_aborted(match)
         case EventEnum.FINISHED:
+            if db_match_exists(match.payload.id):
+                logger.info(
+                    "Skipped processing of EventEnum.FINISHED "
+                    "because Match is already in Database"
+                )
+                return None
+
             statistics = await faceit_client.match_stats(match.payload.id)
             await db_match_finished(match, statistics)
             await discord_client.post_faceit_message_finished(match)

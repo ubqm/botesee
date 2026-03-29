@@ -1,6 +1,8 @@
+from uuid import UUID
+
 from src.clients.faceit import faceit_client
 from src.clients.models.faceit.match_stats import MatchStatistics
-from src.db import session_maker
+from src.db import Match, session_maker
 from src.db.repositories.elo import elo_repo
 from src.db.repositories.gambling import gambling_repo
 from src.db.repositories.match import match_repo
@@ -34,7 +36,12 @@ async def db_match_finished(match: MatchFinished, statistics: MatchStatistics) -
                             player_details.games, f"{match.payload.game}"
                         ).faceit_elo,
                     )
+
         await gambling_repo.make_payout(
             session=sa_session, match=match, statistics=statistics
         )
         await sa_session.commit()
+
+
+async def db_match_exists(match_uuid: str | UUID) -> Match | None:
+    return await match_repo.get(match_uuid=match_uuid)

@@ -28,6 +28,11 @@ class MatchRepository:
             session.add(match)
         return match
 
+    async def get(self, match_uuid: str | UUID) -> Match | None:
+        stmt = select(Match).where(Match.id == str(match_uuid))
+        async with session_maker() as session:
+            return await session.scalar(stmt)
+
     async def get_stats(self, match_ids: list[str]) -> list[MatchStatistics]:
         stmt = (
             select(Match.stats)
